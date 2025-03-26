@@ -141,6 +141,7 @@ class Game:
             _, distances = car.get_rays_and_distances(TRACK_BORDER_MASK)
             car_distances = car.get_distances_to_cars(self.cars)
             car.perform_action(car.choose_action([distances, car_distances, car.get_progress(), CHECKPOINTS]))
+
     def run(self):
         """Main game loop."""
         who_finished_first = []

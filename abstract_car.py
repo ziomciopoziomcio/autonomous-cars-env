@@ -8,6 +8,7 @@ FONT = pygame.font.Font(None, 24)  # Use a default font with size 24
 
 max_vel = 8
 rotation_vel = 4
+
 class AbstractCar:
     def __init__(self, name):
         self.img = None
@@ -27,41 +28,17 @@ class AbstractCar:
         """Get the center point of the car."""
         return self.x + self.img.get_width() // 2, self.y + self.img.get_height() // 2
 
-    def get_distances_to_cars(self, other_cars, max_distance=200):
+    def get_distances_to_cars(self, other_cars):
         """
-        Calculate distances to other cars from 8 directions (every 45 degrees).
+        Calculate the Euclidean distances to other cars.
         """
-        center_x, center_y = self.get_center()
-        angle_rad = -math.radians(self.angle)
-
-        angles = [self.angle + i * 45 for i in range(8)]  # 0°, 45°, ..., 315°
         distances = []
-
-        for angle in angles:
-            radians = angle_rad + math.radians(angle)
-            ray_dx = math.cos(radians)
-            ray_dy = math.sin(radians)
-
-            # Cast the ray
-            distance = max_distance
-            for d in range(max_distance):
-                test_x = center_x + ray_dx * d
-                test_y = center_y - ray_dy * d  # Invert Y for Pygame
-
-                # Check collision with other cars
-                for other_car in other_cars:
-                    if other_car is not self:  # Don't check self-collision
-                        offset_x = int(test_x - other_car.x)
-                        offset_y = int(test_y - other_car.y)
-                        if other_car.mask.overlap(self.mask, (offset_x, offset_y)):
-                            distance = d  # Stop at the first intersection
-                            break
-                else:
-                    continue  # Continue checking distances
-                break  # Break out if collision is found
-
-            distances.append(distance)
-
+        for other_car in other_cars:
+            if other_car is not self:
+                center_x1, center_y1 = self.get_center()
+                center_x2, center_y2 = other_car.get_center()
+                distance = math.sqrt((center_x2 - center_x1) ** 2 + (center_y2 - center_y1) ** 2)
+                distances.append(distance)
         return distances
 
     def set_image(self, img):
