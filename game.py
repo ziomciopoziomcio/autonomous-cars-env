@@ -99,6 +99,13 @@ class Game:
             car.draw(self.win)
             car.draw_rays(self.win, TRACK_BORDER_MASK)
 
+        # Draw rays between cars
+        for i, car1 in enumerate(self.cars):
+            for j, car2 in enumerate(self.cars):
+                if i < j:
+                    center1 = car1.get_center()
+                    center2 = car2.get_center()
+                    pygame.draw.line(self.win, (255, 0, 0), center1, center2, 2)
 
         pygame.display.update()
 
