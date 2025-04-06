@@ -72,6 +72,8 @@ class Game:
         self.zoom = 1.0
         self.offset_x = 0
         self.offset_y = 0
+        # Rays beetween cars
+        self.car_rays = []
 
     def add_car(self, car):
         """Add a car to the game."""
@@ -94,6 +96,16 @@ class Game:
         car.reset()
         self.cars.append(car)
 
+    def calculate_car_rays(self):
+        """Calculate the rays between cars and store them."""
+        self.car_rays = []
+        for i, car1 in enumerate(self.cars):
+            for j, car2 in enumerate(self.cars):
+                if i < j:
+                    center1 = car1.get_center()
+                    center2 = car2.get_center()
+                    self.car_rays.append((center1, center2))
+
     def draw(self):
         """Draw the background and all cars."""
         for img, pos in self.images:
@@ -106,14 +118,12 @@ class Game:
             car.draw_rays(self.win, TRACK_BORDER_MASK, self.zoom, self.offset_x, self.offset_y)
 
         # Draw rays between cars
-        for i, car1 in enumerate(self.cars):
-            for j, car2 in enumerate(self.cars):
-                if i < j:
-                    center1 = car1.get_center()
-                    center2 = car2.get_center()
-                    pygame.draw.line(self.win, (255, 0, 0), center1, center2, 2)
+        for ray in self.car_rays:
+            start_pos = (ray[0][0] * self.zoom + self.offset_x, ray[0][1] * self.zoom + self.offset_y)
+            end_pos = (ray[1][0] * self.zoom + self.offset_x, ray[1][1] * self.zoom + self.offset_y)
+            pygame.draw.line(self.win, (255, 0, 0), start_pos, end_pos, 2)
 
-        pygame.display.update()
+    pygame.display.update()
 
     def check_collisions(self):
 
@@ -192,6 +202,7 @@ class Game:
             if len(finish_lines) != 0:
                 who_finished_first.append(finish_lines)
 
+            self.calculate_car_rays()
             self.draw()
 
 
