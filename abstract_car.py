@@ -55,16 +55,22 @@ class AbstractCar:
             self.angle -= self.rotation_vel
         self.move()
 
-    def draw(self, win):
-        blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
+    def draw(self, win, zoom, offset_x, offset_y):
+        rotated_image = pygame.transform.rotate(self.img, self.angle)
+        new_rect = rotated_image.get_rect(center=(self.x * zoom + offset_x, self.y * zoom + offset_y))
+        win.blit(rotated_image, new_rect.topleft)
 
-    def draw_rays(self, win, mask):
+    def draw_rays(self, win, mask, zoom, offset_x, offset_y):
         # Get rays and distances
         rays, distances = self.get_rays_and_distances(mask)
 
+        # for ray in rays:
+        #     start_x, start_y, end_x, end_y = ray
+        #     pygame.draw.line(win, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
         for ray in rays:
-            start_x, start_y, end_x, end_y = ray
-            pygame.draw.line(win, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
+            start_pos = (ray[0][0] * zoom + offset_x, ray[0][1] * zoom + offset_y)
+            end_pos = (ray[1][0] * zoom + offset_x, ray[1][1] * zoom + offset_y)
+            pygame.draw.line(win, (255, 0, 0), start_pos, end_pos, 1)
 
         # Display distances as text
         directions = [
@@ -151,7 +157,7 @@ class AbstractCar:
                 # Check if the ray intersects the border
                 if 0 <= test_x < max_width and 0 <= test_y < max_height:
                     if mask.get_at((test_x, test_y)) == 1:  # Collision detected
-                        rays.append((center_x, center_y, test_x, test_y))
+                        rays.append(((center_x, center_y), (test_x, test_y)))
                         distances.append(ray_length)
                         break
                 else:
@@ -164,7 +170,7 @@ class AbstractCar:
                 # If no collision, the ray ends at its maximum length
                 test_x = int(center_x + max_length * dx)
                 test_y = int(center_y + max_length * dy)
-                rays.append((center_x, center_y, test_x, test_y))
+                rays.append(((center_x, center_y), (test_x, test_y)))
                 distances.append(max_length)
 
         return rays, distances

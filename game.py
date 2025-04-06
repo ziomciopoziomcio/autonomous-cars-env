@@ -68,6 +68,10 @@ class Game:
         self.images = [(GRASS, (0, 0)), (TRACK, (0, 0)),
           (FINISH, FINISH_POSITION), (TRACK_BORDER, (0, 0))]
         self.running = True
+        # Dynamic camera
+        self.zoom = 1.0
+        self.offset_x = 0
+        self.offset_y = 0
 
     def add_car(self, car):
         """Add a car to the game."""
@@ -93,11 +97,13 @@ class Game:
     def draw(self):
         """Draw the background and all cars."""
         for img, pos in self.images:
-            self.win.blit(img, pos)
+            scaled_img = pygame.transform.scale(img,
+                                                (int(img.get_width() * self.zoom), int(img.get_height() * self.zoom)))
+            self.win.blit(scaled_img, (pos[0] * self.zoom + self.offset_x, pos[1] * self.zoom + self.offset_y))
 
         for car in self.cars:
-            car.draw(self.win)
-            car.draw_rays(self.win, TRACK_BORDER_MASK)
+            car.draw(self.win, self.zoom, self.offset_x, self.offset_y)
+            car.draw_rays(self.win, TRACK_BORDER_MASK, self.zoom, self.offset_x, self.offset_y)
 
         # Draw rays between cars
         for i, car1 in enumerate(self.cars):
@@ -149,6 +155,21 @@ class Game:
             car_distances = car.get_distances_to_cars(self.cars)
             car.perform_action(car.choose_action([distances, car_distances, car.get_progress(), CHECKPOINTS]))
 
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 4:  # Scroll up
+                    self.zoom += 0.1
+                elif event.button == 5:  # Scroll down
+                    self.zoom = max(0.1, self.zoom - 0.1)
+
+    def center_on_car(self, car):
+        center_x, center_y = car.get_center()
+        self.offset_x = self.win.get_width() // 2 - center_x * self.zoom
+        self.offset_y = self.win.get_height() // 2 - center_y * self.zoom
+
     def run(self):
         """Main game loop."""
         who_finished_first = []
@@ -161,7 +182,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
 
-
+            for car in self.cars:
+                self.center_on_car(car)
+                break  # Center on the first car only
 
             self.move_cars()
             self.check_collisions()
