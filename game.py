@@ -108,6 +108,8 @@ class Game:
 
     def draw(self):
         """Draw the background and all cars."""
+        self.win.fill((0, 0, 0))
+
         for img, pos in self.images:
             scaled_img = pygame.transform.scale(img,
                                                 (int(img.get_width() * self.zoom), int(img.get_height() * self.zoom)))
