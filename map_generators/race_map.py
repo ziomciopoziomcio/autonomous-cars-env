@@ -48,8 +48,92 @@ layers_list = pygame_gui.elements.UISelectionList(
     container=layers_panel
 )
 
+# Add buttons for "Draw Tool" options
+point_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect(240, 10, 100, 30),
+    text='Point',
+    manager=manager,
+    container=toolbar_panel,
+    visible=False  # Initially hidden
+)
+
+road_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect(350, 10, 100, 30),
+    text='Road',
+    manager=manager,
+    container=toolbar_panel,
+    visible=False  # Initially hidden
+)
+
+finish_line_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect(460, 10, 100, 30),
+    text='Finish Line',
+    manager=manager,
+    container=toolbar_panel,
+    visible=False  # Initially hidden
+)
+
 # Main drawing area
 drawing_area_rect = pygame.Rect(200, 50, window_size[0] - 200, window_size[1] - 50)
+
+# Variables to track the selected tool
+selected_tool = None
+selected_detailed_tool = None
+
+class Map:
+    def __init__(self):
+        self.points = []
+        self.numbers_of_roads = 0
+        self.roads = [{'start': None, 'end': None} for _ in range(self.numbers_of_roads)]
+        self.finish_line = {
+            'start': None,
+            'end': None
+        }
+
+    def add_point(self, point):
+        """Add a point to the map."""
+        self.points.append(point)
+
+    def add_road(self, start, end):
+        """Add a road to the map."""
+        if start not in self.points:
+            raise ValueError("Start point not found in points.")
+        if end not in self.points:
+            raise ValueError("End point not found in points.")
+        self.roads[self.numbers_of_roads]['start'] = start
+        self.roads[self.numbers_of_roads]['end'] = end
+        self.numbers_of_roads += 1
+    def set_finish_line(self, start, end):
+        """Set the finish line for the map."""
+        if start not in self.points:
+            raise ValueError("Start point not found in points.")
+        if end not in self.points:
+            raise ValueError("End point not found in points.")
+        self.finish_line['start'] = start
+        self.finish_line['end'] = end
+
+
+def handle_button_click(event):
+    """Handle button click events."""
+    global selected_tool
+    if event.ui_element == select_tool_button:
+        selected_tool = 'Select Tool'
+        # Hide "Draw Tool" options
+        point_button.hide()
+        road_button.hide()
+        finish_line_button.hide()
+    elif event.ui_element == draw_tool_button:
+        selected_tool = 'Draw Tool'
+        # Show "Draw Tool" options
+        point_button.show()
+        road_button.show()
+        finish_line_button.show()
+    elif event.ui_element == point_button:
+        selected_detailed_tool = 'Point'
+    elif event.ui_element == road_button:
+        selected_detailed_tool = 'Road'
+    elif event.ui_element == finish_line_button:
+        selected_detailed_tool = 'Finish Line'
 
 
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
@@ -80,6 +164,9 @@ while is_running:
             is_running = False
 
         manager.process_events(event)
+        # Handle button clicks
+        if event.type == pygame_gui.UI_BUTTON_PRESSED:
+            handle_button_click(event)
 
     # Draw the background
     window_surface.fill(WHITE)
