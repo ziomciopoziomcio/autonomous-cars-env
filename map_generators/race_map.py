@@ -73,12 +73,34 @@ finish_line_button = pygame_gui.elements.UIButton(
     visible=False  # Initially hidden
 )
 
+
+# Update the layers list to display Points, Roads, and Finish Line
+def update_layers_list():
+    """Update the layers list with current map data."""
+    items = ["Points:"]
+    for point in map_data.points:
+        items.append(f"  - {point}")
+
+    items.append("Roads:")
+    for start, end in map_data.roads:
+        items.append(f"  - {start} -> {end}")
+
+    items.append("Finish Line:")
+    if map_data.finish_line['start'] and map_data.finish_line['end']:
+        items.append(f"  - {map_data.finish_line['start']} -> {map_data.finish_line['end']}")
+    else:
+        items.append("  - Not Set")
+
+    layers_list.set_item_list(items)
+
+
 # Main drawing area
 drawing_area_rect = pygame.Rect(200, 50, window_size[0] - 200, window_size[1] - 50)
 
 # Variables to track the selected tool
 selected_tool = None
 selected_detailed_tool = None
+
 
 class Map:
     def __init__(self):
@@ -91,34 +113,47 @@ class Map:
         }
         self.selected_points = []
 
-    def add_point(self, point):
-        """Add a point to the map."""
-        if point not in self.points:
-            self.points.append(point)
+    def add_point(self, position):
+        """Add a point to the map with a unique number."""
+        if not any(p[1:] == position for p in self.points):  # Check if position already exists
+            point_number = len(self.points) + 1
+            self.points.append((point_number, *position))
 
-    def remove_point(self, point):
-        """Remove a point from the map."""
-        if point in self.points:
-            self.points.remove(point)
+    def remove_point(self, position):
+        """Remove a point by its position and all associated roads."""
+        point_to_remove = next((p for p in self.points if p[1:] == position), None)
+        if point_to_remove:
+            self.points.remove(point_to_remove)
+            # Remove all roads connected to this point
+            self.roads = [road for road in self.roads if
+                          road[0] != point_to_remove[0] and road[1] != point_to_remove[0]]
 
-    def toggle_point_selection(self, point):
+    def toggle_point_selection(self, position):
         """Toggle the selection of a point."""
-        if point in self.selected_points:
-            self.selected_points.remove(point)
-        else:
-            self.selected_points.append(point)
+        for point in self.points:
+            if point[1:] == position:
+                if point in self.selected_points:
+                    self.selected_points.remove(point)
+                else:
+                    self.selected_points.append(point)
+                break
 
     def add_road(self, start, end):
-        """Add a road between two points."""
-        if (start, end) not in self.roads and (end, start) not in self.roads:
-            self.roads.append((start, end))
+        """Add a road between two points using their numbers."""
+        start_number = start[0]
+        end_number = end[0]
+        if (start_number, end_number) not in self.roads and (end_number, start_number) not in self.roads:
+            self.roads.append((start_number, end_number))
 
     def remove_road(self, start, end):
-        """Remove a road between two points."""
-        if (start, end) in self.roads:
-            self.roads.remove((start, end))
-        elif (end, start) in self.roads:
-            self.roads.remove((end, start))
+        """Remove a road between two points using their numbers."""
+        start_number = start[0]
+        end_number = end[0]
+        if (start_number, end_number) in self.roads:
+            self.roads.remove((start_number, end_number))
+        elif (end_number, start_number) in self.roads:
+            self.roads.remove((end_number, start_number))
+
     def set_finish_line(self, start, end):
         """Set the finish line for the map."""
         if start not in self.points:
@@ -152,13 +187,14 @@ def handle_button_click(event):
     elif event.ui_element == finish_line_button:
         selected_detailed_tool = 'Finish Line'
 
+
 # Function to handle mouse clicks for the "Road" tool
 def handle_mouse_click_road(event):
     if event.button == 1:  # Left mouse button
         # Check if a point was clicked
         for point in map_data.points:
-            if pygame.Rect(point[0] - 5, point[1] - 5, 10, 10).collidepoint(event.pos):
-                map_data.toggle_point_selection(point)
+            if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                map_data.toggle_point_selection((point[1], point[2]))
                 break
         # If two points are selected, create a road
         if len(map_data.selected_points) == 2:
@@ -168,8 +204,10 @@ def handle_mouse_click_road(event):
     elif event.button == 3:  # Right mouse button
         # Check if a road was clicked
         for road in map_data.roads:
-            start, end = road
-            mid_point = ((start[0] + end[0]) // 2, (start[1] + end[1]) // 2)
+            start_number, end_number = road
+            start = next(p for p in map_data.points if p[0] == start_number)
+            end = next(p for p in map_data.points if p[0] == end_number)
+            mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
             if pygame.Rect(mid_point[0] - 5, mid_point[1] - 5, 10, 10).collidepoint(event.pos):
                 map_data.remove_road(start, end)
                 break
@@ -191,23 +229,42 @@ def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
         label = pygame.font.Font(None, 20).render(str(y - rect.top), True, color)
         surface.blit(label, (rect.left + 2, y + 2))
 
+
 # Create an instance of the Map class
 map_data = Map()
+
+# Replace the layers list initialization
+layers_list = pygame_gui.elements.UISelectionList(
+    relative_rect=pygame.Rect(10, 10, 180, 400),
+    item_list=[],
+    manager=manager,
+    container=layers_panel
+)
+
+# Call update_layers_list whenever map data changes
+map_data.add_point = lambda point: (Map.add_point(map_data, point), update_layers_list())
+map_data.remove_point = lambda point: (Map.remove_point(map_data, point), update_layers_list())
+map_data.add_road = lambda start, end: (Map.add_road(map_data, start, end), update_layers_list())
+map_data.remove_road = lambda start, end: (Map.remove_road(map_data, start, end), update_layers_list())
+map_data.set_finish_line = lambda start, end: (Map.set_finish_line(map_data, start, end), update_layers_list())
+
 
 # Function to handle mouse clicks for adding/removing points
 def handle_mouse_click(event):
     if selected_tool == 'Draw Tool' and selected_detailed_tool == 'Point':
-        if event.button == 3:  # Left mouse button
-            # add point
+        if event.button == 1:  # Right mouse button
+            # Add point only if within the drawing area
+            if drawing_area_rect.collidepoint(event.pos):
+                map_data.add_point(event.pos)
+        elif event.button == 3:  # Left mouse button
+            # Remove point
             for point in map_data.points:
-                if pygame.Rect(point[0] - 5, point[1] - 5, 10, 10).collidepoint(event.pos):
-                    map_data.remove_point(point)
+                if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                    map_data.remove_point((point[1], point[2]))
                     break
-        elif event.button == 1:  # Right mouse button
-            # remove point
-            map_data.add_point(event.pos)
     if selected_tool == 'Draw Tool' and selected_detailed_tool == 'Road':
         handle_mouse_click_road(event)
+
 
 # Main loop
 clock = pygame.time.Clock()
@@ -235,30 +292,33 @@ while is_running:
 
     # Draw points
     for point in map_data.points:
+        number, x, y = point
         color = (0, 0, 255) if point in map_data.selected_points else (255, 0, 0)
-        pygame.draw.circle(window_surface, color, point, 5)
-        if point in map_data.selected_points:
-            index = map_data.selected_points.index(point) + 1
-            label = pygame.font.Font(None, 20).render(str(index), True, (0, 0, 0))
-            window_surface.blit(label, (point[0] + 5, point[1] - 10))
+        pygame.draw.circle(window_surface, color, (x, y), 5)
+        label = pygame.font.Font(None, 20).render(str(number), True, (0, 0, 0))
+        window_surface.blit(label, (x + 5, y - 10))
 
     # Draw roads
-    for start, end in map_data.roads:
-        pygame.draw.line(window_surface, (0, 0, 0), start, end, 2)
+    for start_number, end_number in map_data.roads:
+        start = next(p for p in map_data.points if p[0] == start_number)
+        end = next(p for p in map_data.points if p[0] == end_number)
+        pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]), 2)
         # Draw arrowhead for direction
         arrow_size = 10
-        direction = (end[0] - start[0], end[1] - start[1])
+        direction = (end[1] - start[1], end[2] - start[2])
         length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5
         unit_dir = (direction[0] / length, direction[1] / length)
-        arrow_point = (end[0] - unit_dir[0] * arrow_size, end[1] - unit_dir[1] * arrow_size)
+        arrow_point = (end[1] - unit_dir[0] * arrow_size, end[2] - unit_dir[1] * arrow_size)
         pygame.draw.line(window_surface, (0, 0, 0), arrow_point,
-                         (arrow_point[0] - unit_dir[1] * 5, arrow_point[1] + unit_dir[0] * 5), 2)
+                         (arrow_point[0] - unit_dir[1] * 5, arrow_point[1] + unit_dir[0] * 5), 4)
         pygame.draw.line(window_surface, (0, 0, 0), arrow_point,
-                         (arrow_point[0] + unit_dir[1] * 5, arrow_point[1] - unit_dir[0] * 5), 2)
+                         (arrow_point[0] + unit_dir[1] * 5, arrow_point[1] - unit_dir[0] * 5), 4)
 
     # Update the UI
     manager.update(time_delta)
     manager.draw_ui(window_surface)
+
+    update_layers_list()
 
     pygame.display.update()
 
