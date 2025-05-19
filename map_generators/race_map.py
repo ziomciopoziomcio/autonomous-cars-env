@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+import json
 
 # Initialize pygame and pygame_gui
 pygame.init()
@@ -73,6 +74,21 @@ finish_line_button = pygame_gui.elements.UIButton(
     visible=False  # Initially hidden
 )
 
+# Add buttons for saving and loading the map
+save_map_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect(570, 10, 100, 30),
+    text='Save Map',
+    manager=manager,
+    container=toolbar_panel
+)
+
+load_map_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect(680, 10, 100, 30),
+    text='Load Map',
+    manager=manager,
+    container=toolbar_panel
+)
+
 
 # Update the layers list to display Points, Roads, and Finish Line
 def update_layers_list():
@@ -111,7 +127,6 @@ class Map:
             'point': None
         }
         self.selected_points = []
-
 
     def add_point(self, position):
         """Add a point to the map with a unique number."""
@@ -163,6 +178,33 @@ class Map:
         self.finish_line['start'] = start
         self.finish_line['end'] = end
 
+    # FILE
+
+    def to_dict(self):
+        """Convert the map data to a dictionary."""
+        return {
+            'points': self.points,
+            'roads': self.roads,
+            'finish_line': self.finish_line
+        }
+
+    def from_dict(self, data):
+        """Load the map data from a dictionary."""
+        self.points = data.get('points', [])
+        self.roads = data.get('roads', [])
+        self.finish_line = data.get('finish_line', {'point': None})
+
+    def save_to_file(self, file_path):
+        """Save the map data to a JSON file."""
+        with open(file_path, 'w') as file:
+            json.dump(self.to_dict(), file, indent=4)
+
+    def load_from_file(self, file_path):
+        """Load the map data from a JSON file."""
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            self.from_dict(data)
+
 
 def handle_button_click(event):
     """Handle button click events."""
@@ -186,6 +228,22 @@ def handle_button_click(event):
         selected_detailed_tool = 'Road'
     elif event.ui_element == finish_line_button:
         selected_detailed_tool = 'Finish Line'
+    elif event.ui_element == save_map_button:
+        save_map()
+    elif event.ui_element == load_map_button:
+        load_map()
+
+# Add functions to handle saving and loading
+def save_map():
+    """Save the current map to a file."""
+    map_data.save_to_file('map_data.json')
+    print("Map saved to 'map_data.json'.")
+
+def load_map():
+    """Load the map from a file."""
+    map_data.load_from_file('map_data.json')
+    update_layers_list()
+    print("Map loaded from 'map_data.json'.")
 
 
 # Function to handle mouse clicks for the "Road" tool
@@ -246,7 +304,7 @@ def handle_mouse_click_finish_line(event):
 
             cursor_vector = (event.pos[0] - start[1], event.pos[1] - start[2])
             t = max(0, min(1, (
-                        cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
+                    cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
             closest_point = (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
 
             # Calculate distance from cursor to the closest point
