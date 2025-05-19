@@ -72,7 +72,7 @@ class Game:
         self.zoom = 1.0
         self.offset_x = 0
         self.offset_y = 0
-        # Rays beetween cars
+        # Rays between cars
         self.car_rays = []
 
     def add_car(self, car):
