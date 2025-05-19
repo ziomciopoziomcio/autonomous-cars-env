@@ -86,8 +86,8 @@ def update_layers_list():
         items.append(f"  - {start} -> {end}")
 
     items.append("Finish Line:")
-    if map_data.finish_line['start'] and map_data.finish_line['end']:
-        items.append(f"  - {map_data.finish_line['start']} -> {map_data.finish_line['end']}")
+    if map_data.finish_line['point']:
+        items.append(f"  - {map_data.finish_line['point']}")
     else:
         items.append("  - Not Set")
 
@@ -108,10 +108,10 @@ class Map:
         self.numbers_of_roads = 0
         self.roads = [{'start': None, 'end': None} for _ in range(self.numbers_of_roads)]
         self.finish_line = {
-            'start': None,
-            'end': None
+            'point': None
         }
         self.selected_points = []
+
 
     def add_point(self, position):
         """Add a point to the map with a unique number."""
@@ -225,6 +225,46 @@ def handle_mouse_click_road(event):
             map_data.remove_road(start, end)
 
 
+def handle_mouse_click_finish_line(event):
+    if event.button == 1:  # Left mouse button
+        # Find the closest road to the cursor
+        closest_road = None
+        closest_point_on_road = None
+        min_distance = float('inf')
+        max_distance = 15  # Maximum distance to consider for finish line placement
+
+        for road in map_data.roads:
+            start_number, end_number = road
+            start = next(p for p in map_data.points if p[0] == start_number)
+            end = next(p for p in map_data.points if p[0] == end_number)
+
+            # Calculate the closest point on the road to the cursor
+            road_vector = (end[1] - start[1], end[2] - start[2])
+            road_length_squared = road_vector[0] ** 2 + road_vector[1] ** 2
+            if road_length_squared == 0:
+                continue  # Skip degenerate roads
+
+            cursor_vector = (event.pos[0] - start[1], event.pos[1] - start[2])
+            t = max(0, min(1, (
+                        cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
+            closest_point = (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
+
+            # Calculate distance from cursor to the closest point
+            distance = ((event.pos[0] - closest_point[0]) ** 2 + (event.pos[1] - closest_point[1]) ** 2) ** 0.5
+            if distance < min_distance and distance <= max_distance:
+                min_distance = distance
+                closest_road = road
+                closest_point_on_road = closest_point
+
+        # Set the finish line if a road is found
+        if closest_road and closest_point_on_road:
+            map_data.finish_line['point'] = closest_point_on_road
+
+    elif event.button == 3:  # Right mouse button
+        # Remove the finish line
+        map_data.finish_line['point'] = None
+
+
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
     """Draw a coordinate grid in the specified rectangle."""
     # Draw vertical lines
@@ -274,8 +314,10 @@ def handle_mouse_click(event):
                 if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
                     map_data.remove_point((point[1], point[2]))
                     break
-    if selected_tool == 'Draw Tool' and selected_detailed_tool == 'Road':
+    elif selected_tool == 'Draw Tool' and selected_detailed_tool == 'Road':
         handle_mouse_click_road(event)
+    elif selected_tool == 'Draw Tool' and selected_detailed_tool == 'Finish Line':
+        handle_mouse_click_finish_line(event)
 
 
 # Main loop
@@ -325,6 +367,14 @@ while is_running:
                          (arrow_point[0] - unit_dir[1] * 5, arrow_point[1] + unit_dir[0] * 5), 4)
         pygame.draw.line(window_surface, (0, 0, 0), arrow_point,
                          (arrow_point[0] + unit_dir[1] * 5, arrow_point[1] - unit_dir[0] * 5), 4)
+
+    # Draw the finish line
+    if map_data.finish_line['point']:
+        finish_point = map_data.finish_line['point']
+        pygame.draw.circle(window_surface, (0, 255, 0), (int(finish_point[0]), int(finish_point[1])),
+                           6)  # Zielony punkt
+        label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
+        window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
 
     # Update the UI
     manager.update(time_delta)
