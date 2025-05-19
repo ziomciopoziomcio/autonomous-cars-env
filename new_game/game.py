@@ -62,12 +62,17 @@ class Car:
         self.y += math.sin(radians) * self.vel
 
     def check_collision(self, road_mask):
-        """Check if the car collides with the road borders using masks."""
-        car_mask = pygame.mask.from_surface(self.get_car_surface())
-        # Calculate the offset between the car's position and the road mask's position
-        car_offset = (int(self.x), int(self.y))
+        """Check if the car is on the road using masks."""
+        # Generate a mask for the car
+        car_surface = self.get_car_surface()
+        car_mask = pygame.mask.from_surface(car_surface)
+
+        # Calculate the offset between the car's position and the road mask
+        car_offset = (int(self.x - road_mask.get_size()[0] / 2), int(self.y - road_mask.get_size()[1] / 2))
+
+        # Check for overlap between the car mask and the road mask
         collision_point = road_mask.overlap(car_mask, car_offset)
-        return collision_point is not None
+        return collision_point is None  # Return True if the car is outside the road
 
     def get_car_surface(self):
         """Generate a rotated surface for the car."""
@@ -75,10 +80,23 @@ class Car:
         car_surface.fill(self.color)
         return pygame.transform.rotate(car_surface, -self.angle)
 
-    def handle_collision(self):
-        """Handle the bounce effect when a collision occurs."""
-        self.vel = -self.vel * 0.5  # Reverse and reduce speed
-        self.angle += 10  # Slightly adjust the angle
+    def handle_collision(self, road_mask):
+        """Handle the effect of a collision."""
+        # Save the current position
+        prev_x, prev_y = self.x, self.y
+
+        # Stop the car
+        self.vel = 0
+
+        # Move the car slightly back
+        radians = math.radians(self.angle)
+        self.x -= math.cos(radians) * 5
+        self.y -= math.sin(radians) * 5
+
+        # Check if the car is still outside the road
+        if self.check_collision(road_mask):
+            # If still outside, revert to the previous position
+            self.x, self.y = prev_x, prev_y
 
 def generate_road_mask(track_path, road_width, border_width, screen_size):
     """Generate a mask for the road borders."""
@@ -180,7 +198,7 @@ class Game:
 
             # Check for collisions
             if self.car.check_collision(road_mask):  # Pass the road mask
-                self.car.handle_collision()
+                self.car.handle_collision(road_mask)  # Pass the road mask here
 
             self.car.move(keys)
             self.car.draw(self.win)
