@@ -1,11 +1,13 @@
 import pygame
 import pygame_gui
 import json
+import numpy as np
+from scipy.interpolate import CubicSpline
 
 # Initialize pygame and pygame_gui
 pygame.init()
 pygame.display.set_caption('Map Editor')
-window_size = (800, 600)
+window_size = (1024, 768)
 window_surface = pygame.display.set_mode(window_size)
 manager = pygame_gui.UIManager(window_size)
 
@@ -89,6 +91,42 @@ load_map_button = pygame_gui.elements.UIButton(
     container=toolbar_panel
 )
 
+finish_track_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect(790, 10, 100, 30),
+    text='Finish Track',
+    manager=manager,
+    container=toolbar_panel
+)
+
+
+def interpolate_points(start, end, num_points=5):
+    """Generate intermediate points between start and end."""
+    points = []
+    for i in range(1, num_points + 1):
+        t = i / (num_points + 1)
+        x = start[0] + t * (end[0] - start[0])
+        y = start[1] + t * (end[1] - start[1])
+        points.append((x, y))
+    return points
+
+
+def extrapolate_points(start, end, distance=50):
+    """Extend the line beyond the end point."""
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    length = (dx ** 2 + dy ** 2) ** 0.5
+
+    if length == 0:
+        raise ValueError("Start and end points are the same, cannot extrapolate.")
+
+    # Normalize the direction vector
+    unit_dx = dx / length
+    unit_dy = dy / length
+
+    # Calculate the new end point
+    new_end = (end[0] + unit_dx * distance, end[1] + unit_dy * distance)
+    return new_end
+
 
 # Update the layers list to display Points, Roads, and Finish Line
 def update_layers_list():
@@ -121,11 +159,8 @@ selected_detailed_tool = None
 class Map:
     def __init__(self):
         self.points = []
-        self.numbers_of_roads = 0
-        self.roads = [{'start': None, 'end': None} for _ in range(self.numbers_of_roads)]
-        self.finish_line = {
-            'point': None
-        }
+        self.roads = []
+        self.finish_line = {'point': None}
         self.selected_points = []
 
     def add_point(self, position):
@@ -154,11 +189,79 @@ class Map:
                 break
 
     def add_road(self, start, end):
-        """Add a road between two points using their numbers."""
+        """Add a road between two points."""
         start_number = start[0]
         end_number = end[0]
         if (start_number, end_number) not in self.roads and (end_number, start_number) not in self.roads:
             self.roads.append((start_number, end_number))
+
+    def is_track_closed(self):
+        """
+        Check if the track is logically closed based on the roads.
+        """
+        if not self.roads:
+            return False
+
+        # Build adjacency list for the graph
+        graph = {}
+        for road in self.roads:
+            start, end = road
+            if start not in graph:
+                graph[start] = []
+            if end not in graph:
+                graph[end] = []
+            graph[start].append(end)
+            graph[end].append(start)
+
+        # Perform DFS to check connectivity and closure
+        visited = set()
+        stack = [self.roads[0][0]]  # Start from the first point in the first road
+
+        while stack:
+            current = stack.pop()
+            if current not in visited:
+                visited.add(current)
+                stack.extend(neighbor for neighbor in graph[current] if neighbor not in visited)
+
+        # Check if all points are visited and if we returned to the starting point
+        all_points = {point[0] for point in self.points}
+        return visited == all_points and len(visited) > 2
+
+    def smooth_or_extrapolate_track(self, num_samples=100):
+        """
+        Smooth or extrapolate the track using cubic spline interpolation.
+
+        :param num_samples: Number of samples to generate for the smooth track.
+        """
+        if len(self.points) < 3:
+            raise ValueError("At least 3 points are required to smooth the track.")
+
+        # Ensure the track is logically closed
+        if not self.is_track_closed():
+            raise ValueError("The track must be logically closed (all roads form a loop).")
+
+        # Ensure the first point is repeated at the end for interpolation
+        if self.points[0] != self.points[-1]:
+            self.points.append(self.points[0])
+
+        # Extract x and y coordinates
+        x = [p[1] for p in self.points]
+        y = [p[2] for p in self.points]
+
+        # Create a parameter t for the points
+        t = np.linspace(0, 1, len(self.points))
+
+        # Fit cubic splines for x and y
+        spline_x = CubicSpline(t, x, bc_type='periodic')
+        spline_y = CubicSpline(t, y, bc_type='periodic')
+
+        # Generate new points
+        t_new = np.linspace(0, 1, num_samples)
+        x_smooth = spline_x(t_new)
+        y_smooth = spline_y(t_new)
+
+        # Replace the original points with the smoothed points
+        self.points = list(zip(range(1, len(x_smooth) + 1), x_smooth, y_smooth))
 
     def remove_road(self, start, end):
         """Remove a road between two points using their numbers."""
@@ -194,10 +297,60 @@ class Map:
         self.roads = data.get('roads', [])
         self.finish_line = data.get('finish_line', {'point': None})
 
+    def generate_track_width(self, width=20):
+        """
+        Generate inner and outer points for the track based on the roads.
+        :param width: The width of the track.
+        """
+        inner_points = []
+        outer_points = []
+
+        for road in self.roads:
+            start_number, end_number = road
+            start = next(p for p in self.points if p[0] == start_number)
+            end = next(p for p in self.points if p[0] == end_number)
+
+            # Calculate the direction vector
+            dx = end[1] - start[1]
+            dy = end[2] - start[2]
+            length = (dx ** 2 + dy ** 2) ** 0.5
+
+            if length == 0:
+                continue  # Skip degenerate roads
+
+            # Normalize the direction vector
+            unit_dx = dx / length
+            unit_dy = dy / length
+
+            # Calculate the perpendicular vector
+            perp_dx = -unit_dy
+            perp_dy = unit_dx
+
+            # Generate inner and outer points
+            inner_start = (start[1] + perp_dx * width, start[2] + perp_dy * width)
+            inner_end = (end[1] + perp_dx * width, end[2] + perp_dy * width)
+            outer_start = (start[1] - perp_dx * width, start[2] - perp_dy * width)
+            outer_end = (end[1] - perp_dx * width, end[2] - perp_dy * width)
+
+            inner_points.append(inner_start)
+            inner_points.append(inner_end)
+            outer_points.append(outer_start)
+            outer_points.append(outer_end)
+
+        return inner_points, outer_points
+
     def save_to_file(self, file_path):
-        """Save the map data to a JSON file."""
+        """Save the map data to a JSON file, including inner and outer points."""
+        inner_points, outer_points = self.generate_track_width()
+        data = {
+            'points': self.points,
+            'roads': self.roads,
+            'finish_line': self.finish_line,
+            'inner_points': inner_points,
+            'outer_points': outer_points
+        }
         with open(file_path, 'w') as file:
-            json.dump(self.to_dict(), file, indent=4)
+            json.dump(data, file, indent=4)
 
     def load_from_file(self, file_path):
         """Load the map data from a JSON file."""
@@ -232,12 +385,25 @@ def handle_button_click(event):
         save_map()
     elif event.ui_element == load_map_button:
         load_map()
+    elif event.ui_element == finish_track_button:
+        try:
+            map_data.smooth_or_extrapolate_track()
+            for i in range(len(map_data.points)):
+                start = map_data.points[i]
+                end = map_data.points[(i + 1) % len(map_data.points)]  # Connect last point to the first
+                map_data.add_road(start, end)
+            update_layers_list()
+            print("Track smoothed or extrapolated successfully.")
+        except ValueError as e:
+            print(f"Error: {e}")
+
 
 # Add functions to handle saving and loading
 def save_map():
     """Save the current map to a file."""
     map_data.save_to_file('map_data.json')
     print("Map saved to 'map_data.json'.")
+
 
 def load_map():
     """Load the map from a file."""
@@ -354,7 +520,8 @@ layers_list = pygame_gui.elements.UISelectionList(
 # Call update_layers_list whenever map data changes
 map_data.add_point = lambda point: (Map.add_point(map_data, point), update_layers_list())
 map_data.remove_point = lambda point: (Map.remove_point(map_data, point), update_layers_list())
-map_data.add_road = lambda start, end: (Map.add_road(map_data, start, end), update_layers_list())
+map_data.add_road = lambda start, end: (
+    Map.add_road(map_data, start, end), update_layers_list())
 map_data.remove_road = lambda start, end: (Map.remove_road(map_data, start, end), update_layers_list())
 map_data.set_finish_line = lambda start, end: (Map.set_finish_line(map_data, start, end), update_layers_list())
 
