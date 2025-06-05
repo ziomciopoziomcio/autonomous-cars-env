@@ -154,7 +154,7 @@ def generate_track_mask(data, width, height):
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
 
-def check_if_on_track(car, track_mask):
+def check_if_on_track(car, track_mask, inner_polygon):
     # Pobierz maskę samochodu
     car_mask = pygame.mask.from_surface(car.image)
     car_rect = car.image.get_rect(center=(car.x, car.y))
@@ -164,7 +164,12 @@ def check_if_on_track(car, track_mask):
 
     # Sprawdź, czy maski się pokrywają
     overlap = track_mask.overlap(car_mask, offset)
-    return overlap is not None
+    if overlap is None:
+        return False
+
+    if point_in_polygon(car.x, car.y, inner_polygon):
+        return False
+    return True
 
 def main():
     pygame.init()
@@ -186,7 +191,7 @@ def main():
     running = True
     while running:
         screen.fill(BG_COLOR)
-        outer, inner = draw_track(screen, data)
+        outer, inner = draw_track(screen, data) # its switched?
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -196,7 +201,7 @@ def main():
         # if check_collision(car, outer, inner):
         #     print("💥 Kolizja!")
         #     car.speed = 0
-        if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT)):
+        if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), outer):
             print("Na torze!")
         else:
             car.speed = 0
