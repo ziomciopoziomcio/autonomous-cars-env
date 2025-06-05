@@ -23,17 +23,38 @@ class Car:
         self.image = pygame.Surface((30, 20), pygame.SRCALPHA)
         self.image.fill((255, 0, 0))
 
+        # PHYSICS
+        self.max_speed = 10
+        self.acceleration = 0.2
+        self.friction = 0.05
+        self.turn_slowdown = 0.1
+
     def update(self):
+        turning = False
         # obsługa pygame klawiatury
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.angle += 5
+            turning = True
         if keys[pygame.K_RIGHT]:
             self.angle -= 5
+            turning = True
         if keys[pygame.K_UP]:
             self.speed += 1
         if keys[pygame.K_DOWN]:
             self.speed -= 1
+
+        if not keys[pygame.K_UP] and not keys[pygame.K_DOWN]:
+            if self.speed > 0:
+                self.speed = max(self.speed - self.friction, 0)
+            elif self.speed < 0:
+                self.speed = min(self.speed + self.friction, 0)
+
+        if turning:
+            if self.speed > 0:
+                self.speed = max(self.speed - self.turn_slowdown, 0)
+            elif self.speed < 0:
+                self.speed = min(self.speed + self.turn_slowdown, 0)
         # Aktualizacja pozycji samochodu
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
