@@ -337,6 +337,18 @@ class Map:
             outer_points.append(outer_start)
             outer_points.append(outer_end)
 
+        # Smooth the points using cubic spline interpolation
+        def smooth_points(points):
+            x = [p[0] for p in points]
+            y = [p[1] for p in points]
+            t = np.linspace(0, 1, len(points))
+            spline_x = CubicSpline(t, x, bc_type='periodic')
+            spline_y = CubicSpline(t, y, bc_type='periodic')
+            t_new = np.linspace(0, 1, num_samples)
+            x_smooth = spline_x(t_new)
+            y_smooth = spline_y(t_new)
+            return list(zip(x_smooth, y_smooth))
+
         return inner_points, outer_points
 
     def save_to_file(self, file_path):
