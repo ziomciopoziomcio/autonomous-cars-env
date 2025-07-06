@@ -3,6 +3,7 @@ import pygame_gui
 import json
 import numpy as np
 from scipy.interpolate import CubicSpline
+from shapely.geometry.linestring import LineString
 
 # Initialize pygame and pygame_gui
 pygame.init()
@@ -299,57 +300,39 @@ class Map:
 
     def generate_track_width(self, width=20):
         """
-        Generate inner and outer points for the track based on the roads.
-        :param width: The width of the track.
+          Generate smooth inner and outer track boundaries based on the centerline points.
+
+          This function uses the current list of points (assumed to be smoothed/interpolated)
+          to create a centerline, then generates the inner and outer boundaries by buffering
+          the centerline using the specified width. The result is maximally smooth track edges.
+
+          :param width: The half-width of the track (distance from centerline to edge).
+          :return: Tuple (inner_points, outer_points) as lists of (x, y) coordinates.
         """
-        inner_points = []
-        outer_points = []
-
-        for road in self.roads:
-            start_number, end_number = road
-            start = next(p for p in self.points if p[0] == start_number)
-            end = next(p for p in self.points if p[0] == end_number)
-
-            # Calculate the direction vector
-            dx = end[1] - start[1]
-            dy = end[2] - start[2]
-            length = (dx ** 2 + dy ** 2) ** 0.5
-
-            if length == 0:
-                continue  # Skip degenerate roads
-
-            # Normalize the direction vector
-            unit_dx = dx / length
-            unit_dy = dy / length
-
-            # Calculate the perpendicular vector
-            perp_dx = -unit_dy
-            perp_dy = unit_dx
-
-            # Generate inner and outer points
-            inner_start = (start[1] + perp_dx * width, start[2] + perp_dy * width)
-            inner_end = (end[1] + perp_dx * width, end[2] + perp_dy * width)
-            outer_start = (start[1] - perp_dx * width, start[2] - perp_dy * width)
-            outer_end = (end[1] - perp_dx * width, end[2] - perp_dy * width)
-
-            inner_points.append(inner_start)
-            inner_points.append(inner_end)
-            outer_points.append(outer_start)
-            outer_points.append(outer_end)
-
-        # Smooth the points using cubic spline interpolation
-        def smooth_points(points):
-            x = [p[0] for p in points]
-            y = [p[1] for p in points]
-            t = np.linspace(0, 1, len(points))
-            spline_x = CubicSpline(t, x, bc_type='periodic')
-            spline_y = CubicSpline(t, y, bc_type='periodic')
-            t_new = np.linspace(0, 1, num_samples)
-            x_smooth = spline_x(t_new)
-            y_smooth = spline_y(t_new)
-            return list(zip(x_smooth, y_smooth))
-
-        return inner_points, outer_points
+        # Extract centerline coordinates from points
+        coords = [(p[1], p[2]) for p in self.points]
+        if coords[0] != coords[-1]:
+            coords.append(coords[0])
+        center_line = LineString(coords)
+        # Generate the outer boundary with high resolution for smoothness
+        outer_poly = center_line.buffer(width, cap_style=2, join_style=2, resolution=256)
+        outer = np.array(outer_poly.exterior.coords)
+        if np.allclose(outer[0], outer[-1]):
+            outer = outer[:-1]
+        # Generate the inner boundary
+        inner_poly = center_line.buffer(-width, cap_style=2, join_style=2, resolution=256)
+        if inner_poly.is_empty:
+            # If the inner buffer fails, return the centerline as a fallback
+            inner = np.array(center_line.coords)
+            if np.allclose(inner[0], inner[-1]):
+                inner = inner[:-1]
+            inner = inner.tolist()
+        else:
+            inner = np.array(inner_poly.exterior.coords)
+            if np.allclose(inner[0], inner[-1]):
+                inner = inner[:-1]
+            inner = inner.tolist()
+        return inner, outer.tolist()
 
     def save_to_file(self, file_path):
         """Save the map data to a JSON file, including inner and outer points."""
