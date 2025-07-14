@@ -4,6 +4,7 @@ import json
 import numpy as np
 from scipy.interpolate import CubicSpline
 from shapely.geometry.linestring import LineString
+from shapely.geometry.point import Point
 
 # Initialize pygame and pygame_gui
 pygame.init()
@@ -314,11 +315,13 @@ class Map:
         if coords[0] != coords[-1]:
             coords.append(coords[0])
         center_line = LineString(coords)
+
         # Generate the outer boundary with high resolution for smoothness
         outer_poly = center_line.buffer(width, cap_style=2, join_style=2, resolution=256)
         outer = np.array(outer_poly.exterior.coords)
         if np.allclose(outer[0], outer[-1]):
             outer = outer[:-1]
+
         # Generate the inner boundary
         inner_poly = center_line.buffer(-width, cap_style=2, join_style=2, resolution=256)
         if inner_poly.is_empty:
@@ -332,6 +335,15 @@ class Map:
             if np.allclose(inner[0], inner[-1]):
                 inner = inner[:-1]
             inner = inner.tolist()
+
+        # Ensure the finish line is included in the track
+        if self.finish_line['point']:
+            finish_point = self.finish_line['point']
+            if not center_line.contains(Point(finish_point)):
+                # Snap the finish line to the nearest point on the centerline
+                finish_point = center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
+                self.finish_line['point'] = finish_point
+                
         return inner, outer.tolist()
 
     def save_to_file(self, file_path):
