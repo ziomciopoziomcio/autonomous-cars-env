@@ -106,7 +106,9 @@ def draw_track(screen, data):
     finish = data["finish_line"]["point"]
     finish_scaled = scale_points([finish], min_x, min_y, scale)[0]
 
-    pygame.draw.polygon(screen, TRACK_COLOR, outer + inner[::-1])
+    # pygame.draw.polygon(screen, TRACK_COLOR, outer + inner[::-1])
+    pygame.draw.polygon(screen, TRACK_COLOR, outer)
+    pygame.draw.polygon(screen, BG_COLOR, inner)
     pygame.draw.lines(screen, OUTER_COLOR, True, outer, 5)
     pygame.draw.lines(screen, INNER_COLOR, True, inner, 5)
     pygame.draw.circle(screen, FINISH_COLOR, finish_scaled, 5)
