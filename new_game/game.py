@@ -177,7 +177,7 @@ def generate_track_mask(data, width, height):
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
 
-def check_if_on_track(car, track_mask, inner_polygon):
+def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
     # Pobierz maskę samochodu
     car_mask = pygame.mask.from_surface(car.image)
     car_rect = car.image.get_rect(center=(car.x, car.y))
@@ -192,6 +192,10 @@ def check_if_on_track(car, track_mask, inner_polygon):
 
     if point_in_polygon(car.x, car.y, inner_polygon):
         return False
+
+    if not point_in_polygon(car.x, car.y, outer_polygon):
+        return False  # Samochód jest poza torem
+
     return True
 
 def main():
@@ -224,7 +228,7 @@ def main():
         # if check_collision(car, outer, inner):
         #     print("💥 Kolizja!")
         #     car.speed = 0
-        if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), outer):
+        if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
             print("Na torze!")
         else:
             car.speed = 0
