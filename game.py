@@ -55,7 +55,7 @@ class Car:
                 self.speed = max(self.speed - self.turn_slowdown, 0)
             elif self.speed < 0:
                 self.speed = min(self.speed + self.turn_slowdown, 0)
-        # Aktualizacja pozycji samochodu
+        # Car position update
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
 
