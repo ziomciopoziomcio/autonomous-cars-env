@@ -322,9 +322,6 @@ def main():
 
         car.update()
 
-        # if check_collision(car, outer, inner):
-        #     print("💥 Kolizja!")
-        #     car.speed = 0
         if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
             print("Na torze!")
         else:
