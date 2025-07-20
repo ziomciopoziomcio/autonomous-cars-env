@@ -5,7 +5,7 @@ import math
 
 MAP_FILE = os.path.join("..", "map_generators", "map_data.json")
 
-# Stałe
+# Constants
 WIDTH, HEIGHT = 1200, 800
 BG_COLOR = (30, 30, 30)
 INNER_COLOR = (50, 50, 200)
