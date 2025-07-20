@@ -23,6 +23,9 @@ class Car:
 
         self.image = pygame.Surface((30, 20), pygame.SRCALPHA)
         self.image.fill((255, 0, 0))
+        self.img = None
+
+        self.mask = pygame.mask.from_surface(self.image)
 
         # PHYSICS
         self.max_speed = 10
@@ -70,6 +73,12 @@ class Car:
     def get_mask(self):
         rotated_image = pygame.transform.rotate(self.image, -self.angle)
         return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
+
+
+    def set_image(self, img):
+        self.image = pygame.transform.scale(img, (30, 20))
+        self.mask = pygame.mask.from_surface(self.image)
+        self.image.fill((255, 0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
 
 def load_map(file_path):
