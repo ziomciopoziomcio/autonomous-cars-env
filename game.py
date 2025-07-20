@@ -31,7 +31,7 @@ class Car:
 
     def update(self):
         turning = False
-        # obsługa pygame klawiatury
+        # pygame keyboard handling
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.angle += 5
