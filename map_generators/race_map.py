@@ -299,7 +299,7 @@ class Map:
         self.roads = data.get('roads', [])
         self.finish_line = data.get('finish_line', {'point': None})
 
-    def generate_track_width(self, width=20):
+    def generate_track_width(self, width=50):
         """
           Generate smooth inner and outer track boundaries based on the centerline points.
 
