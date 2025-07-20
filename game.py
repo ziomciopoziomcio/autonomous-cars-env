@@ -96,6 +96,30 @@ def scale_points(points, min_x, min_y, scale):
     return [(int((x - min_x) * scale), int((y - min_y) * scale)) for x, y in points]
 
 
+def draw_finish_line(screen, data, width, height, outer_line, inner_line):
+    """
+    Draw the finish line between the outer and inner lines.
+    :param screen: Pygame surface to draw on.
+    :param data: Map data containing the finish line point.
+    :param width: Width of the screen.
+    :param height: Height of the screen.
+    :param outer_line: Scaled outer line points.
+    :param inner_line: Scaled inner line points.
+    """
+    # Extract the center point of the finish line
+    center_point = data["finish_line"]["point"]
+
+    # Scale the center point
+    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width, height, scale_factor=0.9)
+    center_scaled = scale_points([center_point], min_x, min_y, scale)[0]
+
+    # Find the closest points on the outer and inner lines
+    outer_closest = min(outer_line, key=lambda p: math.dist(center_scaled, p))
+    inner_closest = min(inner_line, key=lambda p: math.dist(center_scaled, p))
+
+    # Draw the finish line
+    pygame.draw.line(screen, FINISH_COLOR, outer_closest, inner_closest, 10)
+
 def draw_track(screen, data):
     outer_raw = data["outer_points"]
     inner_raw = data["inner_points"]
