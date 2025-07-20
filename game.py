@@ -74,6 +74,15 @@ class Car:
         rotated_image = pygame.transform.rotate(self.image, -self.angle)
         return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
 
+    def get_distances_to_cars(self, cars):
+        distances = []
+        for other_car in cars:
+            if other_car != self:
+                dx = other_car.x - self.x
+                dy = other_car.y - self.y
+                distance = math.sqrt(dx ** 2 + dy ** 2)
+                distances.append(distance)
+        return distances
 
     def set_image(self, img):
         self.image = pygame.transform.scale(img, (30, 20))
