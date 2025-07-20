@@ -94,11 +94,15 @@ class Car:
         Calculate the intersection points and distances for 8 rays extending
         from the center of the car to the track border.
         """
-        # Calculate center of the car
         if self.img is None:
-            center_x = self.x + 15  # Default center for car dimensions
-            center_y = self.y + 10
+            car_width = 30
+            car_height = 20
+
+            # Calculate center of the car
+            center_x = self.x + car_width // 2
+            center_y = self.y + car_height // 2
         else:
+            # Calculate center of the car
             center_x = self.x + self.img.get_width() // 2
             center_y = self.y + self.img.get_height() // 2
 
@@ -146,12 +150,15 @@ class Car:
 
         return rays, distances
 
-    def draw_rays(self, win, mask):
-        rays, distances = self.get_rays_and_distances(mask)
-
+    def draw_rays(self, surface, rays):
+        """
+        Draw rays on the surface.
+        :param surface: Pygame surface to draw on.
+        :param rays: List of rays [(start_x, start_y, end_x, end_y)].
+        """
         for ray in rays:
             start_x, start_y, end_x, end_y = ray
-            pygame.draw.line(win, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
+            pygame.draw.line(surface, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
 
         directions = [
             "Front", "Front-right", "Right", "Back-right",
@@ -328,7 +335,12 @@ def main():
             car.speed = 0
 
         car.draw(screen)
-        car.draw_rays(screen, generate_track_mask(data, WIDTH, HEIGHT))
+
+        # Calculate rays and draw them
+        track_mask = generate_track_mask(data, WIDTH, HEIGHT)
+        rays, distances = car.get_rays_and_distances(track_mask)
+        car.draw_rays(screen, rays)
+
         pygame.display.flip()
         clock.tick(60)
 
