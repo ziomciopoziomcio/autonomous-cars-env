@@ -89,6 +89,81 @@ class Car:
         self.mask = pygame.mask.from_surface(self.image)
         self.image.fill((255, 0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
+    def get_rays_and_distances(self, mask):
+        """
+        Calculate the intersection points and distances for 8 rays extending
+        from the center of the car to the track border.
+        """
+        # Calculate center of the car
+        if self.img is None:
+            center_x = self.x + 15  # Default center for car dimensions
+            center_y = self.y + 10
+        else:
+            center_x = self.x + self.img.get_width() // 2
+            center_y = self.y + self.img.get_height() // 2
+
+        angle_rad = -math.radians(self.angle)
+
+        # Define ray angles relative to the car's orientation
+        ray_angles = [0, 45, 90, 135, 180, 225, 270, 315]  # Angles in degrees
+        rays = []
+        distances = []
+
+        # Border mask outline
+        max_width, max_height = mask.get_size()
+        max_length = 1000  # Maximum ray length
+
+        for ray_angle in ray_angles:
+            # Calculate the absolute angle of the ray
+            total_angle = angle_rad + math.radians(ray_angle)
+            dx = math.cos(total_angle)
+            dy = math.sin(total_angle)
+
+            # Extend the ray until it hits the border
+            ray_length = 0
+            while ray_length < max_length:
+                test_x = int(center_x + ray_length * dx)
+                test_y = int(center_y + ray_length * dy)
+
+                # Check if the ray intersects the border
+                if 0 <= test_x < max_width and 0 <= test_y < max_height:
+                    if mask.get_at((test_x, test_y)) != (0, 0, 0, 0):  # Collision detected
+                        rays.append((center_x, center_y, test_x, test_y))
+                        distances.append(ray_length)
+                        break
+                else:
+                    # Ray goes out of bounds
+                    break
+
+                ray_length += 1
+
+            else:
+                # If no collision, the ray ends at its maximum length
+                test_x = int(center_x + max_length * dx)
+                test_y = int(center_y + max_length * dy)
+                rays.append((center_x, center_y, test_x, test_y))
+                distances.append(max_length)
+
+        return rays, distances
+
+    def draw_rays(self, win, mask):
+        rays, distances = self.get_rays_and_distances(mask)
+
+        for ray in rays:
+            start_x, start_y, end_x, end_y = ray
+            pygame.draw.line(win, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
+
+        directions = [
+            "Front", "Front-right", "Right", "Back-right",
+            "Back", "Back-left", "Left", "Front-left"
+        ]
+        # for i, (direction, distance) in enumerate(zip(directions, distances)):
+        #     distance_text = FONT.render(f"{direction}: {int(distance)} px", True, (255, 255, 255))
+        #     win.blit(distance_text, (10, 10 + i * 30))
+
+        pygame.display.update()
+
+
 
 def load_map(file_path):
     with open(file_path, "r") as f:
@@ -246,6 +321,7 @@ def main():
                 running = False
 
         car.update()
+
         # if check_collision(car, outer, inner):
         #     print("💥 Kolizja!")
         #     car.speed = 0
@@ -255,6 +331,7 @@ def main():
             car.speed = 0
 
         car.draw(screen)
+        car.draw_rays(screen, generate_track_mask(data, WIDTH, HEIGHT))
         pygame.display.flip()
         clock.tick(60)
 
