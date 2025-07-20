@@ -240,6 +240,7 @@ def main():
     while running:
         screen.fill(BG_COLOR)
         outer, inner = draw_track(screen, data) # its switched?
+        draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
