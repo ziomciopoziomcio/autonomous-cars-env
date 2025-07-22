@@ -164,8 +164,25 @@ def draw_track(screen, data):
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
     # pygame.draw.polygon(screen, TRACK_COLOR, outer + inner[::-1])
-    pygame.draw.polygon(screen, TRACK_COLOR, outer)
-    pygame.draw.polygon(screen, BG_COLOR, inner)
+    # pygame.draw.polygon(screen, TRACK_COLOR, outer)
+    # pygame.draw.polygon(screen, BG_COLOR, inner)
+
+    # Load the track image
+    track_image = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
+    track_image = pygame.transform.scale(track_image, (WIDTH, HEIGHT))
+
+    # Create a surface for the track
+    track_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    track_surface.fill((0, 0, 0, 0))
+
+    pygame.draw.polygon(track_surface, (255, 255, 255), outer)
+    pygame.draw.polygon(track_surface, (0, 0, 0), inner)
+
+    # Apply the track image to the surface
+    track_surface.blit(track_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+    screen.blit(track_surface, (0, 0))
+
     pygame.draw.lines(screen, OUTER_COLOR, True, outer, 5)
     pygame.draw.lines(screen, INNER_COLOR, True, inner, 5)
 
