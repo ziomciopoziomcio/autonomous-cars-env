@@ -6,6 +6,7 @@ import math
 MAP_FILE = os.path.join("map_generators", "map_data.json")
 FINISH_TEXTURE = None
 TRACK_IMAGE = None
+BACKGROUND_IMAGE = None
 
 # Constants
 WIDTH, HEIGHT = 1200, 800
@@ -198,13 +199,10 @@ def draw_track(screen, data):
 
     screen.blit(track_surface, (0, 0))
 
-    inner_texture = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
-    inner_texture = pygame.transform.scale(inner_texture, (WIDTH, HEIGHT))
-
     inner_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     inner_surface.fill((0, 0, 0, 0))
     pygame.draw.polygon(inner_surface, (255, 255, 255), inner)
-    inner_surface.blit(inner_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    inner_surface.blit(BACKGROUND_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
     # Drawing on the screen
     screen.blit(inner_surface, (0, 0))
@@ -298,7 +296,7 @@ def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
     return True
 
 def main():
-    global FINISH_TEXTURE, TRACK_IMAGE
+    global FINISH_TEXTURE, TRACK_IMAGE, BACKGROUND_IMAGE
 
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -312,8 +310,8 @@ def main():
     data = load_map(MAP_FILE)
 
     # Load and scale the background image to fill the entire screen
-    background_image = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
-    background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
+    BACKGROUND_IMAGE = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
+    BACKGROUND_IMAGE = pygame.transform.scale(BACKGROUND_IMAGE, (WIDTH, HEIGHT))
 
     # Pobierz pozycję linii startu
     finish_line = data["finish_line"]["point"]
@@ -326,7 +324,7 @@ def main():
 
     running = True
     while running:
-        screen.blit(background_image, (0, 0))
+        screen.blit(BACKGROUND_IMAGE, (0, 0))
         outer, inner = draw_track(screen, data) # its switched?
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
 
