@@ -13,6 +13,9 @@ OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
 
+USED_CARS = 0
+COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
+
 class Car:
     def __init__(self, x, y):
         self.x = x
@@ -22,6 +25,9 @@ class Car:
 
         self.image = pygame.Surface((30, 20), pygame.SRCALPHA)
         self.image.fill((255, 0, 0))
+        self.img = None
+
+        self.mask = pygame.mask.from_surface(self.image)
 
         # PHYSICS
         self.max_speed = 10
