@@ -3,7 +3,7 @@ import json
 import os
 import math
 
-MAP_FILE = os.path.join("..", "map_generators", "map_data.json")
+MAP_FILE = os.path.join("map_generators", "map_data.json")
 
 # Constants
 WIDTH, HEIGHT = 1200, 800
