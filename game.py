@@ -65,8 +65,6 @@ class Car:
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
 
-
-
     def draw(self, screen):
         if self.img is not None:
             # Use the loaded image for rendering
