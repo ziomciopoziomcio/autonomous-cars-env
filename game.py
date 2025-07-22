@@ -12,6 +12,7 @@ INNER_COLOR = (200, 50, 50) #(50, 50, 200)
 OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
+CAR_COLOR = (255, 0, 0)
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -105,7 +106,7 @@ class Car:
         # Rotate the image 90 degrees to the left (counterclockwise)
         self.image = pygame.transform.rotate(scaled_image, -90)
         self.mask = pygame.mask.from_surface(self.image)
-        self.image.fill((255, 0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        self.image.fill(CAR_COLOR, special_flags=pygame.BLEND_RGBA_MULT)
 
 
 def load_map(file_path):
