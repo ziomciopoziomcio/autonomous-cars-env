@@ -4,7 +4,8 @@ import os
 import math
 
 MAP_FILE = os.path.join("map_generators", "map_data.json")
-FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
+FINISH_TEXTURE = None
+TRACK_IMAGE = None
 
 # Constants
 WIDTH, HEIGHT = 1200, 800
@@ -185,10 +186,6 @@ def draw_track(screen, data):
     # pygame.draw.polygon(screen, TRACK_COLOR, outer)
     # pygame.draw.polygon(screen, BG_COLOR, inner)
 
-    # Load the track image
-    track_image = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
-    track_image = pygame.transform.scale(track_image, (WIDTH, HEIGHT))
-
     # Create a surface for the track
     track_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     track_surface.fill((0, 0, 0, 0))
@@ -197,7 +194,7 @@ def draw_track(screen, data):
     pygame.draw.polygon(track_surface, (0, 0, 0), inner)
 
     # Apply the track image to the surface
-    track_surface.blit(track_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    track_surface.blit(TRACK_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
     screen.blit(track_surface, (0, 0))
 
@@ -301,9 +298,15 @@ def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
     return True
 
 def main():
+    global FINISH_TEXTURE, TRACK_IMAGE
+
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Wyścigówka")
+
+    FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
+    TRACK_IMAGE = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
+    TRACK_IMAGE = pygame.transform.scale(TRACK_IMAGE, (WIDTH, HEIGHT))
 
     clock = pygame.time.Clock()
     data = load_map(MAP_FILE)
