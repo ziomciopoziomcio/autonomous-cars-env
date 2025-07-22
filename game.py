@@ -4,6 +4,7 @@ import os
 import math
 
 MAP_FILE = os.path.join("map_generators", "map_data.json")
+FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
 
 # Constants
 WIDTH, HEIGHT = 1200, 800
@@ -160,8 +161,7 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     finish_height = 25
 
     # Scale the finish line image
-    finish_texture = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
-    scaled_finish = pygame.transform.scale(finish_texture, (finish_width, finish_height))
+    scaled_finish = pygame.transform.scale(FINISH_TEXTURE, (finish_width, finish_height))
 
     # Rotate the finish line image
     rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
