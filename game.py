@@ -91,12 +91,15 @@ class Car:
 
     def set_image(self):
         global USED_CARS
+        # Check if the limit of available colors is exceeded
         if USED_CARS >= len(COLORS):
             raise ValueError("Too many cars created, not enough colors available.")
 
         # Load the image
         self.img = pygame.image.load(os.path.join("imgs", COLORS[USED_CARS])).convert_alpha()
 
+        # Increment USED_CARS only after the check passes
+        USED_CARS += 1
         # Preserve original aspect ratio
         original_width, original_height = self.img.get_size()
         scale_factor = 30 / original_width  # Scale width to 30 pixels
