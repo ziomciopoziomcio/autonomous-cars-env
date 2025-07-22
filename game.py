@@ -183,6 +183,17 @@ def draw_track(screen, data):
 
     screen.blit(track_surface, (0, 0))
 
+    inner_texture = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
+    inner_texture = pygame.transform.scale(inner_texture, (WIDTH, HEIGHT))
+
+    inner_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    inner_surface.fill((0, 0, 0, 0))
+    pygame.draw.polygon(inner_surface, (255, 255, 255), inner)
+    inner_surface.blit(inner_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+    # Rysowanie na ekranie
+    screen.blit(inner_surface, (0, 0))
+
     pygame.draw.lines(screen, OUTER_COLOR, True, outer, 5)
     pygame.draw.lines(screen, INNER_COLOR, True, inner, 5)
 
