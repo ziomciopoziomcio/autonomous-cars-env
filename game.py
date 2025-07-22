@@ -35,6 +35,8 @@ class Car:
         self.friction = 0.05
         self.turn_slowdown = 0.1
 
+        self.set_image()
+
     def update(self):
         turning = False
         # pygame keyboard handling
