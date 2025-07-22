@@ -152,8 +152,26 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     outer_closest = min(outer_line, key=lambda p: math.dist(center_scaled, p))
     inner_closest = min(inner_line, key=lambda p: math.dist(center_scaled, p))
 
-    # Draw the finish line
-    pygame.draw.line(screen, FINISH_COLOR, outer_closest, inner_closest, 10)
+    # Oblicz kąt obrotu linii mety
+    angle = math.degrees(math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
+
+    # Calculate the rotation angle of the finish line
+    finish_width = int(math.dist(outer_closest, inner_closest))
+    finish_height = 25
+
+    # Scale the finish line image
+    finish_texture = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
+    scaled_finish = pygame.transform.scale(finish_texture, (finish_width, finish_height))
+
+    # Rotate the finish line image
+    rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
+
+    # Center the finish line image
+    finish_rect = rotated_finish.get_rect()
+    finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
+
+    # Draw the finish line image on the screen
+    screen.blit(rotated_finish, finish_rect.topleft)
 
 def draw_track(screen, data):
     outer_raw = data["outer_points"]
