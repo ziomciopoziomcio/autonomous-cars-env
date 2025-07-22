@@ -74,7 +74,7 @@ class Car:
     def draw(self, screen):
         if self.img is not None:
             # Use the loaded image for rendering
-            rotated_image = pygame.transform.rotate(self.img, self.angle)
+            rotated_image = pygame.transform.rotate(self.image, self.angle)
             screen.blit(rotated_image, (self.x - rotated_image.get_width() // 2,
                                         self.y - rotated_image.get_height() // 2))
         else:
