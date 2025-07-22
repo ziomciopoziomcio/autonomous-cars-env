@@ -68,15 +68,44 @@ class Car:
 
 
     def draw(self, screen):
-        car_rect = pygame.Rect(self.x - 15, self.y - 10, 30, 20)
-        rotated_car = pygame.transform.rotate(pygame.Surface(car_rect.size), -self.angle)
-        rotated_car.fill((255, 0, 0))
-        rotated_rect = rotated_car.get_rect(center=car_rect.center)
-        screen.blit(rotated_car, rotated_rect.topleft)
+        if self.img is not None:
+            # Use the loaded image for rendering
+            rotated_image = pygame.transform.rotate(self.image, self.angle)
+            screen.blit(rotated_image, (self.x - rotated_image.get_width() // 2,
+                                        self.y - rotated_image.get_height() // 2))
+        else:
+            # Fall back to rendering the car as a rectangle
+            car_rect = pygame.Rect(self.x - 15, self.y - 10, 30, 20)
+            rotated_car = pygame.transform.rotate(pygame.Surface(car_rect.size), -self.angle)
+            rotated_car.fill((255, 0, 0))
+            rotated_rect = rotated_car.get_rect(center=car_rect.center)
+            screen.blit(rotated_car, rotated_rect.topleft)
 
     def get_mask(self):
         rotated_image = pygame.transform.rotate(self.image, -self.angle)
         return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
+
+    def set_image(self):
+        global USED_CARS
+        if USED_CARS >= len(COLORS):
+            raise ValueError("Too many cars created, not enough colors available.")
+
+        # Load the image
+        self.img = pygame.image.load(os.path.join("imgs", COLORS[USED_CARS])).convert_alpha()
+
+        # Preserve original aspect ratio
+        original_width, original_height = self.img.get_size()
+        scale_factor = 30 / original_width  # Scale width to 30 pixels
+        new_width = int(original_width * scale_factor)
+        new_height = int(original_height * scale_factor)
+
+        # Scale the image
+        scaled_image = pygame.transform.scale(self.img, (new_width, new_height))
+
+        # Rotate the image 90 degrees to the left (counterclockwise)
+        self.image = pygame.transform.rotate(scaled_image, -90)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.image.fill((255, 0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
 
 def load_map(file_path):
