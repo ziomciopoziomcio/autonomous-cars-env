@@ -4,14 +4,21 @@ import os
 import math
 
 MAP_FILE = os.path.join("map_generators", "map_data.json")
+FINISH_TEXTURE = None
+TRACK_IMAGE = None
+BACKGROUND_IMAGE = None
 
 # Constants
 WIDTH, HEIGHT = 1200, 800
 BG_COLOR = (30, 30, 30)
-INNER_COLOR = (50, 50, 200)
+INNER_COLOR = (200, 50, 50) #(50, 50, 200)
 OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
+CAR_COLOR = (255, 0, 0)
+
+USED_CARS = 0
+COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
 
 
 class Car:
@@ -23,12 +30,17 @@ class Car:
 
         self.image = pygame.Surface((30, 20), pygame.SRCALPHA)
         self.image.fill((255, 0, 0))
+        self.img = None
+
+        self.mask = pygame.mask.from_surface(self.image)
 
         # PHYSICS
         self.max_speed = 10
         self.acceleration = 0.2
         self.friction = 0.05
         self.turn_slowdown = 0.1
+
+        self.set_image()
 
     def update(self):
         turning = False
@@ -61,15 +73,47 @@ class Car:
         self.y -= self.speed * math.sin(math.radians(self.angle))
 
     def draw(self, screen):
-        car_rect = pygame.Rect(self.x - 15, self.y - 10, 30, 20)
-        rotated_car = pygame.transform.rotate(pygame.Surface(car_rect.size), -self.angle)
-        rotated_car.fill((255, 0, 0))
-        rotated_rect = rotated_car.get_rect(center=car_rect.center)
-        screen.blit(rotated_car, rotated_rect.topleft)
+        if self.img is not None:
+            # Use the loaded image for rendering
+            rotated_image = pygame.transform.rotate(self.image, self.angle)
+            screen.blit(rotated_image, (self.x - rotated_image.get_width() // 2,
+                                        self.y - rotated_image.get_height() // 2))
+        else:
+            # Fall back to rendering the car as a rectangle
+            car_rect = pygame.Rect(self.x - 15, self.y - 10, 30, 20)
+            rotated_car = pygame.transform.rotate(pygame.Surface(car_rect.size), -self.angle)
+            rotated_car.fill((255, 0, 0))
+            rotated_rect = rotated_car.get_rect(center=car_rect.center)
+            screen.blit(rotated_car, rotated_rect.topleft)
 
     def get_mask(self):
         rotated_image = pygame.transform.rotate(self.image, -self.angle)
         return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
+
+    def set_image(self):
+        global USED_CARS
+        # Check if the limit of available colors is exceeded
+        if USED_CARS >= len(COLORS):
+            raise ValueError("Too many cars created, not enough colors available.")
+
+        # Load the image
+        self.img = pygame.image.load(os.path.join("imgs", COLORS[USED_CARS])).convert_alpha()
+
+        # Increment USED_CARS only after the check passes
+        USED_CARS += 1
+        # Preserve original aspect ratio
+        original_width, original_height = self.img.get_size()
+        scale_factor = 30 / original_width  # Scale width to 30 pixels
+        new_width = int(original_width * scale_factor)
+        new_height = int(original_height * scale_factor)
+
+        # Scale the image
+        scaled_image = pygame.transform.scale(self.img, (new_width, new_height))
+
+        # Rotate the image 90 degrees to the left (counterclockwise)
+        self.image = pygame.transform.rotate(scaled_image, -90)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.image.fill(CAR_COLOR, special_flags=pygame.BLEND_RGBA_MULT)
 
 
 def load_map(file_path):
@@ -118,8 +162,24 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     outer_closest = min(outer_line, key=lambda p: math.dist(center_scaled, p))
     inner_closest = min(inner_line, key=lambda p: math.dist(center_scaled, p))
 
-    # Draw the finish line
-    pygame.draw.line(screen, FINISH_COLOR, outer_closest, inner_closest, 10)
+    # Calculate the rotation angle of the finish line
+    angle = math.degrees(math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
+
+    finish_width = int(math.dist(outer_closest, inner_closest))
+    finish_height = 25
+
+    # Scale the finish line image
+    scaled_finish = pygame.transform.scale(FINISH_TEXTURE, (finish_width, finish_height))
+
+    # Rotate the finish line image
+    rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
+
+    # Center the finish line image
+    finish_rect = rotated_finish.get_rect()
+    finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
+
+    # Draw the finish line image on the screen
+    screen.blit(rotated_finish, finish_rect.topleft)
 
 
 def draw_track(screen, data):
@@ -132,8 +192,29 @@ def draw_track(screen, data):
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
     # pygame.draw.polygon(screen, TRACK_COLOR, outer + inner[::-1])
-    pygame.draw.polygon(screen, TRACK_COLOR, outer)
-    pygame.draw.polygon(screen, BG_COLOR, inner)
+    # pygame.draw.polygon(screen, TRACK_COLOR, outer)
+    # pygame.draw.polygon(screen, BG_COLOR, inner)
+
+    # Create a surface for the track
+    track_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    track_surface.fill((0, 0, 0, 0))
+
+    pygame.draw.polygon(track_surface, (255, 255, 255), outer)
+    pygame.draw.polygon(track_surface, (0, 0, 0), inner)
+
+    # Apply the track image to the surface
+    track_surface.blit(TRACK_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+    screen.blit(track_surface, (0, 0))
+
+    inner_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    inner_surface.fill((0, 0, 0, 0))
+    pygame.draw.polygon(inner_surface, (255, 255, 255), inner)
+    inner_surface.blit(BACKGROUND_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+    # Drawing on the screen
+    screen.blit(inner_surface, (0, 0))
+
     pygame.draw.lines(screen, OUTER_COLOR, True, outer, 5)
     pygame.draw.lines(screen, INNER_COLOR, True, inner, 5)
 
@@ -227,12 +308,22 @@ def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
 
 
 def main():
+    global FINISH_TEXTURE, TRACK_IMAGE, BACKGROUND_IMAGE
+
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Wyścigówka")
 
+    FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
+    TRACK_IMAGE = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
+    TRACK_IMAGE = pygame.transform.scale(TRACK_IMAGE, (WIDTH, HEIGHT))
+
     clock = pygame.time.Clock()
     data = load_map(MAP_FILE)
+
+    # Load and scale the background image to fill the entire screen
+    BACKGROUND_IMAGE = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
+    BACKGROUND_IMAGE = pygame.transform.scale(BACKGROUND_IMAGE, (WIDTH, HEIGHT))
 
     # Pobierz pozycję linii startu
     finish_line = data["finish_line"]["point"]
@@ -246,8 +337,8 @@ def main():
 
     running = True
     while running:
-        screen.fill(BG_COLOR)
-        outer, inner = draw_track(screen, data)  # its switched?
+        screen.blit(BACKGROUND_IMAGE, (0, 0))
+        outer, inner = draw_track(screen, data) # its switched?
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
 
         for event in pygame.event.get():
