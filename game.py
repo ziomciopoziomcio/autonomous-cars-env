@@ -241,6 +241,10 @@ def main():
     clock = pygame.time.Clock()
     data = load_map(MAP_FILE)
 
+    # Load and scale the background image to fill the entire screen
+    background_image = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
+    background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
+
     # Pobierz pozycję linii startu
     finish_line = data["finish_line"]["point"]
     min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], WIDTH, HEIGHT,
@@ -252,7 +256,7 @@ def main():
 
     running = True
     while running:
-        screen.fill(BG_COLOR)
+        screen.blit(background_image, (0, 0))
         outer, inner = draw_track(screen, data) # its switched?
 
         for event in pygame.event.get():
