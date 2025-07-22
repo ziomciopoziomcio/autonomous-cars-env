@@ -13,6 +13,7 @@ OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
 
+
 class Car:
     def __init__(self, x, y):
         self.x = x
@@ -59,8 +60,6 @@ class Car:
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
 
-
-
     def draw(self, screen):
         car_rect = pygame.Rect(self.x - 15, self.y - 10, 30, 20)
         rotated_car = pygame.transform.rotate(pygame.Surface(car_rect.size), -self.angle)
@@ -77,6 +76,7 @@ def load_map(file_path):
     with open(file_path, "r") as f:
         data = json.load(f)
     return data
+
 
 def get_scaling_params(points_list, width, height, scale_factor=1.0):
     # Połącz wszystkie punkty z list
@@ -110,7 +110,8 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     center_point = data["finish_line"]["point"]
 
     # Scale the center point
-    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width, height, scale_factor=0.9)
+    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width, height,
+                                             scale_factor=0.9)
     center_scaled = scale_points([center_point], min_x, min_y, scale)[0]
 
     # Find the closest points on the outer and inner lines
@@ -119,6 +120,7 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
 
     # Draw the finish line
     pygame.draw.line(screen, FINISH_COLOR, outer_closest, inner_closest, 10)
+
 
 def draw_track(screen, data):
     outer_raw = data["outer_points"]
@@ -153,7 +155,6 @@ def draw_track(screen, data):
 #             return
 
 
-
 def point_in_polygon(x, y, polygon):
     # Algorytm ray-casting
     num = len(polygon)
@@ -170,11 +171,13 @@ def point_in_polygon(x, y, polygon):
 
     return inside
 
+
 def check_collision(car, outer_polygon, inner_polygon):
     cx, cy = int(car.x), int(car.y)
     if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
         return False  # Jest na torze
     return True  # Kolizja
+
 
 def generate_track_mask(data, width, height):
     # Pobierz punkty toru
@@ -198,6 +201,7 @@ def generate_track_mask(data, width, height):
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
 
+
 def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
     # Pobierz maskę samochodu
     car_mask = pygame.mask.from_surface(car.image)
@@ -219,6 +223,7 @@ def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
 
     return True
 
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -239,7 +244,7 @@ def main():
     running = True
     while running:
         screen.fill(BG_COLOR)
-        outer, inner = draw_track(screen, data) # its switched?
+        outer, inner = draw_track(screen, data)  # its switched?
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
 
         for event in pygame.event.get():
@@ -260,6 +265,7 @@ def main():
         clock.tick(60)
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()

@@ -343,7 +343,7 @@ class Map:
                 # Snap the finish line to the nearest point on the centerline
                 finish_point = center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
                 self.finish_line['point'] = finish_point
-                
+
         return inner, outer.tolist()
 
     def save_to_file(self, file_path):
