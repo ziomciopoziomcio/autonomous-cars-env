@@ -208,7 +208,7 @@ def draw_track(screen, data):
     pygame.draw.polygon(inner_surface, (255, 255, 255), inner)
     inner_surface.blit(inner_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
-    # Rysowanie na ekranie
+    # Drawing on the screen
     screen.blit(inner_surface, (0, 0))
 
     pygame.draw.lines(screen, OUTER_COLOR, True, outer, 5)
