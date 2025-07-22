@@ -71,7 +71,7 @@ class Car:
     def draw(self, screen):
         if self.img is not None:
             # Use the loaded image for rendering
-            rotated_image = pygame.transform.rotate(self.image, self.angle)
+            rotated_image = pygame.transform.rotate(self.img, self.angle)
             screen.blit(rotated_image, (self.x - rotated_image.get_width() // 2,
                                         self.y - rotated_image.get_height() // 2))
         else:
@@ -209,7 +209,7 @@ def draw_track(screen, data):
     pygame.draw.polygon(inner_surface, (255, 255, 255), inner)
     inner_surface.blit(inner_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
-    # Rysowanie na ekranie
+    # Drawing on the screen
     screen.blit(inner_surface, (0, 0))
 
     pygame.draw.lines(screen, OUTER_COLOR, True, outer, 5)
