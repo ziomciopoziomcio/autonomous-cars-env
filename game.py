@@ -20,6 +20,7 @@ CAR_COLOR = (255, 0, 0)
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
 
+
 class Car:
     def __init__(self, x, y):
         self.x = x
@@ -120,6 +121,7 @@ def load_map(file_path):
         data = json.load(f)
     return data
 
+
 def get_scaling_params(points_list, width, height, scale_factor=1.0):
     # Połącz wszystkie punkty z list
     all_points = [p for points in points_list for p in points]
@@ -152,7 +154,8 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     center_point = data["finish_line"]["point"]
 
     # Scale the center point
-    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width, height, scale_factor=0.9)
+    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width, height,
+                                             scale_factor=0.9)
     center_scaled = scale_points([center_point], min_x, min_y, scale)[0]
 
     # Find the closest points on the outer and inner lines
@@ -178,11 +181,13 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     # Draw the finish line image on the screen
     screen.blit(rotated_finish, finish_rect.topleft)
 
+
 def draw_track(screen, data):
     outer_raw = data["outer_points"]
     inner_raw = data["inner_points"]
 
-    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw], WIDTH, HEIGHT, scale_factor=0.9)
+    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw],
+                                             WIDTH, HEIGHT, scale_factor=0.9)
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
@@ -232,7 +237,6 @@ def draw_track(screen, data):
 #             return
 
 
-
 def point_in_polygon(x, y, polygon):
     # Algorytm ray-casting
     num = len(polygon)
@@ -249,11 +253,13 @@ def point_in_polygon(x, y, polygon):
 
     return inside
 
+
 def check_collision(car, outer_polygon, inner_polygon):
     cx, cy = int(car.x), int(car.y)
     if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
         return False  # Jest na torze
     return True  # Kolizja
+
 
 def generate_track_mask(data, width, height):
     # Pobierz punkty toru
@@ -261,7 +267,8 @@ def generate_track_mask(data, width, height):
     inner_raw = data["inner_points"]
 
     # Oblicz skalowanie i przeskaluj punkty
-    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw], width, height, scale_factor=0.9)
+    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw],
+                                             width, height, scale_factor=0.9)
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
@@ -276,6 +283,7 @@ def generate_track_mask(data, width, height):
     # Wygeneruj maskę z powierzchni
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
+
 
 def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
     # Pobierz maskę samochodu
@@ -298,6 +306,7 @@ def check_if_on_track(car, track_mask, inner_polygon, outer_polygon):
 
     return True
 
+
 def main():
     global FINISH_TEXTURE, TRACK_IMAGE, BACKGROUND_IMAGE
 
@@ -318,7 +327,8 @@ def main():
 
     # Pobierz pozycję linii startu
     finish_line = data["finish_line"]["point"]
-    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], WIDTH, HEIGHT,
+    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]],
+                                             WIDTH, HEIGHT,
                                              scale_factor=0.9)
     finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
 
@@ -349,6 +359,7 @@ def main():
         clock.tick(60)
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()
