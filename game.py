@@ -152,10 +152,9 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     outer_closest = min(outer_line, key=lambda p: math.dist(center_scaled, p))
     inner_closest = min(inner_line, key=lambda p: math.dist(center_scaled, p))
 
-    # Oblicz kąt obrotu linii mety
+    # Calculate the rotation angle of the finish line
     angle = math.degrees(math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
 
-    # Calculate the rotation angle of the finish line
     finish_width = int(math.dist(outer_closest, inner_closest))
     finish_height = 25
 
