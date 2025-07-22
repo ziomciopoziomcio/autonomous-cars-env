@@ -126,7 +126,8 @@ def draw_track(screen, data):
     outer_raw = data["outer_points"]
     inner_raw = data["inner_points"]
 
-    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw], WIDTH, HEIGHT, scale_factor=0.9)
+    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw],
+                                             WIDTH, HEIGHT, scale_factor=0.9)
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
@@ -185,7 +186,8 @@ def generate_track_mask(data, width, height):
     inner_raw = data["inner_points"]
 
     # Oblicz skalowanie i przeskaluj punkty
-    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw], width, height, scale_factor=0.9)
+    min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw],
+                                             width, height, scale_factor=0.9)
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
@@ -234,7 +236,8 @@ def main():
 
     # Pobierz pozycję linii startu
     finish_line = data["finish_line"]["point"]
-    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], WIDTH, HEIGHT,
+    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]],
+                                             WIDTH, HEIGHT,
                                              scale_factor=0.9)
     finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
 
