@@ -379,7 +379,12 @@ class StepController:
         self.root = None
 
         self.steps_initializer()
-        self.window_initializer()
+        self.start_tkinter_thread()
+
+    def start_tkinter_thread(self):
+        """Start the Tkinter window in a separate thread."""
+        tkinter_thread = threading.Thread(target=self.window_initializer, daemon=True)
+        tkinter_thread.start()
 
     def window_initializer(self):
         """Initialize TKinter step controller window."""
