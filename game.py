@@ -22,7 +22,7 @@ COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purp
 
 
 class Car:
-    def __init__(self, x, y):
+    def __init__(self, x, y, track_width):
         self.x = x
         self.y = y
         self.angle = 0
@@ -40,7 +40,7 @@ class Car:
         self.friction = 0.05
         self.turn_slowdown = 0.1
 
-        self.set_image()
+        self.set_image(track_width)
 
     def update(self):
         turning = False
@@ -90,7 +90,7 @@ class Car:
         rotated_image = pygame.transform.rotate(self.image, -self.angle)
         return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
 
-    def set_image(self):
+    def set_image(self, track_width):
         global USED_CARS
         # Check if the limit of available colors is exceeded
         if USED_CARS >= len(COLORS):
@@ -102,10 +102,10 @@ class Car:
         # Increment USED_CARS only after the check passes
         USED_CARS += 1
         # Preserve original aspect ratio
+        scale_factor = track_width * 0.35
         original_width, original_height = self.img.get_size()
-        scale_factor = 30 / original_width  # Scale width to 30 pixels
-        new_width = int(original_width * scale_factor)
-        new_height = int(original_height * scale_factor)
+        new_width = int(scale_factor)
+        new_height = int(original_height * (new_width / original_width))
 
         # Scale the image
         scaled_image = pygame.transform.scale(self.img, (new_width, new_height))
@@ -332,13 +332,20 @@ def main():
                                              scale_factor=0.9)
     finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
 
-    # Ustaw samochód na linii startu
-    car = Car(finish_scaled[0], finish_scaled[1])
+    # Calculate track width
+    outer, inner = draw_track(screen, data)  # its switched?
+    outer_closest = min(outer, key=lambda p: math.dist(finish_scaled, p))
+    inner_closest = min(inner, key=lambda p: math.dist(finish_scaled, p))
+    track_width = math.dist(outer_closest, inner_closest)
+
+    # Place the car at the starting line
+    car = Car(finish_scaled[0], finish_scaled[1], track_width)
 
     running = True
     while running:
         screen.blit(BACKGROUND_IMAGE, (0, 0))
         outer, inner = draw_track(screen, data) # its switched?
+
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
 
         for event in pygame.event.get():
