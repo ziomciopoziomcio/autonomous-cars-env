@@ -668,8 +668,6 @@ def handle_mouse_click(event):
 #
 # pygame.quit()
 
-    # Draw the background
-    window_surface.fill(WHITE)
 
     # Draw the central drawing area
     pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
