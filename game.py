@@ -16,6 +16,7 @@ OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
 CAR_COLOR = (255, 0, 0)
+CAR_SIZE_RATIO = 0.35  # Ratio of car size to track width
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -102,7 +103,7 @@ class Car:
         # Increment USED_CARS only after the check passes
         USED_CARS += 1
         # Preserve original aspect ratio
-        scale_factor = track_width * 0.35
+        scale_factor = track_width * CAR_SIZE_RATIO
         original_width, original_height = self.img.get_size()
         new_width = int(scale_factor)
         new_height = int(original_height * (new_width / original_width))
