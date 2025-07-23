@@ -374,21 +374,26 @@ class StepController:
         self.steps = []  # List of steps (functions)
         self.current_index = 0  # Current step index
 
+        self.root = None
+
         self.steps_initializer()
         self.window_initializer()
 
     def window_initializer(self):
         """Initialize TKinter step controller window."""
-        root = tk.Tk()
-        root.withdraw()
+        self.root = tk.Tk()
 
-        next_button = tk.Button(root, text="Next Step", command=self.next_step)
+        # Two buttons for next step and previous step
+        next_button = tk.Button(self.root, text="Next Step", command=self.next_step)
         next_button.pack(side=tk.RIGHT, padx=10, pady=10)
-        prev_button = tk.Button(root, text="Previous Step", command=self.previous_step)
-        prev_button.pack(side=tk.LEFT, padx=10, pady=10)
-        root.title("Step Controller")
-        root.geometry("200x100")
-        root.deiconify()
+
+        # prev_button = tk.Button(self.root, text="Previous Step", command=self.previous_step)
+        # prev_button.pack(side=tk.LEFT, padx=10, pady=10)
+
+        self.root.title("Step Controller")
+        self.root.geometry("200x100")
+        self.root.deiconify()  # Ensure the window is visible
+        self.root.mainloop()  # Start the Tkinter main loop
 
     def steps_initializer(self):
         """Initialize the steps for the controller."""
