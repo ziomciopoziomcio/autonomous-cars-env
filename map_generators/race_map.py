@@ -9,7 +9,6 @@ import tkinter as tk
 from tkinter import messagebox
 import threading
 
-
 # Initialize pygame and pygame_gui
 pygame.init()
 pygame.display.set_caption('Map Editor')
@@ -371,6 +370,7 @@ class Map:
             data = json.load(file)
             self.from_dict(data)
 
+
 class StepController:
     def __init__(self):
         self.steps = []  # List of steps (functions)
@@ -558,6 +558,7 @@ def handle_mouse_click_road(event):
                 start, end = closest_road
                 map_data.remove_road(start, end)
 
+
 def handle_mouse_click_finish_line(event):
     if event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == 1:  # Left mouse button
@@ -597,6 +598,7 @@ def handle_mouse_click_finish_line(event):
         elif event.button == 3:  # Right mouse button
             # Remove the finish line
             map_data.finish_line['point'] = None
+
 
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
     """Draw a coordinate grid in the specified rectangle."""
@@ -653,7 +655,6 @@ def handle_mouse_click(event):
         handle_mouse_click_road(event)
     elif selected_tool == 'Draw Tool' and selected_detailed_tool == 'Finish Line':
         handle_mouse_click_finish_line(event)
-
 
 
 def step_by_step_generator():
@@ -741,7 +742,8 @@ def step_by_step_generator():
         manager.draw_ui(window_surface)
         pygame.display.update()
 
-        step = step_controller.current_step() + 1 # IMPORTANT! index starts from 0
+        step = step_controller.current_step() + 1  # IMPORTANT! index starts from 0
+
 
 # Call the step-by-step generator
 step_by_step_generator()
