@@ -638,16 +638,17 @@ map_data.set_finish_line = lambda start, end: (Map.set_finish_line(map_data, sta
 # Function to handle mouse clicks for adding/removing points
 def handle_mouse_click(event):
     if selected_tool == 'Draw Tool' and selected_detailed_tool == 'Point':
-        if event.button == 1:  # Right mouse button
-            # Add point only if within the drawing area
-            if drawing_area_rect.collidepoint(event.pos):
-                map_data.add_point(event.pos)
-        elif event.button == 3:  # Left mouse button
-            # Remove point
-            for point in map_data.points:
-                if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
-                    map_data.remove_point((point[1], point[2]))
-                    break
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Right mouse button
+                # Add point only if within the drawing area
+                if drawing_area_rect.collidepoint(event.pos):
+                    map_data.add_point(event.pos)
+            elif event.button == 3:  # Left mouse button
+                # Remove point
+                for point in map_data.points:
+                    if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                        map_data.remove_point((point[1], point[2]))
+                        break
     elif selected_tool == 'Draw Tool' and selected_detailed_tool == 'Road':
         handle_mouse_click_road(event)
     elif selected_tool == 'Draw Tool' and selected_detailed_tool == 'Finish Line':
