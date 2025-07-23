@@ -339,7 +339,8 @@ def main():
     finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
 
     # Calculate track width
-    outer, inner = draw_track(screen, data)  # its switched?
+    outer = scale_points(data["outer_points"], min_x, min_y, scale)
+    inner = scale_points(data["inner_points"], min_x, min_y, scale)
     outer_closest = min(outer, key=lambda p: math.dist(finish_scaled, p))
     inner_closest = min(inner, key=lambda p: math.dist(finish_scaled, p))
     track_width = math.dist(outer_closest, inner_closest)
@@ -350,7 +351,7 @@ def main():
     running = True
     while running:
         screen.blit(BACKGROUND_IMAGE, (0, 0))
-        outer, inner = draw_track(screen, data) # its switched?
+        draw_track(screen, data) # its switched?
 
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
 
