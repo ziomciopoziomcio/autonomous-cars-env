@@ -602,22 +602,6 @@ def handle_mouse_click(event):
         handle_mouse_click_finish_line(event)
 
 
-# Main loop
-clock = pygame.time.Clock()
-is_running = True
-
-while is_running:
-    time_delta = clock.tick(60) / 1000.0
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            is_running = False
-
-        manager.process_events(event)
-        # Handle button clicks
-        if event.type == pygame_gui.UI_BUTTON_PRESSED:
-            handle_button_click(event)
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            handle_mouse_click(event)
 # # Main loop
 # clock = pygame.time.Clock()
 # is_running = True
