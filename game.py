@@ -351,7 +351,7 @@ def main():
     running = True
     while running:
         screen.blit(BACKGROUND_IMAGE, (0, 0))
-        draw_track(screen, data) # its switched?
+        outer, inner = draw_track(screen, data) # its switched?
 
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
 
