@@ -777,44 +777,22 @@ def step_by_step_generator():
     pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
     draw_coordinate_grid(window_surface, drawing_area_rect)
 
-    # Draw points
-    for point in map_data.points:
-        number, x, y = point
-        color = (0, 0, 255) if point in map_data.selected_points else (255, 0, 0)
-        pygame.draw.circle(window_surface, color, (x, y), 5)
-        label = pygame.font.Font(None, 20).render(str(number), True, (0, 0, 0))
-        window_surface.blit(label, (x + 5, y - 10))
+        for start_number, end_number in map_data.roads:
+            start = next(p for p in map_data.points if p[0] == start_number)
+            end = next(p for p in map_data.points if p[0] == end_number)
+            pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]), 2)
 
-    # Draw roads
-    for start_number, end_number in map_data.roads:
-        start = next(p for p in map_data.points if p[0] == start_number)
-        end = next(p for p in map_data.points if p[0] == end_number)
-        pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]), 2)
-        # Draw arrowhead for direction
-        arrow_size = 10
-        direction = (end[1] - start[1], end[2] - start[2])
-        length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5
-        unit_dir = (direction[0] / length, direction[1] / length)
-        arrow_point = (end[1] - unit_dir[0] * arrow_size, end[2] - unit_dir[1] * arrow_size)
-        pygame.draw.line(window_surface, (0, 0, 0), arrow_point,
-                         (arrow_point[0] - unit_dir[1] * 5, arrow_point[1] + unit_dir[0] * 5), 4)
-        pygame.draw.line(window_surface, (0, 0, 0), arrow_point,
-                         (arrow_point[0] + unit_dir[1] * 5, arrow_point[1] - unit_dir[0] * 5), 4)
+        if map_data.finish_line['point']:
+            finish_point = map_data.finish_line['point']
+            pygame.draw.circle(window_surface, (0, 255, 0), (int(finish_point[0]), int(finish_point[1])), 6)
+            label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
+            window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
 
-    # Draw the finish line
-    if map_data.finish_line['point']:
-        finish_point = map_data.finish_line['point']
-        pygame.draw.circle(window_surface, (0, 255, 0), (int(finish_point[0]), int(finish_point[1])),
-                           6)  # Green point
-        label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
-        window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
+        manager.update(clock.tick(60) / 1000.0)
+        manager.draw_ui(window_surface)
+        pygame.display.update()
 
-    # Update the UI
-    manager.update(time_delta)
-    manager.draw_ui(window_surface)
+        step = step_controller.current_step() + 1 # IMPORTANT! index starts from 0
 
-    update_layers_list()
-
-    pygame.display.update()
-
-pygame.quit()
+# Call the step-by-step generator
+step_by_step_generator()
