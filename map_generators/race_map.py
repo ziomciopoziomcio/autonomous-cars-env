@@ -677,6 +677,58 @@ def handle_mouse_click(event):
 #
 # pygame.quit()
 
+def step_by_step_generator():
+    global selected_tool, selected_detailed_tool
+    step = 1  # Current step in the process
+    clock = pygame.time.Clock()
+
+    step_controller = StepController()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return  # Exit the generator
+
+            manager.process_events(event)
+
+            if step == 1:  # Step 1: Create points
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if drawing_area_rect.collidepoint(event.pos):
+                        map_data.add_point(event.pos)
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    step = 2  # Proceed to the next step
+
+            elif step == 2:  # Step 2: Connect points with roads
+                handle_mouse_click_road(event)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    step = 3  # Proceed to the next step
+
+            elif step == 3:  # Step 3: Finish track
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    try:
+                        map_data.smooth_or_extrapolate_track()
+                        for i in range(len(map_data.points)):
+                            start = map_data.points[i]
+                            end = map_data.points[(i + 1) % len(map_data.points)]
+                            map_data.add_road(start, end)
+                        step = 4  # Proceed to the next step
+                    except ValueError as e:
+                        print(f"Error: {e}")
+
+            elif step == 4:  # Step 4: Set finish line
+                handle_mouse_click_finish_line(event)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    step = 5  # Proceed to the next step
+
+            elif step == 5:  # Step 5: Save to file
+                save_map()
+                print("Map saved successfully.")
+                return  # Exit the generator
+
+        # Draw the UI and map
+        window_surface.fill(WHITE)
+        pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
+        draw_coordinate_grid(window_surface, drawing_area_rect)
 
     # Draw the central drawing area
     pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
