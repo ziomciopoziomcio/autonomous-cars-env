@@ -558,6 +558,46 @@ def handle_mouse_click_road(event):
                 start, end = closest_road
                 map_data.remove_road(start, end)
 
+def handle_mouse_click_finish_line(event):
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == 1:  # Left mouse button
+            # Find the closest road to the cursor
+            closest_road = None
+            closest_point_on_road = None
+            min_distance = float('inf')
+            max_distance = 15  # Maximum distance to consider for finish line placement
+
+            for road in map_data.roads:
+                start_number, end_number = road
+                start = next(p for p in map_data.points if p[0] == start_number)
+                end = next(p for p in map_data.points if p[0] == end_number)
+
+                # Calculate the closest point on the road to the cursor
+                road_vector = (end[1] - start[1], end[2] - start[2])
+                road_length_squared = road_vector[0] ** 2 + road_vector[1] ** 2
+                if road_length_squared == 0:
+                    continue  # Skip degenerate roads
+
+                cursor_vector = (event.pos[0] - start[1], event.pos[1] - start[2])
+                t = max(0, min(1, (
+                        cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
+                closest_point = (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
+
+                # Calculate distance from cursor to the closest point
+                distance = ((event.pos[0] - closest_point[0]) ** 2 + (event.pos[1] - closest_point[1]) ** 2) ** 0.5
+                if distance < min_distance and distance <= max_distance:
+                    min_distance = distance
+                    closest_road = road
+                    closest_point_on_road = closest_point
+
+            # Set the finish line if a road is found
+            if closest_road and closest_point_on_road:
+                map_data.finish_line['point'] = closest_point_on_road
+
+        elif event.button == 3:  # Right mouse button
+            # Remove the finish line
+            map_data.finish_line['point'] = None
+
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
     """Draw a coordinate grid in the specified rectangle."""
     # Draw vertical lines
