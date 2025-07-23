@@ -108,9 +108,9 @@ class Car:
         # Increment USED_CARS only after the check passes
         USED_CARS += 1
         # Preserve original aspect ratio
-        scale_factor = track_width * CAR_SIZE_RATIO
+        desired_car_width = track_width * CAR_SIZE_RATIO
         original_width, original_height = self.img.get_size()
-        new_width = int(scale_factor)
+        new_width = int(desired_car_width)
         new_height = int(original_height * (new_width / original_width))
 
         # Scale the image
