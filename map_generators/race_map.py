@@ -48,13 +48,7 @@ draw_tool_button = pygame_gui.elements.UIButton(
     container=toolbar_panel
 )
 
-# Add a list to the layers panel
-layers_list = pygame_gui.elements.UISelectionList(
-    relative_rect=pygame.Rect(10, 10, 180, 400),
-    item_list=['Layer 1', 'Layer 2', 'Layer 3'],
-    manager=manager,
-    container=layers_panel
-)
+
 
 # Add buttons for "Draw Tool" options
 point_button = pygame_gui.elements.UIButton(
@@ -132,25 +126,6 @@ def extrapolate_points(start, end, distance=50):
     new_end = (end[0] + unit_dx * distance, end[1] + unit_dy * distance)
     return new_end
 
-
-# Update the layers list to display Points, Roads, and Finish Line
-def update_layers_list():
-    """Update the layers list with current map data."""
-    items = ["Points:"]
-    for point in map_data.points:
-        items.append(f"  - {point}")
-
-    items.append("Roads:")
-    for start, end in map_data.roads:
-        items.append(f"  - {start} -> {end}")
-
-    items.append("Finish Line:")
-    if map_data.finish_line['point']:
-        items.append(f"  - {map_data.finish_line['point']}")
-    else:
-        items.append("  - Not Set")
-
-    layers_list.set_item_list(items)
 
 
 # Main drawing area
@@ -619,22 +594,6 @@ def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
 
 # Create an instance of the Map class
 map_data = Map()
-
-# Replace the layers list initialization
-layers_list = pygame_gui.elements.UISelectionList(
-    relative_rect=pygame.Rect(10, 10, 180, 400),
-    item_list=[],
-    manager=manager,
-    container=layers_panel
-)
-
-# Call update_layers_list whenever map data changes
-map_data.add_point = lambda point: (Map.add_point(map_data, point), update_layers_list())
-map_data.remove_point = lambda point: (Map.remove_point(map_data, point), update_layers_list())
-map_data.add_road = lambda start, end: (
-    Map.add_road(map_data, start, end), update_layers_list())
-map_data.remove_road = lambda start, end: (Map.remove_road(map_data, start, end), update_layers_list())
-map_data.set_finish_line = lambda start, end: (Map.set_finish_line(map_data, start, end), update_layers_list())
 
 
 # Function to handle mouse clicks for adding/removing points
