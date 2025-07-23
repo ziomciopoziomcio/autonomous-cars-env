@@ -735,11 +735,11 @@ def step_by_step_generator():
             manager.process_events(event)
 
             if step == 1:  # Step 1: Create points
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if drawing_area_rect.collidepoint(event.pos):
-                        map_data.add_point(event.pos)
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    step = 2  # Proceed to the next step
+                selected_tool = 'Draw Tool'
+                selected_detailed_tool = 'Point'
+                handle_mouse_click(event)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    step = 2
 
             elif step == 2:  # Step 2: Connect points with roads
                 handle_mouse_click_road(event)
@@ -747,19 +747,29 @@ def step_by_step_generator():
                     step = 3  # Proceed to the next step
 
             elif step == 3:  # Step 3: Finish track
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    try:
-                        map_data.smooth_or_extrapolate_track()
-                        for i in range(len(map_data.points)):
-                            start = map_data.points[i]
-                            end = map_data.points[(i + 1) % len(map_data.points)]
-                            map_data.add_road(start, end)
-                        step = 4  # Proceed to the next step
-                    except ValueError as e:
-                        print(f"Error: {e}")
+                # information window while finishing track
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showinfo("Finish Track", "Finishing track in progress...\n")
+
+                try:
+                    map_data.smooth_or_extrapolate_track()
+                    for i in range(len(map_data.points)):
+                        start = map_data.points[i]
+                        end = map_data.points[(i + 1) % len(map_data.points)]
+                        map_data.add_road(start, end)
+                    step_controller.next_step()
+                    step = 4  # Proceed to the next step
+                except ValueError as e:
+                    print(f"Error: {e}")
+
+                finally:
+                    root.destroy()
 
             elif step == 4:  # Step 4: Set finish line
-                handle_mouse_click_finish_line(event)
+                selected_tool = 'Draw Tool'
+                selected_detailed_tool = 'Finish Line'
+                handle_mouse_click(event)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                     step = 5  # Proceed to the next step
 
@@ -773,9 +783,12 @@ def step_by_step_generator():
         pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
         draw_coordinate_grid(window_surface, drawing_area_rect)
 
-    # Draw the central drawing area
-    pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
-    draw_coordinate_grid(window_surface, drawing_area_rect)
+        for point in map_data.points:
+            number, x, y = point
+            color = (0, 0, 255) if point in map_data.selected_points else (255, 0, 0)
+            pygame.draw.circle(window_surface, color, (x, y), 5)
+            label = pygame.font.Font(None, 20).render(str(number), True, (0, 0, 0))
+            window_surface.blit(label, (x + 5, y - 10))
 
         for start_number, end_number in map_data.roads:
             start = next(p for p in map_data.points if p[0] == start_number)
