@@ -92,6 +92,11 @@ class Car:
         return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
 
     def set_image(self, track_width):
+        """
+        Sets the car's image by scaling it based on the track width.
+
+        :param track_width: The width of the track, used to scale the car's image.
+        """
         global USED_CARS
         # Check if the limit of available colors is exceeded
         if USED_CARS >= len(COLORS):
