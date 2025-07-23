@@ -365,6 +365,56 @@ class Map:
             data = json.load(file)
             self.from_dict(data)
 
+class StepController:
+    def __init__(self):
+        self.steps = []  # List of steps (functions)
+        self.current_index = 0  # Current step index
+
+        self.steps_initializer()
+        self.window_initializer()
+
+    def window_initializer(self):
+        """Initialize TKinter step controller window."""
+        root = tk.Tk()
+        root.withdraw()
+
+        next_button = tk.Button(root, text="Next Step", command=self.next_step)
+        next_button.pack(side=tk.RIGHT, padx=10, pady=10)
+        prev_button = tk.Button(root, text="Previous Step", command=self.previous_step)
+        prev_button.pack(side=tk.LEFT, padx=10, pady=10)
+        root.title("Step Controller")
+        root.geometry("200x100")
+        root.deiconify()
+
+    def steps_initializer(self):
+        """Initialize the steps for the controller."""
+        self.add_step(lambda: print("Step 1: Create points"))
+        self.add_step(lambda: print("Step 2: Connect points with roads"))
+        self.add_step(lambda: print("Step 3: Smooth or extrapolate track"))
+        self.add_step(lambda: print("Step 4: Set finish line"))
+        self.add_step(lambda: print("Step 5: Save to file"))
+
+    def add_step(self, step_function):
+        """Add a step to the controller."""
+        self.steps.append(step_function)
+
+    def next_step(self):
+        """Move to the next step if available."""
+        if self.current_index < len(self.steps) - 1:
+            self.current_index += 1
+
+    def current_step(self):
+        """Return the current step function."""
+        if self.steps:
+            return self.steps[self.current_index]
+        return None
+
+    def run_current_step(self, *args, **kwargs):
+        """Run the current step function."""
+        step_function = self.current_step()
+        if step_function:
+            step_function(*args, **kwargs)
+
 
 def handle_button_click(event):
     """Handle button click events."""
