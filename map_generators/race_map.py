@@ -522,45 +522,41 @@ def handle_mouse_click_road(event):
             map_data.remove_road(start, end)
 
 
-def handle_mouse_click_finish_line(event):
-    if event.button == 1:  # Left mouse button
-        # Find the closest road to the cursor
-        closest_road = None
-        closest_point_on_road = None
-        min_distance = float('inf')
-        max_distance = 15  # Maximum distance to consider for finish line placement
+def handle_mouse_click_road(event):
+    if event.type == pygame.MOUSEBUTTONDOWN:  # Ensure the event is a mouse button down event
+        if event.button == 1:  # Left mouse button
+            # Check if a point was clicked
+            for point in map_data.points:
+                if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                    map_data.toggle_point_selection((point[1], point[2]))
+                    break
+            # If two points are selected, create a road
+            if len(map_data.selected_points) == 2:
+                start, end = map_data.selected_points
+                map_data.add_road(start, end)
+                map_data.selected_points.clear()
+        elif event.button == 3:  # Right mouse button
+            closest_road = None
+            min_distance = float('inf')
+            max_distance = 15  # Maximum distance to consider for road removal
 
-        for road in map_data.roads:
-            start_number, end_number = road
-            start = next(p for p in map_data.points if p[0] == start_number)
-            end = next(p for p in map_data.points if p[0] == end_number)
+            # Find the closest road to the cursor
+            for road in map_data.roads:
+                start_number, end_number = road
+                start = next(p for p in map_data.points if p[0] == start_number)
+                end = next(p for p in map_data.points if p[0] == end_number)
+                mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
 
-            # Calculate the closest point on the road to the cursor
-            road_vector = (end[1] - start[1], end[2] - start[2])
-            road_length_squared = road_vector[0] ** 2 + road_vector[1] ** 2
-            if road_length_squared == 0:
-                continue  # Skip degenerate roads
+                # Calculate distance from cursor to the midpoint of the road
+                distance = ((event.pos[0] - mid_point[0]) ** 2 + (event.pos[1] - mid_point[1]) ** 2) ** 0.5
+                if distance < min_distance and distance <= max_distance:
+                    closest_road = (start, end)
+                    min_distance = distance
 
-            cursor_vector = (event.pos[0] - start[1], event.pos[1] - start[2])
-            t = max(0, min(1, (
-                    cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
-            closest_point = (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
-
-            # Calculate distance from cursor to the closest point
-            distance = ((event.pos[0] - closest_point[0]) ** 2 + (event.pos[1] - closest_point[1]) ** 2) ** 0.5
-            if distance < min_distance and distance <= max_distance:
-                min_distance = distance
-                closest_road = road
-                closest_point_on_road = closest_point
-
-        # Set the finish line if a road is found
-        if closest_road and closest_point_on_road:
-            map_data.finish_line['point'] = closest_point_on_road
-
-    elif event.button == 3:  # Right mouse button
-        # Remove the finish line
-        map_data.finish_line['point'] = None
-
+            # Remove the closest road if found
+            if closest_road:
+                start, end = closest_road
+                map_data.remove_road(start, end)
 
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
     """Draw a coordinate grid in the specified rectangle."""
