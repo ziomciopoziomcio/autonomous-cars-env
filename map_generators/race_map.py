@@ -168,12 +168,14 @@ class Map:
         self.roads = []
         self.finish_line = {'point': None}
         self.selected_points = []
+        self.point_index = 1
 
     def add_point(self, position):
         """Add a point to the map with a unique number."""
         if not any(p[1:] == position for p in self.points):  # Check if position already exists
-            point_number = len(self.points) + 1
+            point_number = self.point_index
             self.points.append((point_number, *position))
+            self.point_index += 1
 
     def remove_point(self, position):
         """Remove a point by its position and all associated roads."""
