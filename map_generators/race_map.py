@@ -413,9 +413,9 @@ class StepController:
             self.current_index += 1
 
     def current_step(self):
-        """Return the current step function."""
+        """Return the current step index."""
         if self.steps:
-            return self.steps[self.current_index]
+            return self.current_index
         return None
 
     def run_current_step(self, *args, **kwargs):
