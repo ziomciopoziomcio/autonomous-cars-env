@@ -282,6 +282,7 @@ class StepController:
         self.start_tkinter_thread()
 
         self.wait_window = None  # Initialize wait window
+        self.step_listbox = None
 
     def start_tkinter_thread(self):
         """Start the Tkinter window in a separate thread."""
