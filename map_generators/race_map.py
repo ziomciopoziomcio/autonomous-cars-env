@@ -51,7 +51,6 @@ def extrapolate_points(start, end, distance=50):
     return new_end
 
 
-
 # Main drawing area
 drawing_area_rect = pygame.Rect(0, 0, window_size[0], window_size[1])
 
