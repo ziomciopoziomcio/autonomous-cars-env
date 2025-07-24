@@ -15,8 +15,8 @@ INNER_COLOR = (200, 50, 50) #(50, 50, 200)
 OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
-CAR_COLOR = (255, 0, 0)
-CAR_SIZE_RATIO = 0.35  # Ratio of car size to track width
+CAR_SIZE_RATIO = 0.3  # Ratio of car size to track width
+ROW_OFFSET = -30  # Offset for the second row of cars
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -119,7 +119,6 @@ class Car:
         # Rotate the image 90 degrees to the left (counterclockwise)
         self.image = pygame.transform.rotate(scaled_image, -90)
         self.mask = pygame.mask.from_surface(self.image)
-        self.image.fill(CAR_COLOR, special_flags=pygame.BLEND_RGBA_MULT)
 
 
 def load_map(file_path):
@@ -127,6 +126,50 @@ def load_map(file_path):
         data = json.load(f)
     return data
 
+def calculate_starting_positions(finish_line, outer_line,
+                                 inner_line, num_cars, offset_distance, spacing):
+    """
+    Calculates the starting positions for cars along a line parallel to the finish line.
+
+    :param finish_line: The central point of the finish line.
+    :param outer_line: Points of the outer track line.
+    :param inner_line: Points of the inner track line.
+    :param num_cars: Number of cars to position.
+    :param offset_distance: Distance to shift the line from the finish line.
+    :param spacing: Spacing between cars.
+    :return: List of starting positions [(x, y, angle)].
+    """
+    # Find the closest points on the outer and inner track lines
+    outer_closest = min(outer_line, key=lambda p: math.dist(finish_line, p))
+    inner_closest = min(inner_line, key=lambda p: math.dist(finish_line, p))
+
+    # Calculate the midpoint between the closest points
+    midpoint_x = (outer_closest[0] + inner_closest[0]) / 2
+    midpoint_y = (outer_closest[1] + inner_closest[1]) / 2
+
+    # Calculate the angle of the finish line
+    angle = math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0])
+
+    # Determine the vector perpendicular to the finish line
+    perpendicular_dx = -math.sin(angle)
+    perpendicular_dy = math.cos(angle)
+
+    # Shift the finish line by offset_distance to create a new line
+    shifted_x = midpoint_x + perpendicular_dx * offset_distance
+    shifted_y = midpoint_y + perpendicular_dy * offset_distance
+
+    # Calculate the starting positions for each car along the shifted line
+    positions = []
+    for i in range(num_cars):
+        row = i // 2  # Determine the row (0 or 1)
+        col = i % 2  # Determine the column (0 or 1)
+        car_x = (shifted_x + (col - 0.5) * spacing * math.cos(angle)
+                 - row * ROW_OFFSET * perpendicular_dx)
+        car_y = (shifted_y + (col - 0.5) * spacing * math.sin(angle)
+                 - row * ROW_OFFSET * perpendicular_dy)
+        positions.append((car_x, car_y, math.degrees(angle)))
+
+    return positions
 
 def get_scaling_params(points_list, width, height, scale_factor=1.0):
     # Połącz wszystkie punkty z list
@@ -345,8 +388,16 @@ def main():
     inner_closest = min(inner, key=lambda p: math.dist(finish_scaled, p))
     track_width = math.dist(outer_closest, inner_closest)
 
-    # Place the car at the starting line
-    car = Car(finish_scaled[0], finish_scaled[1], track_width)
+    num_cars = 4
+    offset_distance = 30  # Distance from the finish line
+    spacing = 15  # Spacing between cars
+    starting_positions = calculate_starting_positions(finish_scaled,
+                                                      outer, inner, num_cars, offset_distance, spacing)
+
+    # Place the cars at the starting line
+    cars = [Car(x, y, track_width) for x, y, angle in starting_positions]
+    for car, (_, _, angle) in zip(cars, starting_positions):
+        car.angle = angle
 
     running = True
     while running:
@@ -363,12 +414,24 @@ def main():
         # if check_collision(car, outer, inner):
         #     print("💥 Kolizja!")
         #     car.speed = 0
-        if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
-            print("Na torze!")
-        else:
-            car.speed = 0
+        # if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
+        #     print("Na torze!")
+        # else:
+        #     car.speed = 0
+        #
+        # car.draw(screen)
 
-        car.draw(screen)
+        for car in cars:  # Iterate over all cars
+            car.update()
+            # if check_collision(car, outer, inner):
+            #     print("💥 Kolizja!")
+            #     car.speed = 0
+            if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
+                print("Na torze!")
+            else:
+                car.speed = 0
+            car.draw(screen)
+
         pygame.display.flip()
         clock.tick(60)
 
