@@ -272,6 +272,7 @@ class Map:
 class StepController:
     def __init__(self):
         self.steps = []  # List of steps (functions)
+        self.step_names = []
         self.current_index = 0  # Current step index
 
         self.root = None
@@ -294,30 +295,45 @@ class StepController:
         next_button = tk.Button(self.root, text="Next Step", command=self.next_step)
         next_button.pack(side=tk.RIGHT, padx=10, pady=10)
 
-        # prev_button = tk.Button(self.root, text="Previous Step", command=self.previous_step)
-        # prev_button.pack(side=tk.LEFT, padx=10, pady=10)
+        # Listbox for displaying steps
+        self.step_listbox = tk.Listbox(self.root, height=len(self.steps), selectmode=tk.SINGLE)
+        for step_name in self.step_names:
+            self.step_listbox.insert(tk.END, step_name)
+        self.step_listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         self.root.title("Step Controller")
-        self.root.geometry("200x100")
+        self.root.geometry("300x200")
         self.root.deiconify()  # Ensure the window is visible
+        self.update_step_highlight()
         self.root.mainloop()  # Start the Tkinter main loop
 
     def steps_initializer(self):
         """Initialize the steps for the controller."""
-        self.add_step(lambda: print("Step 1: Create points"))
-        self.add_step(lambda: print("Step 2: Connect points with roads"))
-        self.add_step(lambda: print("Step 3: Smooth or extrapolate track"))
-        self.add_step(lambda: print("Step 4: Set finish line"))
-        self.add_step(lambda: print("Step 5: Save to file"))
+        self.add_step("Step 1: Create points", lambda: print("Step 1: Create points"))
+        self.add_step("Step 2: Connect points with roads", lambda: print("Step 2: Connect points with roads"))
+        self.add_step("Step 3: Smooth or extrapolate track", lambda: print("Step 3: Smooth or extrapolate track"))
+        self.add_step("Step 4: Set finish line", lambda: print("Step 4: Set finish line"))
+        self.add_step("Step 5: Save to file", lambda: print("Step 5: Save to file"))
 
-    def add_step(self, step_function):
+    def add_step(self, step_name, step_function):
         """Add a step to the controller."""
         self.steps.append(step_function)
+        self.step_names.append(step_name)
+
 
     def next_step(self):
         """Move to the next step if available."""
         if self.current_index < len(self.steps) - 1:
             self.current_index += 1
+            self.start_wait_window()
+            self.update_step_highlight()
+
+    def update_step_highlight(self):
+        """Highlight the current step in the Listbox."""
+        if self.step_listbox:
+            self.step_listbox.selection_clear(0, tk.END)
+            self.step_listbox.selection_set(self.current_index)
+            self.step_listbox.activate(self.current_index)
 
     def current_step(self):
         """Return the current step index."""
