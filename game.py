@@ -129,46 +129,40 @@ def load_map(file_path):
 
 def calculate_starting_positions(finish_line, outer_line, inner_line, num_cars, offset_distance, spacing):
     """
-    Calculates the starting positions for cars perpendicular to the finish line.
+    Calculates the starting positions for cars along a line parallel to the finish line.
 
     :param finish_line: The central point of the finish line.
     :param outer_line: Points of the outer track line.
     :param inner_line: Points of the inner track line.
     :param num_cars: Number of cars to position.
-    :param offset_distance: Distance offset from the finish line.
+    :param offset_distance: Distance to shift the line from the finish line.
     :param spacing: Spacing between cars.
     :return: List of starting positions [(x, y, angle)].
     """
-
     # Find the closest points on the outer and inner track lines
     outer_closest = min(outer_line, key=lambda p: math.dist(finish_line, p))
     inner_closest = min(inner_line, key=lambda p: math.dist(finish_line, p))
 
+    # Calculate the midpoint between the closest points
+    midpoint_x = (outer_closest[0] + inner_closest[0]) / 2
+    midpoint_y = (outer_closest[1] + inner_closest[1]) / 2
+
     # Calculate the angle of the finish line
     angle = math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0])
-
-    # Calculate the central point of the finish line
-    center_x = (outer_closest[0] + inner_closest[0]) / 2
-    center_y = (outer_closest[1] + inner_closest[1]) / 2
 
     # Determine the vector perpendicular to the finish line
     perpendicular_dx = -math.sin(angle)
     perpendicular_dy = math.cos(angle)
 
-    # Shift the starting point by offset_distance in the perpendicular direction
-    start_x = center_x - perpendicular_dx * (-offset_distance)
-    start_y = center_y - perpendicular_dy * (-offset_distance)
+    # Shift the finish line by offset_distance to create a new line
+    shifted_x = midpoint_x + perpendicular_dx * offset_distance
+    shifted_y = midpoint_y + perpendicular_dy * offset_distance
 
-    # Calculate the starting positions for each car
+    # Calculate the starting positions for each car along the shifted line
     positions = []
     for i in range(num_cars):
-        car_x = start_x + (i - (num_cars - 1) / 2) * spacing
-        car_y = start_y
-
-        # Check if the position is on the track
-        # if not point_in_polygon(car_x, car_y, outer_line) or point_in_polygon(car_x, car_y, inner_line):
-        #     raise ValueError(f"Pozycja startowa ({car_x}, {car_y}) jest poza torem!")
-
+        car_x = shifted_x + (i - (num_cars - 1) / 2) * spacing * math.cos(angle)
+        car_y = shifted_y + (i - (num_cars - 1) / 2) * spacing * math.sin(angle)
         positions.append((car_x, car_y, math.degrees(angle)))
 
     return positions
@@ -391,12 +385,9 @@ def main():
     track_width = math.dist(outer_closest, inner_closest)
 
     num_cars = 4
-    offset_distance = 50  # Odległość od linii mety
-    spacing = 20  # Odstęp między autami
+    offset_distance = 30  # Distance from the finish line
+    spacing = 15  # Spacing between cars
     starting_positions = calculate_starting_positions(finish_scaled, outer, inner, num_cars, offset_distance, spacing)
-
-    for i, (car_x, car_y, angle) in enumerate(starting_positions):
-        print(f"Samochód {i}: x={car_x}, y={car_y}, kąt={angle}")
 
     # Place the cars at the starting line
     cars = [Car(x, y, track_width) for x, y, angle in starting_positions]
