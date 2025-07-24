@@ -614,7 +614,8 @@ def step_by_step_generator():
 
         if map_data.finish_line['point']:
             finish_point = map_data.finish_line['point']
-            pygame.draw.circle(window_surface, (0, 255, 0), (int(finish_point[0]), int(finish_point[1])), 6)
+            pygame.draw.circle(window_surface, (0, 255, 0),
+                               (int(finish_point[0]), int(finish_point[1])), 6)
             label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
             window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
 
