@@ -21,83 +21,6 @@ manager = pygame_gui.UIManager(window_size)
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 
-# Create UI elements
-toolbar_rect = pygame.Rect(0, 0, window_size[0], 50)  # Top toolbar
-toolbar_panel = pygame_gui.elements.UIPanel(
-    relative_rect=toolbar_rect,
-    manager=manager
-)
-
-layers_rect = pygame.Rect(0, 50, 200, window_size[1] - 50)  # Left sidebar
-layers_panel = pygame_gui.elements.UIPanel(
-    relative_rect=layers_rect,
-    manager=manager
-)
-
-# Add buttons to the toolbar
-select_tool_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(10, 10, 100, 30),
-    text='Select Tool',
-    manager=manager,
-    container=toolbar_panel
-)
-
-draw_tool_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(120, 10, 100, 30),
-    text='Draw Tool',
-    manager=manager,
-    container=toolbar_panel
-)
-
-
-
-# Add buttons for "Draw Tool" options
-point_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(240, 10, 100, 30),
-    text='Point',
-    manager=manager,
-    container=toolbar_panel,
-    visible=False  # Initially hidden
-)
-
-road_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(350, 10, 100, 30),
-    text='Road',
-    manager=manager,
-    container=toolbar_panel,
-    visible=False  # Initially hidden
-)
-
-finish_line_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(460, 10, 100, 30),
-    text='Finish Line',
-    manager=manager,
-    container=toolbar_panel,
-    visible=False  # Initially hidden
-)
-
-# Add buttons for saving and loading the map
-save_map_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(570, 10, 100, 30),
-    text='Save Map',
-    manager=manager,
-    container=toolbar_panel
-)
-
-load_map_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(680, 10, 100, 30),
-    text='Load Map',
-    manager=manager,
-    container=toolbar_panel
-)
-
-finish_track_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(790, 10, 100, 30),
-    text='Finish Track',
-    manager=manager,
-    container=toolbar_panel
-)
-
 
 def interpolate_points(start, end, num_points=5):
     """Generate intermediate points between start and end."""
@@ -130,7 +53,7 @@ def extrapolate_points(start, end, distance=50):
 
 
 # Main drawing area
-drawing_area_rect = pygame.Rect(200, 50, window_size[0] - 200, window_size[1] - 50)
+drawing_area_rect = pygame.Rect(0, 0, window_size[0], window_size[1])
 
 # Variables to track the selected tool
 selected_tool = None
@@ -406,45 +329,6 @@ class StepController:
         step_function = self.current_step()
         if step_function:
             step_function(*args, **kwargs)
-
-
-def handle_button_click(event):
-    """Handle button click events."""
-    global selected_tool
-    global selected_detailed_tool
-    if event.ui_element == select_tool_button:
-        selected_tool = 'Select Tool'
-        # Hide "Draw Tool" options
-        point_button.hide()
-        road_button.hide()
-        finish_line_button.hide()
-    elif event.ui_element == draw_tool_button:
-        selected_tool = 'Draw Tool'
-        # Show "Draw Tool" options
-        point_button.show()
-        road_button.show()
-        finish_line_button.show()
-    elif event.ui_element == point_button:
-        selected_detailed_tool = 'Point'
-    elif event.ui_element == road_button:
-        selected_detailed_tool = 'Road'
-    elif event.ui_element == finish_line_button:
-        selected_detailed_tool = 'Finish Line'
-    elif event.ui_element == save_map_button:
-        save_map()
-    elif event.ui_element == load_map_button:
-        load_map()
-    elif event.ui_element == finish_track_button:
-        try:
-            map_data.smooth_or_extrapolate_track()
-            for i in range(len(map_data.points)):
-                start = map_data.points[i]
-                end = map_data.points[(i + 1) % len(map_data.points)]  # Connect last point to the first
-                map_data.add_road(start, end)
-            update_layers_list()
-            print("Track smoothed or extrapolated successfully.")
-        except ValueError as e:
-            print(f"Error: {e}")
 
 
 # Add functions to handle saving and loading
