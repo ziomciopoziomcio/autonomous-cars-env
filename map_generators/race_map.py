@@ -366,10 +366,9 @@ class StepController:
     def stop_wait_window(self):
         """Stop the waiting window."""
         if self.wait_window is not None:
-            if hasattr(self, 'wait_window'):
-                self.wait_window.destroy()
-                del self.wait_window
-                self.wait_window = None
+            self.wait_window.destroy()
+            del self.wait_window
+            self.wait_window = None
 
 
 # Add functions to handle saving and loading
@@ -526,7 +525,7 @@ map_data = Map()
 def handle_mouse_click(event):
     if selected_tool == 'Draw Tool' and selected_detailed_tool == 'Point':
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Right mouse button
+            if event.button == 1:  # Left mouse button
                 # Add point only if within the drawing area
                 if drawing_area_rect.collidepoint(event.pos):
                     map_data.add_point(event.pos)
