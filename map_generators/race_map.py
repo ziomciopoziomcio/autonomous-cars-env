@@ -279,6 +279,8 @@ class StepController:
         self.steps_initializer()
         self.start_tkinter_thread()
 
+        self.wait_window = None  # Initialize wait window
+
     def start_tkinter_thread(self):
         """Start the Tkinter window in a separate thread."""
         tkinter_thread = threading.Thread(target=self.window_initializer, daemon=True)
@@ -328,6 +330,22 @@ class StepController:
         step_function = self.current_step()
         if step_function:
             step_function(*args, **kwargs)
+
+    def start_wait_window(self):
+        """Start a waiting window."""
+        self.wait_window = tk.Toplevel(self.root)
+        self.wait_window.title("Please wait")
+        label = tk.Label(self.wait_window, text="Processing, please wait...")
+        label.pack(padx=20, pady=20)
+        self.wait_window.geometry("300x100")
+        self.wait_window.deiconify()
+    def stop_wait_window(self):
+        """Stop the waiting window."""
+        if self.wait_window is not None:
+            if hasattr(self, 'wait_window'):
+                self.wait_window.destroy()
+                del self.wait_window
+                self.wait_window = None
 
 
 # Add functions to handle saving and loading
