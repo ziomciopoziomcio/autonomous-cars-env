@@ -362,7 +362,7 @@ class StepController:
         label.pack(padx=20, pady=20)
         self.wait_window.geometry("300x100")
         self.wait_window.deiconify()
-        
+
     def stop_wait_window(self):
         """Stop the waiting window."""
         if self.wait_window is not None:
