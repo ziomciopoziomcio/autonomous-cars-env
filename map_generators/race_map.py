@@ -535,9 +535,11 @@ def step_by_step_generator():
             if step == 1:  # Step 1: Create points
                 selected_tool = 'Draw Tool'
                 selected_detailed_tool = 'Point'
+                step_controller.stop_wait_window()
                 handle_mouse_click(event)
 
             elif step == 2:  # Step 2: Connect points with roads
+                step_controller.stop_wait_window()
                 handle_mouse_click_road(event)
 
             elif step == 3:  # Step 3: Finish track
@@ -559,14 +561,18 @@ def step_by_step_generator():
 
                 finally:
                     root.destroy()
+                    step_controller.stop_wait_window()
+                    step_controller.next_step()
 
             elif step == 4:  # Step 4: Set finish line
                 selected_tool = 'Draw Tool'
                 selected_detailed_tool = 'Finish Line'
+                step_controller.stop_wait_window()
                 handle_mouse_click(event)
 
             elif step == 5:  # Step 5: Save to file
                 save_map()
+                step_controller.stop_wait_window()
                 print("Map saved successfully.")
                 return  # Exit the generator
 
