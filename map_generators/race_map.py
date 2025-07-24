@@ -536,13 +536,9 @@ def step_by_step_generator():
                 selected_tool = 'Draw Tool'
                 selected_detailed_tool = 'Point'
                 handle_mouse_click(event)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    step = 2
 
             elif step == 2:  # Step 2: Connect points with roads
                 handle_mouse_click_road(event)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    step = 3  # Proceed to the next step
 
             elif step == 3:  # Step 3: Finish track
                 # information window while finishing track
@@ -568,8 +564,6 @@ def step_by_step_generator():
                 selected_tool = 'Draw Tool'
                 selected_detailed_tool = 'Finish Line'
                 handle_mouse_click(event)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    step = 5  # Proceed to the next step
 
             elif step == 5:  # Step 5: Save to file
                 save_map()
