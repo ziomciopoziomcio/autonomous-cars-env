@@ -16,6 +16,7 @@ OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
 CAR_SIZE_RATIO = 0.3  # Ratio of car size to track width
+ROW_OFFSET = -30  # Offset for the second row of cars
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -158,12 +159,11 @@ def calculate_starting_positions(finish_line, outer_line, inner_line, num_cars, 
 
     # Calculate the starting positions for each car along the shifted line
     positions = []
-    row_offset = -30
     for i in range(num_cars):
         row = i // 2  # Determine the row (0 or 1)
         col = i % 2  # Determine the column (0 or 1)
-        car_x = shifted_x + (col - 0.5) * spacing * math.cos(angle) - row * row_offset * perpendicular_dx
-        car_y = shifted_y + (col - 0.5) * spacing * math.sin(angle) - row * row_offset * perpendicular_dy
+        car_x = shifted_x + (col - 0.5) * spacing * math.cos(angle) - row * ROW_OFFSET * perpendicular_dx
+        car_y = shifted_y + (col - 0.5) * spacing * math.sin(angle) - row * ROW_OFFSET * perpendicular_dy
         positions.append((car_x, car_y, math.degrees(angle)))
 
     return positions
