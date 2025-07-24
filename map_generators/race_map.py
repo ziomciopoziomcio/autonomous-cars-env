@@ -358,10 +358,9 @@ class StepController:
     def stop_wait_window(self):
         """Stop the waiting window."""
         if self.wait_window is not None:
-            if hasattr(self, 'wait_window'):
-                self.wait_window.destroy()
-                del self.wait_window
-                self.wait_window = None
+            self.wait_window.destroy()
+            del self.wait_window
+            self.wait_window = None
 
 
 # Add functions to handle saving and loading
