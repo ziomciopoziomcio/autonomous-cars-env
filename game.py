@@ -419,7 +419,7 @@ def main():
         #
         # car.draw(screen)
 
-        for car in cars:  # Iteracja po wszystkich samochodach
+        for car in cars:  # Iterate over all cars
             car.update()
             # if check_collision(car, outer, inner):
             #     print("💥 Kolizja!")
