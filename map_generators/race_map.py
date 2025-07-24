@@ -1,3 +1,4 @@
+import tkinter as tk
 import pygame
 import pygame_gui
 import json
@@ -5,7 +6,6 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
-import tkinter as tk
 import threading
 
 # Initialize pygame and pygame_gui
