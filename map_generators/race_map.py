@@ -543,10 +543,6 @@ def step_by_step_generator():
                 handle_mouse_click_road(event)
 
             elif step == 3:  # Step 3: Finish track
-                # information window while finishing track
-                root = tk.Tk()
-                root.withdraw()
-                messagebox.showinfo("Finish Track", "Finishing track in progress...\n")
 
                 try:
                     map_data.smooth_or_extrapolate_track()
@@ -554,13 +550,12 @@ def step_by_step_generator():
                         start = map_data.points[i]
                         end = map_data.points[(i + 1) % len(map_data.points)]
                         map_data.add_road(start, end)
-                    step_controller.next_step()
+
                     step = 4  # Proceed to the next step
                 except ValueError as e:
                     print(f"Error: {e}")
 
                 finally:
-                    root.destroy()
                     step_controller.stop_wait_window()
                     step_controller.next_step()
 
