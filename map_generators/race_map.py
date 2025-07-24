@@ -271,6 +271,7 @@ class StepController:
     """
     Class to control the steps of the map generation process using Tkinter.
     """
+
     def __init__(self):
         self.steps = []  # List of steps (functions)
         self.step_names = []
@@ -326,7 +327,6 @@ class StepController:
         """Add a step to the controller."""
         self.steps.append(step_function)
         self.step_names.append(step_name)
-
 
     def next_step(self):
         """Move to the next step if available."""
