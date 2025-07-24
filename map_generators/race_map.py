@@ -1,3 +1,5 @@
+import tkinter as tk
+import threading
 import pygame
 import pygame_gui
 import json
@@ -16,89 +18,6 @@ manager = pygame_gui.UIManager(window_size)
 # Colors
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
-
-# Create UI elements
-toolbar_rect = pygame.Rect(0, 0, window_size[0], 50)  # Top toolbar
-toolbar_panel = pygame_gui.elements.UIPanel(
-    relative_rect=toolbar_rect,
-    manager=manager
-)
-
-layers_rect = pygame.Rect(0, 50, 200, window_size[1] - 50)  # Left sidebar
-layers_panel = pygame_gui.elements.UIPanel(
-    relative_rect=layers_rect,
-    manager=manager
-)
-
-# Add buttons to the toolbar
-select_tool_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(10, 10, 100, 30),
-    text='Select Tool',
-    manager=manager,
-    container=toolbar_panel
-)
-
-draw_tool_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(120, 10, 100, 30),
-    text='Draw Tool',
-    manager=manager,
-    container=toolbar_panel
-)
-
-# Add a list to the layers panel
-layers_list = pygame_gui.elements.UISelectionList(
-    relative_rect=pygame.Rect(10, 10, 180, 400),
-    item_list=['Layer 1', 'Layer 2', 'Layer 3'],
-    manager=manager,
-    container=layers_panel
-)
-
-# Add buttons for "Draw Tool" options
-point_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(240, 10, 100, 30),
-    text='Point',
-    manager=manager,
-    container=toolbar_panel,
-    visible=False  # Initially hidden
-)
-
-road_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(350, 10, 100, 30),
-    text='Road',
-    manager=manager,
-    container=toolbar_panel,
-    visible=False  # Initially hidden
-)
-
-finish_line_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(460, 10, 100, 30),
-    text='Finish Line',
-    manager=manager,
-    container=toolbar_panel,
-    visible=False  # Initially hidden
-)
-
-# Add buttons for saving and loading the map
-save_map_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(570, 10, 100, 30),
-    text='Save Map',
-    manager=manager,
-    container=toolbar_panel
-)
-
-load_map_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(680, 10, 100, 30),
-    text='Load Map',
-    manager=manager,
-    container=toolbar_panel
-)
-
-finish_track_button = pygame_gui.elements.UIButton(
-    relative_rect=pygame.Rect(790, 10, 100, 30),
-    text='Finish Track',
-    manager=manager,
-    container=toolbar_panel
-)
 
 
 def interpolate_points(start, end, num_points=5):
@@ -130,28 +49,8 @@ def extrapolate_points(start, end, distance=50):
     return new_end
 
 
-# Update the layers list to display Points, Roads, and Finish Line
-def update_layers_list():
-    """Update the layers list with current map data."""
-    items = ["Points:"]
-    for point in map_data.points:
-        items.append(f"  - {point}")
-
-    items.append("Roads:")
-    for start, end in map_data.roads:
-        items.append(f"  - {start} -> {end}")
-
-    items.append("Finish Line:")
-    if map_data.finish_line['point']:
-        items.append(f"  - {map_data.finish_line['point']}")
-    else:
-        items.append("  - Not Set")
-
-    layers_list.set_item_list(items)
-
-
 # Main drawing area
-drawing_area_rect = pygame.Rect(200, 50, window_size[0] - 200, window_size[1] - 50)
+drawing_area_rect = pygame.Rect(0, 0, window_size[0], window_size[1])
 
 # Variables to track the selected tool
 selected_tool = None
@@ -164,12 +63,14 @@ class Map:
         self.roads = []
         self.finish_line = {'point': None}
         self.selected_points = []
+        self.point_index = 1
 
     def add_point(self, position):
         """Add a point to the map with a unique number."""
         if not any(p[1:] == position for p in self.points):  # Check if position already exists
-            point_number = len(self.points) + 1
+            point_number = self.point_index
             self.points.append((point_number, *position))
+            self.point_index += 1
 
     def remove_point(self, position):
         """Remove a point by its position and all associated roads."""
@@ -299,7 +200,7 @@ class Map:
         self.roads = data.get('roads', [])
         self.finish_line = data.get('finish_line', {'point': None})
 
-    def generate_track_width(self, width=20):
+    def generate_track_width(self, width=50):
         """
           Generate smooth inner and outer track boundaries based on the centerline points.
 
@@ -366,43 +267,108 @@ class Map:
             self.from_dict(data)
 
 
-def handle_button_click(event):
-    """Handle button click events."""
-    global selected_tool
-    global selected_detailed_tool
-    if event.ui_element == select_tool_button:
-        selected_tool = 'Select Tool'
-        # Hide "Draw Tool" options
-        point_button.hide()
-        road_button.hide()
-        finish_line_button.hide()
-    elif event.ui_element == draw_tool_button:
-        selected_tool = 'Draw Tool'
-        # Show "Draw Tool" options
-        point_button.show()
-        road_button.show()
-        finish_line_button.show()
-    elif event.ui_element == point_button:
-        selected_detailed_tool = 'Point'
-    elif event.ui_element == road_button:
-        selected_detailed_tool = 'Road'
-    elif event.ui_element == finish_line_button:
-        selected_detailed_tool = 'Finish Line'
-    elif event.ui_element == save_map_button:
-        save_map()
-    elif event.ui_element == load_map_button:
-        load_map()
-    elif event.ui_element == finish_track_button:
-        try:
-            map_data.smooth_or_extrapolate_track()
-            for i in range(len(map_data.points)):
-                start = map_data.points[i]
-                end = map_data.points[(i + 1) % len(map_data.points)]  # Connect last point to the first
-                map_data.add_road(start, end)
-            update_layers_list()
-            print("Track smoothed or extrapolated successfully.")
-        except ValueError as e:
-            print(f"Error: {e}")
+class StepController:
+    """
+    Class to control the steps of the map generation process using Tkinter.
+    """
+
+    def __init__(self):
+        self.steps = []  # List of steps (functions)
+        self.step_names = []
+        self.current_index = 0  # Current step index
+
+        self.root = None
+
+        self.steps_initializer()
+        self.start_tkinter_thread()
+
+        self.wait_window = None  # Initialize wait window
+        self.step_listbox = None
+
+    def start_tkinter_thread(self):
+        """Start the Tkinter window in a separate thread."""
+        tkinter_thread = threading.Thread(target=self.window_initializer, daemon=True)
+        tkinter_thread.start()
+
+    def window_initializer(self):
+        """Initialize TKinter step controller window."""
+        self.root = tk.Tk()
+
+        # Two buttons for next step and previous step
+        next_button = tk.Button(self.root, text="Next Step", command=self.next_step)
+        next_button.pack(side=tk.RIGHT, padx=10, pady=10)
+
+        # Listbox for displaying steps
+        self.step_listbox = tk.Listbox(self.root, height=len(self.steps), selectmode=tk.SINGLE)
+        for step_name in self.step_names:
+            self.step_listbox.insert(tk.END, step_name)
+        self.step_listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        self.root.title("Step Controller")
+        self.root.geometry("300x200")
+        self.root.deiconify()  # Ensure the window is visible
+        self.update_step_highlight()
+        self.root.mainloop()  # Start the Tkinter main loop
+
+    def steps_initializer(self):
+        """Initialize the steps for the controller."""
+        self.add_step("Step 1: Create points",
+                      lambda: print("Step 1: Create points"))
+        self.add_step("Step 2: Connect points with roads",
+                      lambda: print("Step 2: Connect points with roads"))
+        self.add_step("Step 3: Smooth or extrapolate track",
+                      lambda: print("Step 3: Smooth or extrapolate track"))
+        self.add_step("Step 4: Set finish line",
+                      lambda: print("Step 4: Set finish line"))
+        self.add_step("Step 5: Save to file",
+                      lambda: print("Step 5: Save to file"))
+
+    def add_step(self, step_name, step_function):
+        """Add a step to the controller."""
+        self.steps.append(step_function)
+        self.step_names.append(step_name)
+
+    def next_step(self):
+        """Move to the next step if available."""
+        if self.current_index < len(self.steps) - 1:
+            self.current_index += 1
+            self.start_wait_window()
+            self.update_step_highlight()
+
+    def update_step_highlight(self):
+        """Highlight the current step in the Listbox."""
+        if self.step_listbox:
+            self.step_listbox.selection_clear(0, tk.END)
+            self.step_listbox.selection_set(self.current_index)
+            self.step_listbox.activate(self.current_index)
+
+    def current_step(self):
+        """Return the current step index."""
+        if self.steps:
+            return self.current_index
+        return None
+
+    def run_current_step(self, *args, **kwargs):
+        """Run the current step function."""
+        step_function = self.current_step()
+        if step_function:
+            step_function(*args, **kwargs)
+
+    def start_wait_window(self):
+        """Start a waiting window."""
+        self.wait_window = tk.Toplevel(self.root)
+        self.wait_window.title("Please wait")
+        label = tk.Label(self.wait_window, text="Processing, please wait...")
+        label.pack(padx=20, pady=20)
+        self.wait_window.geometry("300x100")
+        self.wait_window.deiconify()
+
+    def stop_wait_window(self):
+        """Stop the waiting window."""
+        if self.wait_window is not None:
+            self.wait_window.destroy()
+            del self.wait_window
+            self.wait_window = None
 
 
 # Add functions to handle saving and loading
@@ -419,81 +385,82 @@ def load_map():
     print("Map loaded from 'map_data.json'.")
 
 
-# Function to handle mouse clicks for the "Road" tool
 def handle_mouse_click_road(event):
-    if event.button == 1:  # Left mouse button
-        # Check if a point was clicked
-        for point in map_data.points:
-            if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
-                map_data.toggle_point_selection((point[1], point[2]))
-                break
-        # If two points are selected, create a road
-        if len(map_data.selected_points) == 2:
-            start, end = map_data.selected_points
-            map_data.add_road(start, end)
-            map_data.selected_points.clear()
-    elif event.button == 3:  # Right mouse button
-        closest_road = None
-        min_distance = float('inf')
-        max_distance = 15  # Maximum distance to consider for road removal
+    if event.type == pygame.MOUSEBUTTONDOWN:  # Ensure the event is a mouse button down event
+        if event.button == 1:  # Left mouse button
+            # Check if a point was clicked
+            for point in map_data.points:
+                if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                    map_data.toggle_point_selection((point[1], point[2]))
+                    break
+            # If two points are selected, create a road
+            if len(map_data.selected_points) == 2:
+                start, end = map_data.selected_points
+                map_data.add_road(start, end)
+                map_data.selected_points.clear()
+        elif event.button == 3:  # Right mouse button
+            closest_road = None
+            min_distance = float('inf')
+            max_distance = 15  # Maximum distance to consider for road removal
 
-        # Find the closest road to the cursor
-        for road in map_data.roads:
-            start_number, end_number = road
-            start = next(p for p in map_data.points if p[0] == start_number)
-            end = next(p for p in map_data.points if p[0] == end_number)
-            mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
+            # Find the closest road to the cursor
+            for road in map_data.roads:
+                start_number, end_number = road
+                start = next(p for p in map_data.points if p[0] == start_number)
+                end = next(p for p in map_data.points if p[0] == end_number)
+                mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
 
-            # Calculate distance from cursor to the midpoint of the road
-            distance = ((event.pos[0] - mid_point[0]) ** 2 + (event.pos[1] - mid_point[1]) ** 2) ** 0.5
-            if distance < min_distance and distance <= max_distance:
-                min_distance = distance
-                closest_road = (start, end)
+                # Calculate distance from cursor to the midpoint of the road
+                distance = ((event.pos[0] - mid_point[0]) ** 2 + (event.pos[1] - mid_point[1]) ** 2) ** 0.5
+                if distance < min_distance and distance <= max_distance:
+                    closest_road = (start, end)
+                    min_distance = distance
 
-        # Remove the closest road if found
-        if closest_road:
-            start, end = closest_road
-            map_data.remove_road(start, end)
+            # Remove the closest road if found
+            if closest_road:
+                start, end = closest_road
+                map_data.remove_road(start, end)
 
 
 def handle_mouse_click_finish_line(event):
-    if event.button == 1:  # Left mouse button
-        # Find the closest road to the cursor
-        closest_road = None
-        closest_point_on_road = None
-        min_distance = float('inf')
-        max_distance = 15  # Maximum distance to consider for finish line placement
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == 1:  # Left mouse button
+            # Find the closest road to the cursor
+            closest_road = None
+            closest_point_on_road = None
+            min_distance = float('inf')
+            max_distance = 15  # Maximum distance to consider for finish line placement
 
-        for road in map_data.roads:
-            start_number, end_number = road
-            start = next(p for p in map_data.points if p[0] == start_number)
-            end = next(p for p in map_data.points if p[0] == end_number)
+            for road in map_data.roads:
+                start_number, end_number = road
+                start = next(p for p in map_data.points if p[0] == start_number)
+                end = next(p for p in map_data.points if p[0] == end_number)
 
-            # Calculate the closest point on the road to the cursor
-            road_vector = (end[1] - start[1], end[2] - start[2])
-            road_length_squared = road_vector[0] ** 2 + road_vector[1] ** 2
-            if road_length_squared == 0:
-                continue  # Skip degenerate roads
+                # Calculate the closest point on the road to the cursor
+                road_vector = (end[1] - start[1], end[2] - start[2])
+                road_length_squared = road_vector[0] ** 2 + road_vector[1] ** 2
+                if road_length_squared == 0:
+                    continue  # Skip degenerate roads
 
-            cursor_vector = (event.pos[0] - start[1], event.pos[1] - start[2])
-            t = max(0, min(1, (
-                    cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
-            closest_point = (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
+                cursor_vector = (event.pos[0] - start[1], event.pos[1] - start[2])
+                t = max(0, min(1, (
+                        cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
+                closest_point = (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
 
-            # Calculate distance from cursor to the closest point
-            distance = ((event.pos[0] - closest_point[0]) ** 2 + (event.pos[1] - closest_point[1]) ** 2) ** 0.5
-            if distance < min_distance and distance <= max_distance:
-                min_distance = distance
-                closest_road = road
-                closest_point_on_road = closest_point
+                # Calculate distance from cursor to the closest point
+                distance = ((event.pos[0] - closest_point[0]) ** 2 + (event.pos[1] - closest_point[1]) ** 2) ** 0.5
+                if distance < min_distance and distance <= max_distance:
+                    min_distance = distance
+                    closest_road = road
+                    closest_point_on_road = closest_point
 
-        # Set the finish line if a road is found
-        if closest_road and closest_point_on_road:
-            map_data.finish_line['point'] = closest_point_on_road
+            # Set the finish line if a road is found
+            if closest_road and closest_point_on_road:
+                map_data.finish_line['point'] = closest_point_on_road
 
-    elif event.button == 3:  # Right mouse button
-        # Remove the finish line
-        map_data.finish_line['point'] = None
+        elif event.button == 3:  # Right mouse button
+            # Remove the finish line
+            map_data.finish_line['point'] = None
 
 
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
@@ -516,104 +483,110 @@ def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
 # Create an instance of the Map class
 map_data = Map()
 
-# Replace the layers list initialization
-layers_list = pygame_gui.elements.UISelectionList(
-    relative_rect=pygame.Rect(10, 10, 180, 400),
-    item_list=[],
-    manager=manager,
-    container=layers_panel
-)
-
-# Call update_layers_list whenever map data changes
-map_data.add_point = lambda point: (Map.add_point(map_data, point), update_layers_list())
-map_data.remove_point = lambda point: (Map.remove_point(map_data, point), update_layers_list())
-map_data.add_road = lambda start, end: (
-    Map.add_road(map_data, start, end), update_layers_list())
-map_data.remove_road = lambda start, end: (Map.remove_road(map_data, start, end), update_layers_list())
-map_data.set_finish_line = lambda start, end: (Map.set_finish_line(map_data, start, end), update_layers_list())
-
 
 # Function to handle mouse clicks for adding/removing points
 def handle_mouse_click(event):
     if selected_tool == 'Draw Tool' and selected_detailed_tool == 'Point':
-        if event.button == 1:  # Right mouse button
-            # Add point only if within the drawing area
-            if drawing_area_rect.collidepoint(event.pos):
-                map_data.add_point(event.pos)
-        elif event.button == 3:  # Left mouse button
-            # Remove point
-            for point in map_data.points:
-                if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
-                    map_data.remove_point((point[1], point[2]))
-                    break
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left mouse button
+                # Add point only if within the drawing area
+                if drawing_area_rect.collidepoint(event.pos):
+                    map_data.add_point(event.pos)
+            elif event.button == 3:  # Left mouse button
+                # Remove point
+                for point in map_data.points:
+                    if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                        map_data.remove_point((point[1], point[2]))
+                        break
     elif selected_tool == 'Draw Tool' and selected_detailed_tool == 'Road':
         handle_mouse_click_road(event)
     elif selected_tool == 'Draw Tool' and selected_detailed_tool == 'Finish Line':
         handle_mouse_click_finish_line(event)
 
 
-# Main loop
-clock = pygame.time.Clock()
-is_running = True
+def step_by_step_generator():
+    global selected_tool, selected_detailed_tool
+    step = 1  # Current step in the process
+    clock = pygame.time.Clock()
 
-while is_running:
-    time_delta = clock.tick(60) / 1000.0
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            is_running = False
+    step_controller = StepController()
 
-        manager.process_events(event)
-        # Handle button clicks
-        if event.type == pygame_gui.UI_BUTTON_PRESSED:
-            handle_button_click(event)
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            handle_mouse_click(event)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return  # Exit the generator
 
-    # Draw the background
-    window_surface.fill(WHITE)
+            manager.process_events(event)
 
-    # Draw the central drawing area
-    pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
-    draw_coordinate_grid(window_surface, drawing_area_rect)
+            if step == 1:  # Step 1: Create points
+                selected_tool = 'Draw Tool'
+                selected_detailed_tool = 'Point'
+                step_controller.stop_wait_window()
+                handle_mouse_click(event)
 
-    # Draw points
-    for point in map_data.points:
-        number, x, y = point
-        color = (0, 0, 255) if point in map_data.selected_points else (255, 0, 0)
-        pygame.draw.circle(window_surface, color, (x, y), 5)
-        label = pygame.font.Font(None, 20).render(str(number), True, (0, 0, 0))
-        window_surface.blit(label, (x + 5, y - 10))
+            elif step == 2:  # Step 2: Connect points with roads
+                step_controller.stop_wait_window()
+                handle_mouse_click_road(event)
 
-    # Draw roads
-    for start_number, end_number in map_data.roads:
-        start = next(p for p in map_data.points if p[0] == start_number)
-        end = next(p for p in map_data.points if p[0] == end_number)
-        pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]), 2)
-        # Draw arrowhead for direction
-        arrow_size = 10
-        direction = (end[1] - start[1], end[2] - start[2])
-        length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5
-        unit_dir = (direction[0] / length, direction[1] / length)
-        arrow_point = (end[1] - unit_dir[0] * arrow_size, end[2] - unit_dir[1] * arrow_size)
-        pygame.draw.line(window_surface, (0, 0, 0), arrow_point,
-                         (arrow_point[0] - unit_dir[1] * 5, arrow_point[1] + unit_dir[0] * 5), 4)
-        pygame.draw.line(window_surface, (0, 0, 0), arrow_point,
-                         (arrow_point[0] + unit_dir[1] * 5, arrow_point[1] - unit_dir[0] * 5), 4)
+            elif step == 3:  # Step 3: Finish track
 
-    # Draw the finish line
-    if map_data.finish_line['point']:
-        finish_point = map_data.finish_line['point']
-        pygame.draw.circle(window_surface, (0, 255, 0), (int(finish_point[0]), int(finish_point[1])),
-                           6)  # Green point
-        label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
-        window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
+                try:
+                    map_data.smooth_or_extrapolate_track()
+                    for i in range(len(map_data.points)):
+                        start = map_data.points[i]
+                        end = map_data.points[(i + 1) % len(map_data.points)]
+                        map_data.add_road(start, end)
 
-    # Update the UI
-    manager.update(time_delta)
-    manager.draw_ui(window_surface)
+                    step = 4  # Proceed to the next step
+                except ValueError as e:
+                    print(f"Error: {e}")
 
-    update_layers_list()
+                finally:
+                    step_controller.stop_wait_window()
+                    step_controller.next_step()
 
-    pygame.display.update()
+            elif step == 4:  # Step 4: Set finish line
+                selected_tool = 'Draw Tool'
+                selected_detailed_tool = 'Finish Line'
+                step_controller.stop_wait_window()
+                handle_mouse_click(event)
 
-pygame.quit()
+            elif step == 5:  # Step 5: Save to file
+                save_map()
+                step_controller.stop_wait_window()
+                print("Map saved successfully.")
+                return  # Exit the generator
+
+        # Draw the UI and map
+        window_surface.fill(WHITE)
+        pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
+        draw_coordinate_grid(window_surface, drawing_area_rect)
+
+        for point in map_data.points:
+            number, x, y = point
+            color = (0, 0, 255) if point in map_data.selected_points else (255, 0, 0)
+            pygame.draw.circle(window_surface, color, (x, y), 5)
+            label = pygame.font.Font(None, 20).render(str(number), True, (0, 0, 0))
+            window_surface.blit(label, (x + 5, y - 10))
+
+        for start_number, end_number in map_data.roads:
+            start = next(p for p in map_data.points if p[0] == start_number)
+            end = next(p for p in map_data.points if p[0] == end_number)
+            pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]), 2)
+
+        if map_data.finish_line['point']:
+            finish_point = map_data.finish_line['point']
+            pygame.draw.circle(window_surface, (0, 255, 0),
+                               (int(finish_point[0]), int(finish_point[1])), 6)
+            label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
+            window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
+
+        manager.update(clock.tick(60) / 1000.0)
+        manager.draw_ui(window_surface)
+        pygame.display.update()
+
+        step = step_controller.current_step() + 1  # IMPORTANT! index starts from 0
+
+
+# Call the step-by-step generator
+step_by_step_generator()
