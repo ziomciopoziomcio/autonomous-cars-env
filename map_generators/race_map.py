@@ -385,43 +385,6 @@ def load_map():
     print("Map loaded from 'map_data.json'.")
 
 
-# Function to handle mouse clicks for the "Road" tool
-def handle_mouse_click_road(event):
-    if event.button == 1:  # Left mouse button
-        # Check if a point was clicked
-        for point in map_data.points:
-            if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
-                map_data.toggle_point_selection((point[1], point[2]))
-                break
-        # If two points are selected, create a road
-        if len(map_data.selected_points) == 2:
-            start, end = map_data.selected_points
-            map_data.add_road(start, end)
-            map_data.selected_points.clear()
-    elif event.button == 3:  # Right mouse button
-        closest_road = None
-        min_distance = float('inf')
-        max_distance = 15  # Maximum distance to consider for road removal
-
-        # Find the closest road to the cursor
-        for road in map_data.roads:
-            start_number, end_number = road
-            start = next(p for p in map_data.points if p[0] == start_number)
-            end = next(p for p in map_data.points if p[0] == end_number)
-            mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
-
-            # Calculate distance from cursor to the midpoint of the road
-            distance = ((event.pos[0] - mid_point[0]) ** 2 + (event.pos[1] - mid_point[1]) ** 2) ** 0.5
-            if distance < min_distance and distance <= max_distance:
-                min_distance = distance
-                closest_road = (start, end)
-
-        # Remove the closest road if found
-        if closest_road:
-            start, end = closest_road
-            map_data.remove_road(start, end)
-
-
 def handle_mouse_click_road(event):
     if event.type == pygame.MOUSEBUTTONDOWN:  # Ensure the event is a mouse button down event
         if event.button == 1:  # Left mouse button
