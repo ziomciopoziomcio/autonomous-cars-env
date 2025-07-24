@@ -311,11 +311,16 @@ class StepController:
 
     def steps_initializer(self):
         """Initialize the steps for the controller."""
-        self.add_step("Step 1: Create points", lambda: print("Step 1: Create points"))
-        self.add_step("Step 2: Connect points with roads", lambda: print("Step 2: Connect points with roads"))
-        self.add_step("Step 3: Smooth or extrapolate track", lambda: print("Step 3: Smooth or extrapolate track"))
-        self.add_step("Step 4: Set finish line", lambda: print("Step 4: Set finish line"))
-        self.add_step("Step 5: Save to file", lambda: print("Step 5: Save to file"))
+        self.add_step("Step 1: Create points",
+                      lambda: print("Step 1: Create points"))
+        self.add_step("Step 2: Connect points with roads",
+                      lambda: print("Step 2: Connect points with roads"))
+        self.add_step("Step 3: Smooth or extrapolate track",
+                      lambda: print("Step 3: Smooth or extrapolate track"))
+        self.add_step("Step 4: Set finish line",
+                      lambda: print("Step 4: Set finish line"))
+        self.add_step("Step 5: Save to file",
+                      lambda: print("Step 5: Save to file"))
 
     def add_step(self, step_name, step_function):
         """Add a step to the controller."""
