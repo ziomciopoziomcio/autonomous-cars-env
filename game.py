@@ -102,11 +102,6 @@ class Car:
                 distances.append(distance)
         return distances
 
-    def set_image(self, img):
-        self.image = pygame.transform.scale(img, (30, 20))
-        self.mask = pygame.mask.from_surface(self.image)
-        self.image.fill((255, 0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-
     def get_rays_and_distances(self, mask):
         """
         Calculate the intersection points and distances for 8 rays extending
