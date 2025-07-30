@@ -181,7 +181,6 @@ class Car:
         #     distance_text = FONT.render(f"{direction}: {int(distance)} px", True, (255, 255, 255))
         #     win.blit(distance_text, (10, 10 + i * 30))
 
-        pygame.display.update()
 
     def set_image(self, track_width):
         """
