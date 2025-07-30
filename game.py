@@ -490,6 +490,8 @@ def main():
     for car, (_, _, angle) in zip(cars, starting_positions):
         car.angle = angle
 
+    track_mask = generate_track_mask(data, WIDTH, HEIGHT)
+
     running = True
     while running:
         screen.blit(BACKGROUND_IMAGE, (0, 0))
@@ -523,7 +525,6 @@ def main():
                 car.speed = 0
             car.draw(screen)
             # Calculate rays and draw them
-            track_mask = generate_track_mask(data, WIDTH, HEIGHT)
             rays, distances = car.get_rays_and_distances(track_mask, inner)
             car.draw_rays(screen, rays)
 
