@@ -102,7 +102,7 @@ class Car:
                 distances.append(distance)
         return distances
 
-    def get_rays_and_distances(self, mask):
+    def get_rays_and_distances(self, mask, inner_polygon):
         """
         Calculate the intersection points and distances for 8 rays extending
         from the center of the car to the track border.
@@ -116,8 +116,8 @@ class Car:
             center_y = self.y + car_height // 2
         else:
             # Calculate center of the car
-            center_x = self.x + self.img.get_width() // 2
-            center_y = self.y + self.img.get_height() // 2
+            car_rect = self.image.get_rect(center=(self.x, self.y))
+            center_x, center_y = car_rect.center
 
         angle_rad = -math.radians(self.angle)
 
@@ -144,7 +144,7 @@ class Car:
 
                 # Check if the ray intersects the border
                 if 0 <= test_x < max_width and 0 <= test_y < max_height:
-                    if mask.get_at((test_x, test_y)) != (0, 0, 0, 0):  # Collision detected
+                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)): # Collision detected
                         rays.append((center_x, center_y, test_x, test_y))
                         distances.append(ray_length)
                         break
@@ -524,7 +524,7 @@ def main():
             car.draw(screen)
             # Calculate rays and draw them
             track_mask = generate_track_mask(data, WIDTH, HEIGHT)
-            rays, distances = car.get_rays_and_distances(track_mask)
+            rays, distances = car.get_rays_and_distances(track_mask, inner)
             car.draw_rays(screen, rays)
 
         pygame.display.flip()
