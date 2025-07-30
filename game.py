@@ -22,6 +22,7 @@ USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
 
 
+
 class Car:
     def __init__(self, x, y, track_width):
         self.x = x
@@ -90,6 +91,96 @@ class Car:
     def get_mask(self):
         rotated_image = pygame.transform.rotate(self.image, -self.angle)
         return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
+
+    def get_distances_to_cars(self, cars):
+        distances = []
+        for other_car in cars:
+            if other_car != self:
+                dx = other_car.x - self.x
+                dy = other_car.y - self.y
+                distance = math.sqrt(dx ** 2 + dy ** 2)
+                distances.append(distance)
+        return distances
+
+    def get_rays_and_distances(self, mask, inner_polygon):
+        """
+        Calculate the intersection points and distances for 8 rays extending
+        from the center of the car to the track border.
+        """
+        if self.img is None:
+            car_width = 30
+            car_height = 20
+
+            # Calculate center of the car
+            center_x = self.x + car_width // 2
+            center_y = self.y + car_height // 2
+        else:
+            # Calculate center of the car
+            car_rect = self.image.get_rect(center=(self.x, self.y))
+            center_x, center_y = car_rect.center
+
+        angle_rad = -math.radians(self.angle)
+
+        # Define ray angles relative to the car's orientation
+        ray_angles = [0, 45, 90, 135, 180, 225, 270, 315]  # Angles in degrees
+        rays = []
+        distances = []
+
+        # Border mask outline
+        max_width, max_height = mask.get_size()
+        max_length = 1000  # Maximum ray length
+
+        for ray_angle in ray_angles:
+            # Calculate the absolute angle of the ray
+            total_angle = angle_rad + math.radians(ray_angle)
+            dx = math.cos(total_angle)
+            dy = math.sin(total_angle)
+
+            # Extend the ray until it hits the border
+            ray_length = 0
+            while ray_length < max_length:
+                test_x = int(center_x + ray_length * dx)
+                test_y = int(center_y + ray_length * dy)
+
+                # Check if the ray intersects the border
+                if 0 <= test_x < max_width and 0 <= test_y < max_height:
+                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)): # Collision detected
+                        rays.append((center_x, center_y, test_x, test_y))
+                        distances.append(ray_length)
+                        break
+                else:
+                    # Ray goes out of bounds
+                    break
+
+                ray_length += 1
+
+            else:
+                # If no collision, the ray ends at its maximum length
+                test_x = int(center_x + max_length * dx)
+                test_y = int(center_y + max_length * dy)
+                rays.append((center_x, center_y, test_x, test_y))
+                distances.append(max_length)
+
+        return rays, distances
+
+    def draw_rays(self, surface, rays):
+        """
+        Draw rays on the surface.
+        :param surface: Pygame surface to draw on.
+        :param rays: List of rays [(start_x, start_y, end_x, end_y)].
+        """
+        for ray in rays:
+            start_x, start_y, end_x, end_y = ray
+            pygame.draw.line(surface, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
+
+        # directions = [
+        #     "Front", "Front-right", "Right", "Back-right",
+        #     "Back", "Back-left", "Left", "Front-left"
+        # ]
+        # for i, (direction, distance) in enumerate(zip(directions, distances)):
+        #     distance_text = FONT.render(f"{direction}: {int(distance)} px", True, (255, 255, 255))
+        #     win.blit(distance_text, (10, 10 + i * 30))
+
 
     def set_image(self, track_width):
         """
@@ -399,6 +490,8 @@ def main():
     for car, (_, _, angle) in zip(cars, starting_positions):
         car.angle = angle
 
+    track_mask = generate_track_mask(data, WIDTH, HEIGHT)
+
     running = True
     while running:
         screen.blit(BACKGROUND_IMAGE, (0, 0))
@@ -431,6 +524,9 @@ def main():
             else:
                 car.speed = 0
             car.draw(screen)
+            # Calculate rays and draw them
+            rays, distances = car.get_rays_and_distances(track_mask, inner)
+            car.draw_rays(screen, rays)
 
         pygame.display.flip()
         clock.tick(60)
