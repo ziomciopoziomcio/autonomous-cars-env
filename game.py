@@ -173,10 +173,10 @@ class Car:
             start_x, start_y, end_x, end_y = ray
             pygame.draw.line(surface, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
 
-        directions = [
-            "Front", "Front-right", "Right", "Back-right",
-            "Back", "Back-left", "Left", "Front-left"
-        ]
+        # directions = [
+        #     "Front", "Front-right", "Right", "Back-right",
+        #     "Back", "Back-left", "Left", "Front-left"
+        # ]
         # for i, (direction, distance) in enumerate(zip(directions, distances)):
         #     distance_text = FONT.render(f"{direction}: {int(distance)} px", True, (255, 255, 255))
         #     win.blit(distance_text, (10, 10 + i * 30))
