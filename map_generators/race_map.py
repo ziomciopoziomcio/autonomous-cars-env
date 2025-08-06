@@ -24,6 +24,7 @@ GRAY = (200, 200, 200)
 CHECKPOINT_COLLISION_OFFSET = 5
 CHECKPOINT_COLLISION_SIZE = 10
 
+
 def interpolate_points(start, end, num_points=5):
     """Generate intermediate points between start and end."""
     points = []
@@ -100,7 +101,8 @@ class Map:
         """Add a road between two points."""
         start_number = start[0]
         end_number = end[0]
-        if (start_number, end_number) not in self.roads and (end_number, start_number) not in self.roads:
+        if (start_number, end_number) not in self.roads and (
+        end_number, start_number) not in self.roads:
             self.roads.append((start_number, end_number))
 
     def is_track_closed(self):
@@ -259,14 +261,16 @@ class Map:
             finish_point = self.finish_line['point']
             if not center_line.contains(Point(finish_point)):
                 # Snap the finish line to the nearest point on the centerline
-                finish_point = center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
+                finish_point = \
+                center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
                 self.finish_line['point'] = finish_point
 
         # Snap all checkpoints to the nearest point on the centerline
         snapped_checkpoints = []
         for checkpoint in self.checkpoints:
             if not center_line.contains(Point(checkpoint)):
-                snapped_point = center_line.interpolate(center_line.project(Point(checkpoint))).coords[0]
+                snapped_point = \
+                center_line.interpolate(center_line.project(Point(checkpoint))).coords[0]
                 snapped_checkpoints.append(snapped_point)
             else:
                 snapped_checkpoints.append(checkpoint)
@@ -441,7 +445,8 @@ def handle_mouse_click_road(event):
                 mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
 
                 # Calculate distance from cursor to the midpoint of the road
-                distance = ((event.pos[0] - mid_point[0]) ** 2 + (event.pos[1] - mid_point[1]) ** 2) ** 0.5
+                distance = ((event.pos[0] - mid_point[0]) ** 2 + (
+                            event.pos[1] - mid_point[1]) ** 2) ** 0.5
                 if distance < min_distance and distance <= max_distance:
                     closest_road = (start, end)
                     min_distance = distance
@@ -474,11 +479,13 @@ def handle_mouse_click_finish_line(event):
 
                 cursor_vector = (event.pos[0] - start[1], event.pos[1] - start[2])
                 t = max(0, min(1, (
-                        cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
+                        cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[
+                    1]) / road_length_squared))
                 closest_point = (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
 
                 # Calculate distance from cursor to the closest point
-                distance = ((event.pos[0] - closest_point[0]) ** 2 + (event.pos[1] - closest_point[1]) ** 2) ** 0.5
+                distance = ((event.pos[0] - closest_point[0]) ** 2 + (
+                            event.pos[1] - closest_point[1]) ** 2) ** 0.5
                 if distance < min_distance and distance <= max_distance:
                     min_distance = distance
                     closest_road = road
@@ -491,6 +498,7 @@ def handle_mouse_click_finish_line(event):
         elif event.button == 3:  # Right mouse button
             # Remove the finish line
             map_data.finish_line['point'] = None
+
 
 def handle_mouse_click_checkpoint(event):
     if event.type == pygame.MOUSEBUTTONDOWN:
