@@ -62,6 +62,7 @@ class Map:
         self.points = []
         self.roads = []
         self.finish_line = {'point': None}
+        self.checkpoints = []
         self.selected_points = []
         self.point_index = 1
 
@@ -184,6 +185,16 @@ class Map:
         self.finish_line['start'] = start
         self.finish_line['end'] = end
 
+    def add_checkpoint(self, position):
+        """Add a checkpoint at the specified position."""
+        if position not in self.checkpoints:
+            self.checkpoints.append(position)
+
+    def remove_checkpoint(self, position):
+        """Remove a checkpoint at the specified position."""
+        if position in self.checkpoints:
+            self.checkpoints.remove(position)
+
     # FILE
 
     def to_dict(self):
@@ -191,7 +202,8 @@ class Map:
         return {
             'points': self.points,
             'roads': self.roads,
-            'finish_line': self.finish_line
+            'finish_line': self.finish_line,
+            'checkpoints': self.checkpoints
         }
 
     def from_dict(self, data):
@@ -199,6 +211,7 @@ class Map:
         self.points = data.get('points', [])
         self.roads = data.get('roads', [])
         self.finish_line = data.get('finish_line', {'point': None})
+        self.checkpoints = data.get('checkpoints', [])
 
     def generate_track_width(self, width=50):
         """
@@ -245,6 +258,16 @@ class Map:
                 finish_point = center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
                 self.finish_line['point'] = finish_point
 
+        # Snap all checkpoints to the nearest point on the centerline
+        snapped_checkpoints = []
+        for checkpoint in self.checkpoints:
+            if not center_line.contains(Point(checkpoint)):
+                snapped_point = center_line.interpolate(center_line.project(Point(checkpoint))).coords[0]
+                snapped_checkpoints.append(snapped_point)
+            else:
+                snapped_checkpoints.append(checkpoint)
+        self.checkpoints = snapped_checkpoints
+
         return inner, outer.tolist()
 
     def save_to_file(self, file_path):
@@ -254,6 +277,7 @@ class Map:
             'points': self.points,
             'roads': self.roads,
             'finish_line': self.finish_line,
+            'checkpoints': self.checkpoints,
             'inner_points': inner_points,
             'outer_points': outer_points
         }
@@ -320,8 +344,10 @@ class StepController:
                       lambda: print("Step 3: Smooth or extrapolate track"))
         self.add_step("Step 4: Set finish line",
                       lambda: print("Step 4: Set finish line"))
-        self.add_step("Step 5: Save to file",
-                      lambda: print("Step 5: Save to file"))
+        self.add_step("Step 5: Add checkpoints",
+                      lambda: print("Step 5: Add checkpoints"))
+        self.add_step("Step 6: Save to file",
+                      lambda: print("Step 6: Save to file"))
 
     def add_step(self, step_name, step_function):
         """Add a step to the controller."""
@@ -462,6 +488,18 @@ def handle_mouse_click_finish_line(event):
             # Remove the finish line
             map_data.finish_line['point'] = None
 
+def handle_mouse_click_checkpoint(event):
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == 1:  # Left mouse button
+            # Add a checkpoint at the clicked position
+            map_data.add_checkpoint(event.pos)
+        elif event.button == 3:  # Right mouse button
+            # Remove a checkpoint at the clicked position
+            for checkpoint in map_data.checkpoints:
+                if pygame.Rect(checkpoint[0] - 5, checkpoint[1] - 5, 10, 10).collidepoint(event.pos):
+                    map_data.remove_checkpoint(checkpoint)
+                    break
+
 
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
     """Draw a coordinate grid in the specified rectangle."""
@@ -551,7 +589,13 @@ def step_by_step_generator():
                 step_controller.stop_wait_window()
                 handle_mouse_click(event)
 
-            elif step == 5:  # Step 5: Save to file
+            elif step == 5:  # Step 5: Add checkpoints
+                selected_tool = 'Draw Tool'
+                selected_detailed_tool = 'Checkpoint'
+                step_controller.stop_wait_window()
+                handle_mouse_click_checkpoint(event)
+
+            elif step == 6:  # Step 6: Save to file
                 save_map()
                 step_controller.stop_wait_window()
                 print("Map saved successfully.")
@@ -573,6 +617,12 @@ def step_by_step_generator():
             start = next(p for p in map_data.points if p[0] == start_number)
             end = next(p for p in map_data.points if p[0] == end_number)
             pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]), 2)
+
+        # Draw checkpoints
+        for checkpoint in map_data.checkpoints:
+            pygame.draw.circle(window_surface, (255, 255, 0), checkpoint, 6)
+            label = pygame.font.Font(None, 20).render("Checkpoint", True, (255, 255, 0))
+            window_surface.blit(label, (checkpoint[0] + 10, checkpoint[1] - 10))
 
         if map_data.finish_line['point']:
             finish_point = map_data.finish_line['point']
