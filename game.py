@@ -11,7 +11,7 @@ BACKGROUND_IMAGE = None
 # Constants
 WIDTH, HEIGHT = 1200, 800
 BG_COLOR = (30, 30, 30)
-INNER_COLOR = (200, 50, 50) #(50, 50, 200)
+INNER_COLOR = (200, 50, 50)  # (50, 50, 200)
 OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
@@ -20,7 +20,6 @@ ROW_OFFSET = -30  # Offset for the second row of cars
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
-
 
 
 class Car:
@@ -90,7 +89,8 @@ class Car:
 
     def get_mask(self):
         rotated_image = pygame.transform.rotate(self.image, -self.angle)
-        return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(center=(self.x, self.y))
+        return pygame.mask.from_surface(rotated_image), rotated_image.get_rect(
+            center=(self.x, self.y))
 
     def get_distances_to_cars(self, cars):
         distances = []
@@ -144,7 +144,8 @@ class Car:
 
                 # Check if the ray intersects the border
                 if 0 <= test_x < max_width and 0 <= test_y < max_height:
-                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)): # Collision detected
+                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
+                                                                               inner_polygon)):  # Collision detected
                         rays.append((center_x, center_y, test_x, test_y))
                         distances.append(ray_length)
                         break
@@ -181,7 +182,6 @@ class Car:
         #     distance_text = FONT.render(f"{direction}: {int(distance)} px", True, (255, 255, 255))
         #     win.blit(distance_text, (10, 10 + i * 30))
 
-
     def set_image(self, track_width):
         """
         Sets the car's image by scaling it based on the track width.
@@ -216,6 +216,7 @@ def load_map(file_path):
     with open(file_path, "r") as f:
         data = json.load(f)
     return data
+
 
 def calculate_starting_positions(finish_line, outer_line,
                                  inner_line, num_cars, offset_distance, spacing):
@@ -262,6 +263,7 @@ def calculate_starting_positions(finish_line, outer_line,
 
     return positions
 
+
 def get_scaling_params(points_list, width, height, scale_factor=1.0):
     # Połącz wszystkie punkty z list
     all_points = [p for points in points_list for p in points]
@@ -294,7 +296,8 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     center_point = data["finish_line"]["point"]
 
     # Scale the center point
-    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width, height,
+    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width,
+                                             height,
                                              scale_factor=0.9)
     center_scaled = scale_points([center_point], min_x, min_y, scale)[0]
 
@@ -303,7 +306,8 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     inner_closest = min(inner_line, key=lambda p: math.dist(center_scaled, p))
 
     # Calculate the rotation angle of the finish line
-    angle = math.degrees(math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
+    angle = math.degrees(
+        math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
 
     finish_width = int(math.dist(outer_closest, inner_closest))
     finish_height = 25
@@ -316,10 +320,12 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
 
     # Center the finish line image
     finish_rect = rotated_finish.get_rect()
-    finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
+    finish_rect.center = (
+    (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
 
     # Draw the finish line image on the screen
     screen.blit(rotated_finish, finish_rect.topleft)
+
 
 def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
     """
@@ -332,7 +338,8 @@ def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
     :param inner_line: Scaled inner line points.
     """
     checkpoints_points = data["checkpoints"]
-    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width, height, scale_factor=0.9)
+    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width,
+                                             height, scale_factor=0.9)
 
     for checkpoint in checkpoints_points:
         # Scale the checkpoint point
@@ -343,23 +350,27 @@ def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
         inner_closest = min(inner_line, key=lambda p: math.dist(checkpoint_scaled, p))
 
         # Calculate the rotation angle of the checkpoint line
-        angle = math.degrees(math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
+        angle = math.degrees(
+            math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
 
         checkpoint_width = int(math.dist(outer_closest, inner_closest))
         checkpoint_height = 25
 
         # Scale the finish line image
-        scaled_checkpoint = pygame.transform.scale(FINISH_TEXTURE, (checkpoint_width, checkpoint_height)) # TODO: use different image for checkpoints
+        scaled_checkpoint = pygame.transform.scale(FINISH_TEXTURE, (
+        checkpoint_width, checkpoint_height))  # TODO: use different image for checkpoints
 
         # Rotate the finish line image
         rotated_checkpoint = pygame.transform.rotate(scaled_checkpoint, -angle)
 
         # Center the finish line image
         checkpoint_rect = rotated_checkpoint.get_rect()
-        checkpoint_rect.center = ((outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
+        checkpoint_rect.center = (
+        (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
 
         # Draw the finish line image on the screen
         screen.blit(rotated_checkpoint, checkpoint_rect.topleft)
+
 
 def draw_track(screen, data):
     outer_raw = data["outer_points"]
@@ -522,7 +533,8 @@ def main():
     offset_distance = 30  # Distance from the finish line
     spacing = 15  # Spacing between cars
     starting_positions = calculate_starting_positions(finish_scaled,
-                                                      outer, inner, num_cars, offset_distance, spacing)
+                                                      outer, inner, num_cars, offset_distance,
+                                                      spacing)
 
     # Place the cars at the starting line
     cars = [Car(x, y, track_width) for x, y, angle in starting_positions]
@@ -534,7 +546,7 @@ def main():
     running = True
     while running:
         screen.blit(BACKGROUND_IMAGE, (0, 0))
-        outer, inner = draw_track(screen, data) # its switched?
+        outer, inner = draw_track(screen, data)  # its switched?
 
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
         draw_checkpoints_line(screen, data, WIDTH, HEIGHT, outer, inner)
