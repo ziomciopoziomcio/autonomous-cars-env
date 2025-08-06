@@ -19,6 +19,10 @@ manager = pygame_gui.UIManager(window_size)
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 
+# Constants for checkpoints
+
+CHECKPOINT_COLLISION_OFFSET = 5
+CHECKPOINT_COLLISION_SIZE = 10
 
 def interpolate_points(start, end, num_points=5):
     """Generate intermediate points between start and end."""
@@ -496,7 +500,12 @@ def handle_mouse_click_checkpoint(event):
         elif event.button == 3:  # Right mouse button
             # Remove a checkpoint at the clicked position
             for checkpoint in map_data.checkpoints:
-                if pygame.Rect(checkpoint[0] - 5, checkpoint[1] - 5, 10, 10).collidepoint(event.pos):
+                if pygame.Rect(
+                        checkpoint[0] - CHECKPOINT_COLLISION_OFFSET,
+                        checkpoint[1] - CHECKPOINT_COLLISION_OFFSET,
+                        CHECKPOINT_COLLISION_SIZE,
+                        CHECKPOINT_COLLISION_SIZE
+                ).collidepoint(event.pos):
                     map_data.remove_checkpoint(checkpoint)
                     break
 
