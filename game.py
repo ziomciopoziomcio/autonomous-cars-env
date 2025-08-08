@@ -559,7 +559,7 @@ def main():
 
         for car in cars:  # Iterate over all cars
             car.update()
-            if not check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
+            if not check_if_on_track(car, track_mask , inner, outer):
                 car.speed = 0
             car.draw(screen)
             # Calculate rays and draw them
