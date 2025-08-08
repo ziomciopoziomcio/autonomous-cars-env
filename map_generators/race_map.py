@@ -102,7 +102,7 @@ class Map:
         start_number = start[0]
         end_number = end[0]
         if (start_number, end_number) not in self.roads and (
-        end_number, start_number) not in self.roads:
+                end_number, start_number) not in self.roads:
             self.roads.append((start_number, end_number))
 
     def is_track_closed(self):
@@ -262,7 +262,7 @@ class Map:
             if not center_line.contains(Point(finish_point)):
                 # Snap the finish line to the nearest point on the centerline
                 finish_point = \
-                center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
+                    center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
                 self.finish_line['point'] = finish_point
 
         # Snap all checkpoints to the nearest point on the centerline
@@ -270,7 +270,7 @@ class Map:
         for checkpoint in self.checkpoints:
             if not center_line.contains(Point(checkpoint)):
                 snapped_point = \
-                center_line.interpolate(center_line.project(Point(checkpoint))).coords[0]
+                    center_line.interpolate(center_line.project(Point(checkpoint))).coords[0]
                 snapped_checkpoints.append(snapped_point)
             else:
                 snapped_checkpoints.append(checkpoint)
@@ -446,7 +446,7 @@ def handle_mouse_click_road(event):
 
                 # Calculate distance from cursor to the midpoint of the road
                 distance = ((event.pos[0] - mid_point[0]) ** 2 + (
-                            event.pos[1] - mid_point[1]) ** 2) ** 0.5
+                        event.pos[1] - mid_point[1]) ** 2) ** 0.5
                 if distance < min_distance and distance <= max_distance:
                     closest_road = (start, end)
                     min_distance = distance
@@ -485,7 +485,7 @@ def handle_mouse_click_finish_line(event):
 
                 # Calculate distance from cursor to the closest point
                 distance = ((event.pos[0] - closest_point[0]) ** 2 + (
-                            event.pos[1] - closest_point[1]) ** 2) ** 0.5
+                        event.pos[1] - closest_point[1]) ** 2) ** 0.5
                 if distance < min_distance and distance <= max_distance:
                     min_distance = distance
                     closest_road = road
