@@ -321,7 +321,7 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     # Center the finish line image
     finish_rect = rotated_finish.get_rect()
     finish_rect.center = (
-    (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
+        (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
 
     # Draw the finish line image on the screen
     screen.blit(rotated_finish, finish_rect.topleft)
@@ -358,7 +358,7 @@ def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
 
         # Scale the finish line image
         scaled_checkpoint = pygame.transform.scale(FINISH_TEXTURE, (
-        checkpoint_width, checkpoint_height))  # TODO: use different image for checkpoints
+            checkpoint_width, checkpoint_height))  # TODO: use different image for checkpoints
 
         # Rotate the finish line image
         rotated_checkpoint = pygame.transform.rotate(scaled_checkpoint, -angle)
@@ -366,7 +366,7 @@ def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
         # Center the finish line image
         checkpoint_rect = rotated_checkpoint.get_rect()
         checkpoint_rect.center = (
-        (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
+            (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
 
         # Draw the finish line image on the screen
         screen.blit(rotated_checkpoint, checkpoint_rect.topleft)
