@@ -556,21 +556,9 @@ def main():
                 running = False
 
         car.update()
-        # if check_collision(car, outer, inner):
-        #     print("💥 Kolizja!")
-        #     car.speed = 0
-        # if check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
-        #     print("Na torze!")
-        # else:
-        #     car.speed = 0
-        #
-        # car.draw(screen)
 
         for car in cars:  # Iterate over all cars
             car.update()
-            # if check_collision(car, outer, inner):
-            #     print("💥 Kolizja!")
-            #     car.speed = 0
             if not check_if_on_track(car, generate_track_mask(data, WIDTH, HEIGHT), inner, outer):
                 car.speed = 0
             car.draw(screen)
