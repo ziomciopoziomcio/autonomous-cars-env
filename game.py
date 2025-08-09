@@ -617,12 +617,10 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        car.update()
-        car.check_checkpoints(data["checkpoints"])
-        car.check_finish_line(data["finish_line"]["point"], len(data["checkpoints"]))
-
         for car in cars:  # Iterate over all cars
             car.update()
+            car.check_checkpoints(data["checkpoints"])
+            car.check_finish_line(data["finish_line"]["point"], len(data["checkpoints"]))
             if not check_if_on_track(car, track_mask , inner, outer):
                 car.speed = 0
             car.draw(screen)
