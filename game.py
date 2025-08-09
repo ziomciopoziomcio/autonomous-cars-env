@@ -149,7 +149,8 @@ class Car:
                 if 0 <= test_x < max_width and 0 <= test_y < max_height:
                     last_valid_x = test_x
                     last_valid_y = test_y
-                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)):
+                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
+                                                                               inner_polygon)):
                         rays.append((center_x, center_y, test_x, test_y))
                         distances.append(ray_length)
                         hit = True
@@ -566,7 +567,7 @@ def main():
 
         for car in cars:  # Iterate over all cars
             car.update()
-            if not check_if_on_track(car, track_mask , inner, outer):
+            if not check_if_on_track(car, track_mask, inner, outer):
                 car.speed = 0
             car.draw(screen)
             # Calculate rays and draw them
