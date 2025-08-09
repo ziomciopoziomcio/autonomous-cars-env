@@ -16,6 +16,10 @@ OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
 CAR_SIZE_RATIO = 0.25  # Ratio of car size to track width
+ROW_OFFSET_FACTOR = 1.1
+OFFSET_DISTANCE_FACTOR = 1.5
+CAR_LENGTH_RATIO = 2
+CAR_SPACING_FACTOR = 1.5
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -530,10 +534,10 @@ def main():
 
     num_cars = 4
     car_width = track_width * CAR_SIZE_RATIO
-    car_length = car_width * 2
-    offset_distance = car_length * 1.5  # Distance from the finish line
-    row_offset = car_length * 1.1
-    spacing = car_width * 1.5  # Spacing between cars
+    car_length = car_width * CAR_LENGTH_RATIO
+    offset_distance = car_length * OFFSET_DISTANCE_FACTOR  # Distance from the finish line
+    row_offset = car_length * ROW_OFFSET_FACTOR
+    spacing = car_width * CAR_SPACING_FACTOR  # Spacing between cars
     starting_positions = calculate_starting_positions(finish_scaled,
                                                       outer, inner, num_cars, offset_distance, row_offset,
                                                       spacing)
