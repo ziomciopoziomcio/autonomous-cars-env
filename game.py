@@ -555,7 +555,6 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        car.update()
 
         for car in cars:  # Iterate over all cars
             car.update()
