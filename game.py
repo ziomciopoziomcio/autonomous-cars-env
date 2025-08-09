@@ -20,6 +20,7 @@ ROW_OFFSET_FACTOR = 1.1
 OFFSET_DISTANCE_FACTOR = 2
 CAR_LENGTH_RATIO = 2
 CAR_SPACING_FACTOR = 1.5
+PERPENDICULAR_ANGLE_OFFSET = 90
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -255,9 +256,9 @@ def calculate_starting_positions(finish_line, outer_line,
 
     # Car angle: along the finish line (front facing the track)
     if abs(dx) > abs(dy):
-        car_angle = math.degrees(math.atan2(dy, dx)) + 90
+        car_angle = math.degrees(math.atan2(dy, dx)) + PERPENDICULAR_ANGLE_OFFSET
     else:
-        car_angle = math.degrees(math.atan2(dy, dx)) - 90
+        car_angle = math.degrees(math.atan2(dy, dx)) - PERPENDICULAR_ANGLE_OFFSET
 
     # Midpoint of the finish line
     midpoint_x = (x1 + x2) / 2
