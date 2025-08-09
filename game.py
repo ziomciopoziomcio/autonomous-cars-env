@@ -16,7 +16,6 @@ OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
 CAR_SIZE_RATIO = 0.25  # Ratio of car size to track width
-ROW_OFFSET = -30  # Offset for the second row of cars
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -219,7 +218,7 @@ def load_map(file_path):
 
 
 def calculate_starting_positions(finish_line, outer_line,
-                                 inner_line, num_cars, offset_distance, spacing):
+                                 inner_line, num_cars, offset_distance, row_offset, spacing):
     """
     Calculates the starting positions for cars along a line parallel to the finish line.
 
@@ -256,9 +255,9 @@ def calculate_starting_positions(finish_line, outer_line,
         row = i // 2  # Determine the row (0 or 1)
         col = i % 2  # Determine the column (0 or 1)
         car_x = (shifted_x + (col - 0.5) * spacing * math.cos(angle)
-                 - row * ROW_OFFSET * perpendicular_dx)
+                 - row * row_offset * perpendicular_dx)
         car_y = (shifted_y + (col - 0.5) * spacing * math.sin(angle)
-                 - row * ROW_OFFSET * perpendicular_dy)
+                 - row * row_offset * perpendicular_dy)
         positions.append((car_x, car_y, math.degrees(angle)))
 
     return positions
@@ -530,10 +529,13 @@ def main():
     track_width = math.dist(outer_closest, inner_closest)
 
     num_cars = 4
-    offset_distance = 30  # Distance from the finish line
-    spacing = 15  # Spacing between cars
+    car_width = track_width * CAR_SIZE_RATIO
+    car_length = car_width * 2
+    offset_distance = car_length * 1.5  # Distance from the finish line
+    row_offset = car_length * 1.1
+    spacing = car_width * 1.5  # Spacing between cars
     starting_positions = calculate_starting_positions(finish_scaled,
-                                                      outer, inner, num_cars, offset_distance,
+                                                      outer, inner, num_cars, offset_distance, row_offset,
                                                       spacing)
 
     # Place the cars at the starting line
