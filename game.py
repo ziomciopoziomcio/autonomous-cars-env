@@ -15,7 +15,7 @@ INNER_COLOR = (200, 50, 50)  # (50, 50, 200)
 OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
-CAR_SIZE_RATIO = 0.3  # Ratio of car size to track width
+CAR_SIZE_RATIO = 0.25  # Ratio of car size to track width
 ROW_OFFSET = -30  # Offset for the second row of cars
 
 USED_CARS = 0
