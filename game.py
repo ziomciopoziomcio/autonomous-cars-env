@@ -105,7 +105,7 @@ class Car:
     def get_rays_and_distances(self, mask, inner_polygon):
         """
         Calculate the intersection points and distances for 8 rays extending
-        from the center of the car to the track border.
+        from the center of the car to the track border or screen edge.
         """
         if self.img is None:
             car_width = 30
@@ -138,24 +138,32 @@ class Car:
 
             # Extend the ray until it hits the border
             ray_length = 0
+            last_valid_x = int(center_x)
+            last_valid_y = int(center_y)
+            hit = False
             while ray_length < max_length:
                 test_x = int(center_x + ray_length * dx)
                 test_y = int(center_y + ray_length * dy)
 
                 # Check if the ray intersects the border
                 if 0 <= test_x < max_width and 0 <= test_y < max_height:
+                    last_valid_x = test_x
+                    last_valid_y = test_y
                     if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
-                                                                               inner_polygon)):  # Collision detected
+                                                                               inner_polygon)):
                         rays.append((center_x, center_y, test_x, test_y))
                         distances.append(ray_length)
+                        hit = True
                         break
                 else:
-                    # Ray goes out of bounds
+                    # Ray goes out of bounds, treat as hit at the edge
+                    rays.append((center_x, center_y, last_valid_x, last_valid_y))
+                    distances.append(math.hypot(last_valid_x - center_x, last_valid_y - center_y))
+                    hit = True
                     break
 
                 ray_length += 1
-
-            else:
+            if not hit:
                 # If no collision, the ray ends at its maximum length
                 test_x = int(center_x + max_length * dx)
                 test_y = int(center_y + max_length * dy)
@@ -559,7 +567,7 @@ def main():
 
         for car in cars:  # Iterate over all cars
             car.update()
-            if not check_if_on_track(car, track_mask , inner, outer):
+            if not check_if_on_track(car, track_mask, inner, outer):
                 car.speed = 0
             car.draw(screen)
             # Calculate rays and draw them
