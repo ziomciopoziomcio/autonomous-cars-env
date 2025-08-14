@@ -389,7 +389,7 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     screen.blit(rotated_finish, finish_rect.topleft)
 
 
-def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
+def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line, cars):
     """
     Draw the checkpoints line between the outer and inner lines.
     :param screen: Pygame surface to draw on.
@@ -411,27 +411,12 @@ def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
         outer_closest = min(outer_line, key=lambda p: math.dist(checkpoint_scaled, p))
         inner_closest = min(inner_line, key=lambda p: math.dist(checkpoint_scaled, p))
 
-        # Calculate the rotation angle of the checkpoint line
-        angle = math.degrees(
-            math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
 
-        checkpoint_width = int(math.dist(outer_closest, inner_closest))
-        checkpoint_height = 25
+        # Check if any car has passed the checkpoint
+        passed = any(checkpoint in car.checkpoints for car in cars)
+        color = (0, 255, 0) if passed else (255, 255, 0)
 
-        # Scale the finish line image
-        scaled_checkpoint = pygame.transform.scale(FINISH_TEXTURE, (
-            checkpoint_width, checkpoint_height))  # TODO: use different image for checkpoints
-
-        # Rotate the finish line image
-        rotated_checkpoint = pygame.transform.rotate(scaled_checkpoint, -angle)
-
-        # Center the finish line image
-        checkpoint_rect = rotated_checkpoint.get_rect()
-        checkpoint_rect.center = (
-            (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
-
-        # Draw the finish line image on the screen
-        screen.blit(rotated_checkpoint, checkpoint_rect.topleft)
+        pygame.draw.line(screen, color, outer_closest, inner_closest, 5)
 
 
 def draw_track(screen, data):
@@ -611,7 +596,7 @@ def main():
         outer, inner = draw_track(screen, data)  # its switched?
 
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
-        draw_checkpoints_line(screen, data, WIDTH, HEIGHT, outer, inner)
+        draw_checkpoints_line(screen, data, WIDTH, HEIGHT, outer, inner, cars)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -619,7 +604,7 @@ def main():
 
         for car in cars:  # Iterate over all cars
             car.update()
-            car.check_checkpoints(data["checkpoints"])
+            car.check_checkpoints(data["checkpoints"], data, outer, inner, WIDTH, HEIGHT)
             car.check_finish_line(data["finish_line"]["point"], len(data["checkpoints"]))
             if not check_if_on_track(car, track_mask , inner, outer):
                 car.speed = 0
