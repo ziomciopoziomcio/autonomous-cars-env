@@ -286,7 +286,7 @@ class Car:
             if car_mask.overlap(checkpoint_mask, offset):
                 if checkpoint not in self.checkpoints:
                     self.checkpoints.append(checkpoint)
-                    print(f"Checkpoint reached: {checkpoint}")
+                    # print(f"Checkpoint reached: {checkpoint}")
                     return True
         return False
 
@@ -337,7 +337,7 @@ class Car:
         finish_mask = pygame.mask.from_surface(rotated_finish)
         offset = (finish_rect.left - car_rect.left, finish_rect.top - car_rect.top)
         if car_mask.overlap(finish_mask, offset):
-            print(f"Finish line crossed: {finish}")
+            # print(f"Finish line crossed: {finish}")
             self.win = True
             return True
         return False
