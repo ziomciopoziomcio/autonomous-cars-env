@@ -91,7 +91,6 @@ class Car:
             self.x, self.y = old_x, old_y
             self.speed = 0
 
-
     def draw(self, screen):
         if self.win is True:
             return
@@ -512,7 +511,6 @@ def draw_track(screen, data):
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
-
     # Create a surface for the track
     track_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     track_surface.fill((0, 0, 0, 0))
@@ -537,8 +535,6 @@ def draw_track(screen, data):
     pygame.draw.lines(screen, INNER_COLOR, True, inner, 5)
 
     return outer, inner
-
-
 
 
 def point_in_polygon(x, y, polygon):
