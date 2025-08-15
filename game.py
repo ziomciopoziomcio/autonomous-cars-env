@@ -27,7 +27,7 @@ COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purp
 
 
 class Car:
-    def __init__(self, x, y, track_width):
+    def __init__(self, x, y, track_width, inner_polygon, outer_polygon):
         self.x = x
         self.y = y
         self.angle = 0
@@ -51,9 +51,13 @@ class Car:
         self.checkpoints = []
         self.win = False
 
+        self.inner_polygon = inner_polygon
+        self.outer_polygon = outer_polygon
+
     def update(self):
         if self.win is True:
             return
+        old_x, old_y = self.x, self.y
         turning = False
         # pygame keyboard handling
         keys = pygame.key.get_pressed()
@@ -82,6 +86,11 @@ class Car:
         # Car position update
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
+        if check_collision(self, self.outer_polygon, self.inner_polygon) is True:
+            # If the car collides with the track border, revert to old position
+            self.x, self.y = old_x, old_y
+            self.speed = 0
+
 
     def draw(self, screen):
         if self.win is True:
@@ -663,7 +672,7 @@ def main():
                                                       spacing)
 
     # Place the cars at the starting line
-    cars = [Car(x, y, track_width) for x, y, angle in starting_positions]
+    cars = [Car(x, y, track_width, inner, outer) for x, y, angle in starting_positions]
     for car, (_, _, angle) in zip(cars, starting_positions):
         car.angle = angle
 
