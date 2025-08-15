@@ -290,7 +290,7 @@ class Car:
         if FINISH_TEXTURE is None or data is None:
             return False
 
-        if self.win == True:
+        if self.win is True:
             return False
 
         if len(checkpoints) > len(self.checkpoints):
