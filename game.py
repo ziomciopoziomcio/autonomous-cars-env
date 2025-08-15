@@ -52,6 +52,8 @@ class Car:
         self.win = False
 
     def update(self):
+        if self.win is True:
+            return
         turning = False
         # pygame keyboard handling
         keys = pygame.key.get_pressed()
@@ -82,6 +84,8 @@ class Car:
         self.y -= self.speed * math.sin(math.radians(self.angle))
 
     def draw(self, screen):
+        if self.win is True:
+            return
         if self.img is not None:
             # Use the loaded image for rendering
             rotated_image = pygame.transform.rotate(self.image, self.angle)
@@ -186,6 +190,8 @@ class Car:
         :param surface: Pygame surface to draw on.
         :param rays: List of rays [(start_x, start_y, end_x, end_y)].
         """
+        if self.win is True:
+            return
         for ray in rays:
             start_x, start_y, end_x, end_y = ray
             pygame.draw.line(surface, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
