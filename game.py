@@ -273,7 +273,36 @@ class Car:
 
     def check_finish_line(self, finish_line, checkpoint_count):
         """
-        Check if the car has crossed the finish line.
+    def check_finish_line(self, finish_line_segment, checkpoint_count):
+        """
+        Check if the car has crossed the finish line segment.
+        :param finish_line_segment: Tuple of two points ((x1, y1), (x2, y2)) representing the finish line.
+        :param checkpoint_count: Total number of checkpoints to collect.
+        :return: True if the car has crossed the finish line, False otherwise.
+        """
+        if len(self.checkpoints) < checkpoint_count:
+            return False
+        if self.prev_x is not None and self.prev_y is not None:
+            if has_crossed_line((self.prev_x, self.prev_y), (self.x, self.y), finish_line_segment):
+                if self.finish_line is None:
+                    self.finish_line = finish_line_segment
+                    return True
+        return False
+
+
+def has_crossed_line(prev_pos, curr_pos, line_segment):
+    """
+    Returns True if the movement from prev_pos to curr_pos crosses the line_segment.
+    line_segment: ((x1, y1), (x2, y2))
+    """
+    def side(p, a, b):
+        # Returns which side of line ab point p is on
+        return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
+    a, b = line_segment
+    side_prev = side(prev_pos, a, b)
+    side_curr = side(curr_pos, a, b)
+    # If signs are different and neither is zero, the car crossed the line
+    return side_prev * side_curr < 0
         :param finish_line: The position of the finish line.
         :return: True if the car has crossed the finish line, False otherwise.
         """
