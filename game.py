@@ -15,8 +15,12 @@ INNER_COLOR = (200, 50, 50)  # (50, 50, 200)
 OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
-CAR_SIZE_RATIO = 0.3  # Ratio of car size to track width
-ROW_OFFSET = -30  # Offset for the second row of cars
+CAR_SIZE_RATIO = 0.2  # Ratio of car size to track width
+ROW_OFFSET_FACTOR = 1.1
+OFFSET_DISTANCE_FACTOR = 2
+CAR_LENGTH_RATIO = 2
+CAR_SPACING_FACTOR = 1.5
+PERPENDICULAR_ANGLE_OFFSET = 90
 
 USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
@@ -109,7 +113,7 @@ class Car:
     def get_rays_and_distances(self, mask, inner_polygon):
         """
         Calculate the intersection points and distances for 8 rays extending
-        from the center of the car to the track border.
+        from the center of the car to the track border or screen edge.
         """
         if self.img is None:
             car_width = 30
@@ -142,24 +146,32 @@ class Car:
 
             # Extend the ray until it hits the border
             ray_length = 0
+            last_valid_x = int(center_x)
+            last_valid_y = int(center_y)
+            hit = False
             while ray_length < max_length:
                 test_x = int(center_x + ray_length * dx)
                 test_y = int(center_y + ray_length * dy)
 
                 # Check if the ray intersects the border
                 if 0 <= test_x < max_width and 0 <= test_y < max_height:
+                    last_valid_x = test_x
+                    last_valid_y = test_y
                     if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
-                                                                               inner_polygon)):  # Collision detected
+                                                                               inner_polygon)):
                         rays.append((center_x, center_y, test_x, test_y))
                         distances.append(ray_length)
+                        hit = True
                         break
                 else:
-                    # Ray goes out of bounds
+                    # Ray goes out of bounds, treat as hit at the edge
+                    rays.append((center_x, center_y, last_valid_x, last_valid_y))
+                    distances.append(math.hypot(last_valid_x - center_x, last_valid_y - center_y))
+                    hit = True
                     break
 
                 ray_length += 1
-
-            else:
+            if not hit:
                 # If no collision, the ray ends at its maximum length
                 test_x = int(center_x + max_length * dx)
                 test_y = int(center_y + max_length * dy)
@@ -281,50 +293,66 @@ def load_map(file_path):
 
 
 def calculate_starting_positions(finish_line, outer_line,
-                                 inner_line, num_cars, offset_distance, spacing):
-    """
-    Calculates the starting positions for cars along a line parallel to the finish line.
+                                 inner_line, num_cars, offset_distance, row_offset, spacing):
 
-    :param finish_line: The central point of the finish line.
-    :param outer_line: Points of the outer track line.
-    :param inner_line: Points of the inner track line.
-    :param num_cars: Number of cars to position.
-    :param offset_distance: Distance to shift the line from the finish line.
-    :param spacing: Spacing between cars.
-    :return: List of starting positions [(x, y, angle)].
     """
-    # Find the closest points on the outer and inner track lines
+    Calculates the starting positions and angles for cars on the starting line.
+    The function finds the closest points on the outer and inner track lines to the finish line,
+    determines the orientation of the starting line, and places cars in rows and columns
+    with the correct angle so that the front of the car always faces the track.
+
+    :param finish_line: The finish line point (tuple)
+    :param outer_line: List of points of the outer track line
+    :param inner_line: List of points of the inner track line
+    :param num_cars: Number of cars to place
+    :param offset_distance: Distance from the finish line to the first row of cars
+    :param row_offset: Distance between rows of cars
+    :param spacing: Distance between cars in a row
+    :return: List of tuples (x, y, angle) for each car
+    """
+
+    # Find the closest points on the outer and inner lines to the finish line
     outer_closest = min(outer_line, key=lambda p: math.dist(finish_line, p))
     inner_closest = min(inner_line, key=lambda p: math.dist(finish_line, p))
+    x1, y1 = outer_closest
+    x2, y2 = inner_closest
 
-    # Calculate the midpoint between the closest points
-    midpoint_x = (outer_closest[0] + inner_closest[0]) / 2
-    midpoint_y = (outer_closest[1] + inner_closest[1]) / 2
+    # Vector of the finish line and its length
+    dx = x2 - x1
+    dy = y2 - y1
+    length = math.hypot(dx, dy)
+    if length == 0:
+        raise ValueError("Finish line points are identical!")
 
-    # Calculate the angle of the finish line
-    angle = math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0])
+    # Car angle: along the finish line (front facing the track)
+    if abs(dx) > abs(dy):
+        car_angle = math.degrees(math.atan2(dy, dx)) + PERPENDICULAR_ANGLE_OFFSET
+    else:
+        car_angle = math.degrees(math.atan2(dy, dx)) - PERPENDICULAR_ANGLE_OFFSET
 
-    # Determine the vector perpendicular to the finish line
-    perpendicular_dx = -math.sin(angle)
-    perpendicular_dy = math.cos(angle)
+    # Midpoint of the finish line
+    midpoint_x = (x1 + x2) / 2
+    midpoint_y = (y1 + y2) / 2
 
-    # Shift the finish line by offset_distance to create a new line
-    shifted_x = midpoint_x + perpendicular_dx * offset_distance
-    shifted_y = midpoint_y + perpendicular_dy * offset_distance
+    # Perpendicular vector to the finish line (for row placement)
+    perp_dx = -dy / length
+    perp_dy = dx / length
 
-    # Calculate the starting positions for each car along the shifted line
+    # Shift the starting line from the finish line
+    shifted_x = midpoint_x + perp_dx * offset_distance
+    shifted_y = midpoint_y + perp_dy * offset_distance
+
     positions = []
     for i in range(num_cars):
-        row = i // 2  # Determine the row (0 or 1)
-        col = i % 2  # Determine the column (0 or 1)
-        car_x = (shifted_x + (col - 0.5) * spacing * math.cos(angle)
-                 - row * ROW_OFFSET * perpendicular_dx)
-        car_y = (shifted_y + (col - 0.5) * spacing * math.sin(angle)
-                 - row * ROW_OFFSET * perpendicular_dy)
-        positions.append((car_x, car_y, math.degrees(angle)))
-
+        row = i // 2
+        col = i % 2
+        # Car position along the finish line
+        car_x = (shifted_x + (col - 0.5) * spacing * (dx / length)
+                 - row * row_offset * perp_dx)
+        car_y = (shifted_y + (col - 0.5) * spacing * (dy / length)
+                 - row * row_offset * perp_dy)
+        positions.append((car_x, car_y, car_angle))
     return positions
-
 
 def get_scaling_params(points_list, width, height, scale_factor=1.0):
     # Połącz wszystkie punkty z list
@@ -577,10 +605,13 @@ def main():
     track_width = math.dist(outer_closest, inner_closest)
 
     num_cars = 4
-    offset_distance = 30  # Distance from the finish line
-    spacing = 15  # Spacing between cars
+    car_width = track_width * CAR_SIZE_RATIO
+    car_length = car_width * CAR_LENGTH_RATIO
+    offset_distance = car_length * OFFSET_DISTANCE_FACTOR  # Distance from the finish line
+    row_offset = car_length * ROW_OFFSET_FACTOR
+    spacing = car_width * CAR_SPACING_FACTOR  # Spacing between cars
     starting_positions = calculate_starting_positions(finish_scaled,
-                                                      outer, inner, num_cars, offset_distance,
+                                                      outer, inner, num_cars, offset_distance, row_offset,
                                                       spacing)
 
     # Place the cars at the starting line
