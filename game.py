@@ -512,9 +512,6 @@ def draw_track(screen, data):
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
-    # pygame.draw.polygon(screen, TRACK_COLOR, outer + inner[::-1])
-    # pygame.draw.polygon(screen, TRACK_COLOR, outer)
-    # pygame.draw.polygon(screen, BG_COLOR, inner)
 
     # Create a surface for the track
     track_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
@@ -542,20 +539,6 @@ def draw_track(screen, data):
     return outer, inner
 
 
-# def check_collision(car, outer_points, inner_points):
-#     # Sprawdź kolizję z linią zewnętrzną
-#     for i in range(len(outer_points)):
-#         next_i = (i + 1) % len(outer_points)
-#         if line_collision(car.x, car.y, outer_points[i], outer_points[next_i]):
-#             print("Kolizja z linią zewnętrzną!")
-#             return
-#
-#     # Sprawdź kolizję z linią wewnętrzną
-#     for i in range(len(inner_points)):
-#         next_i = (i + 1) % len(inner_points)
-#         if line_collision(car.x, car.y, inner_points[i], inner_points[next_i]):
-#             print("Kolizja z linią wewnętrzną!")
-#             return
 
 
 def point_in_polygon(x, y, polygon):
