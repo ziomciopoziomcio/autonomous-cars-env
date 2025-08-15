@@ -238,7 +238,6 @@ class Car:
         :param height: Screen height
         :return: True if the car has passed a checkpoint, False otherwise.
         """
-        global FINISH_TEXTURE
         if FINISH_TEXTURE is None or data is None:
             return False
 
@@ -282,7 +281,6 @@ class Car:
         :param height: Screen height
         :return: True if the car has crossed the finish line, False otherwise.
         """
-        global FINISH_TEXTURE
         if FINISH_TEXTURE is None or data is None:
             return False
 
