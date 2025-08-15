@@ -49,7 +49,7 @@ class Car:
 
         # checkpoints, finish line
         self.checkpoints = []
-        self.finish_line = None
+        self.win = False
 
     def update(self):
         turning = False
@@ -270,7 +270,7 @@ class Car:
                     return True
         return False
 
-    def check_finish_line(self, finish_line, data=None, outer_line=None, inner_line=None, width=WIDTH, height=HEIGHT):
+    def check_finish_line(self, checkpoints, finish_line, data=None, outer_line=None, inner_line=None, width=WIDTH, height=HEIGHT):
         """
         Check if the car has crossed the finish line using mask collision.
         :param finish_line: List of finish line positions [(x, y), ...].
@@ -282,6 +282,12 @@ class Car:
         :return: True if the car has crossed the finish line, False otherwise.
         """
         if FINISH_TEXTURE is None or data is None:
+            return False
+
+        if self.win == True:
+            return False
+
+        if len(checkpoints) > len(self.checkpoints):
             return False
 
         # Prepare scaling params
@@ -307,10 +313,9 @@ class Car:
         finish_mask = pygame.mask.from_surface(rotated_finish)
         offset = (finish_rect.left - car_rect.left, finish_rect.top - car_rect.top)
         if car_mask.overlap(finish_mask, offset):
-            if self.finish_line != finish:
-                self.finish_line = finish
-                print(f"Finish line crossed: {finish}")
-                return True
+            print(f"Finish line crossed: {finish}")
+            self.win = True
+            return True
         return False
 
 
@@ -665,7 +670,7 @@ def main():
         for car in cars:  # Iterate over all cars
             car.update()
             car.check_checkpoints(data["checkpoints"], data, outer, inner, WIDTH, HEIGHT)
-            car.check_finish_line(data["finish_line"], data, outer, inner, WIDTH, HEIGHT)
+            car.check_finish_line(data["checkpoints"], data["finish_line"], data, outer, inner, WIDTH, HEIGHT)
             if not check_if_on_track(car, track_mask , inner, outer):
                 car.speed = 0
             car.draw(screen)
