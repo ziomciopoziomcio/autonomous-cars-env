@@ -47,6 +47,10 @@ class Car:
 
         self.set_image(track_width)
 
+        # checkpoints, finish line
+        self.checkpoints = []
+        self.win = False
+
     def update(self):
         turning = False
         # pygame keyboard handling
@@ -223,6 +227,106 @@ class Car:
         self.image = pygame.transform.rotate(scaled_image, -90)
         self.mask = pygame.mask.from_surface(self.image)
 
+    def check_checkpoints(self, checkpoints, data=None, outer_line=None, inner_line=None,
+                          width=WIDTH, height=HEIGHT):
+        """
+        Check if the car has passed any checkpoints using mask collision.
+        :param checkpoints: List of checkpoint positions [(x, y), ...].
+        :param data: Map data (must contain 'outer_points', 'inner_points')
+        :param outer_line: Scaled outer line points (optional)
+        :param inner_line: Scaled inner line points (optional)
+        :param width: Screen width
+        :param height: Screen height
+        :return: True if the car has passed a checkpoint, False otherwise.
+        """
+        if FINISH_TEXTURE is None or data is None:
+            return False
+
+        # Prepare scaling params
+        min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]],
+                                                 width, height, scale_factor=0.9)
+        if outer_line is None:
+            outer_line = scale_points(data["outer_points"], min_x, min_y, scale)
+        if inner_line is None:
+            inner_line = scale_points(data["inner_points"], min_x, min_y, scale)
+
+        car_mask, car_rect = self.get_mask()
+
+        for checkpoint in checkpoints:
+            checkpoint_scaled = scale_points([checkpoint], min_x, min_y, scale)[0]
+            outer_closest = min(outer_line, key=lambda p: math.dist(checkpoint_scaled, p))
+            inner_closest = min(inner_line, key=lambda p: math.dist(checkpoint_scaled, p))
+            angle = math.degrees(math.atan2(inner_closest[1] - outer_closest[1],
+                                            inner_closest[0] - outer_closest[0]))
+            checkpoint_width = int(math.dist(outer_closest, inner_closest))
+            checkpoint_height = 25
+            scaled_checkpoint = pygame.transform.scale(FINISH_TEXTURE,
+                                                       (checkpoint_width, checkpoint_height))
+            rotated_checkpoint = pygame.transform.rotate(scaled_checkpoint, -angle)
+            checkpoint_rect = rotated_checkpoint.get_rect()
+            checkpoint_rect.center = ((outer_closest[0] + inner_closest[0]) // 2,
+                                      (outer_closest[1] + inner_closest[1]) // 2)
+            checkpoint_mask = pygame.mask.from_surface(rotated_checkpoint)
+            offset = (checkpoint_rect.left - car_rect.left, checkpoint_rect.top - car_rect.top)
+            if car_mask.overlap(checkpoint_mask, offset):
+                if checkpoint not in self.checkpoints:
+                    self.checkpoints.append(checkpoint)
+                    print(f"Checkpoint reached: {checkpoint}")
+                    return True
+        return False
+
+    def check_finish_line(self, checkpoints, finish_line, data=None, outer_line=None,
+                          inner_line=None, width=WIDTH, height=HEIGHT):
+        """
+        Check if the car has crossed the finish line using mask collision.
+        :param finish_line: List of finish line positions [(x, y), ...].
+        :param data: Map data (must contain 'outer_points', 'inner_points')
+        :param outer_line: Scaled outer line points (optional)
+        :param inner_line: Scaled inner line points (optional)
+        :param width: Screen width
+        :param height: Screen height
+        :return: True if the car has crossed the finish line, False otherwise.
+        """
+        if FINISH_TEXTURE is None or data is None:
+            return False
+
+        if self.win is True:
+            return False
+
+        if len(checkpoints) > len(self.checkpoints):
+            return False
+
+        # Prepare scaling params
+        min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]],
+                                                 width, height, scale_factor=0.9)
+        if outer_line is None:
+            outer_line = scale_points(data["outer_points"], min_x, min_y, scale)
+        if inner_line is None:
+            inner_line = scale_points(data["inner_points"], min_x, min_y, scale)
+
+        car_mask, car_rect = self.get_mask()
+
+        finish = finish_line["point"]
+        finish_scaled = scale_points([finish], min_x, min_y, scale)[0]
+        outer_closest = min(outer_line, key=lambda p: math.dist(finish_scaled, p))
+        inner_closest = min(inner_line, key=lambda p: math.dist(finish_scaled, p))
+        angle = math.degrees(
+            math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
+        finish_width = int(math.dist(outer_closest, inner_closest))
+        finish_height = 25
+        scaled_finish = pygame.transform.scale(FINISH_TEXTURE, (finish_width, finish_height))
+        rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
+        finish_rect = rotated_finish.get_rect()
+        finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2,
+                              (outer_closest[1] + inner_closest[1]) // 2)
+        finish_mask = pygame.mask.from_surface(rotated_finish)
+        offset = (finish_rect.left - car_rect.left, finish_rect.top - car_rect.top)
+        if car_mask.overlap(finish_mask, offset):
+            print(f"Finish line crossed: {finish}")
+            self.win = True
+            return True
+        return False
+
 
 def load_map(file_path):
     with open(file_path, "r") as f:
@@ -232,7 +336,6 @@ def load_map(file_path):
 
 def calculate_starting_positions(finish_line, outer_line,
                                  inner_line, num_cars, offset_distance, row_offset, spacing):
-
     """
     Calculates the starting positions and angles for cars on the starting line.
     The function finds the closest points on the outer and inner track lines to the finish line,
@@ -291,6 +394,7 @@ def calculate_starting_positions(finish_line, outer_line,
                  - row * row_offset * perp_dy)
         positions.append((car_x, car_y, car_angle))
     return positions
+
 
 def get_scaling_params(points_list, width, height, scale_factor=1.0):
     # Połącz wszystkie punkty z list
@@ -355,7 +459,7 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     screen.blit(rotated_finish, finish_rect.topleft)
 
 
-def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
+def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line, cars):
     """
     Draw the checkpoints line between the outer and inner lines.
     :param screen: Pygame surface to draw on.
@@ -377,27 +481,11 @@ def draw_checkpoints_line(screen, data, width, height, outer_line, inner_line):
         outer_closest = min(outer_line, key=lambda p: math.dist(checkpoint_scaled, p))
         inner_closest = min(inner_line, key=lambda p: math.dist(checkpoint_scaled, p))
 
-        # Calculate the rotation angle of the checkpoint line
-        angle = math.degrees(
-            math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
+        # Check if any car has passed the checkpoint
+        passed = any(checkpoint in car.checkpoints for car in cars)
+        color = (0, 255, 0) if passed else (255, 255, 0)
 
-        checkpoint_width = int(math.dist(outer_closest, inner_closest))
-        checkpoint_height = 25
-
-        # Scale the finish line image
-        scaled_checkpoint = pygame.transform.scale(FINISH_TEXTURE, (
-            checkpoint_width, checkpoint_height))  # TODO: use different image for checkpoints
-
-        # Rotate the finish line image
-        rotated_checkpoint = pygame.transform.rotate(scaled_checkpoint, -angle)
-
-        # Center the finish line image
-        checkpoint_rect = rotated_checkpoint.get_rect()
-        checkpoint_rect.center = (
-            (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
-
-        # Draw the finish line image on the screen
-        screen.blit(rotated_checkpoint, checkpoint_rect.topleft)
+        pygame.draw.line(screen, color, outer_closest, inner_closest, 5)
 
 
 def draw_track(screen, data):
@@ -564,7 +652,8 @@ def main():
     row_offset = car_length * ROW_OFFSET_FACTOR
     spacing = car_width * CAR_SPACING_FACTOR  # Spacing between cars
     starting_positions = calculate_starting_positions(finish_scaled,
-                                                      outer, inner, num_cars, offset_distance, row_offset,
+                                                      outer, inner, num_cars, offset_distance,
+                                                      row_offset,
                                                       spacing)
 
     # Place the cars at the starting line
@@ -580,15 +669,17 @@ def main():
         outer, inner = draw_track(screen, data)  # its switched?
 
         draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
-        draw_checkpoints_line(screen, data, WIDTH, HEIGHT, outer, inner)
+        draw_checkpoints_line(screen, data, WIDTH, HEIGHT, outer, inner, cars)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-
         for car in cars:  # Iterate over all cars
             car.update()
+            car.check_checkpoints(data["checkpoints"], data, outer, inner, WIDTH, HEIGHT)
+            car.check_finish_line(data["checkpoints"], data["finish_line"], data, outer, inner,
+                                  WIDTH, HEIGHT)
             if not check_if_on_track(car, track_mask, inner, outer):
                 car.speed = 0
             car.draw(screen)
