@@ -27,7 +27,7 @@ COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purp
 
 
 class Car:
-    def __init__(self, x, y, track_width):
+    def __init__(self, x, y, track_width, inner_polygon, outer_polygon):
         self.x = x
         self.y = y
         self.angle = 0
@@ -51,7 +51,13 @@ class Car:
         self.checkpoints = []
         self.win = False
 
+        self.inner_polygon = inner_polygon
+        self.outer_polygon = outer_polygon
+
     def update(self):
+        if self.win is True:
+            return
+        old_x, old_y = self.x, self.y
         turning = False
         # pygame keyboard handling
         keys = pygame.key.get_pressed()
@@ -80,8 +86,14 @@ class Car:
         # Car position update
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
+        if check_collision(self, self.outer_polygon, self.inner_polygon) is True:
+            # If the car collides with the track border, revert to old position
+            self.x, self.y = old_x, old_y
+            self.speed = 0
 
     def draw(self, screen):
+        if self.win is True:
+            return
         if self.img is not None:
             # Use the loaded image for rendering
             rotated_image = pygame.transform.rotate(self.image, self.angle)
@@ -186,6 +198,8 @@ class Car:
         :param surface: Pygame surface to draw on.
         :param rays: List of rays [(start_x, start_y, end_x, end_y)].
         """
+        if self.win:
+            return
         for ray in rays:
             start_x, start_y, end_x, end_y = ray
             pygame.draw.line(surface, (255, 0, 0), (start_x, start_y), (end_x, end_y), 2)
@@ -271,7 +285,7 @@ class Car:
             if car_mask.overlap(checkpoint_mask, offset):
                 if checkpoint not in self.checkpoints:
                     self.checkpoints.append(checkpoint)
-                    print(f"Checkpoint reached: {checkpoint}")
+                    # print(f"Checkpoint reached: {checkpoint}")
                     return True
         return False
 
@@ -322,7 +336,7 @@ class Car:
         finish_mask = pygame.mask.from_surface(rotated_finish)
         offset = (finish_rect.left - car_rect.left, finish_rect.top - car_rect.top)
         if car_mask.overlap(finish_mask, offset):
-            print(f"Finish line crossed: {finish}")
+            # print(f"Finish line crossed: {finish}")
             self.win = True
             return True
         return False
@@ -497,10 +511,6 @@ def draw_track(screen, data):
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
-    # pygame.draw.polygon(screen, TRACK_COLOR, outer + inner[::-1])
-    # pygame.draw.polygon(screen, TRACK_COLOR, outer)
-    # pygame.draw.polygon(screen, BG_COLOR, inner)
-
     # Create a surface for the track
     track_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     track_surface.fill((0, 0, 0, 0))
@@ -525,22 +535,6 @@ def draw_track(screen, data):
     pygame.draw.lines(screen, INNER_COLOR, True, inner, 5)
 
     return outer, inner
-
-
-# def check_collision(car, outer_points, inner_points):
-#     # Sprawdź kolizję z linią zewnętrzną
-#     for i in range(len(outer_points)):
-#         next_i = (i + 1) % len(outer_points)
-#         if line_collision(car.x, car.y, outer_points[i], outer_points[next_i]):
-#             print("Kolizja z linią zewnętrzną!")
-#             return
-#
-#     # Sprawdź kolizję z linią wewnętrzną
-#     for i in range(len(inner_points)):
-#         next_i = (i + 1) % len(inner_points)
-#         if line_collision(car.x, car.y, inner_points[i], inner_points[next_i]):
-#             print("Kolizja z linią wewnętrzną!")
-#             return
 
 
 def point_in_polygon(x, y, polygon):
@@ -657,7 +651,7 @@ def main():
                                                       spacing)
 
     # Place the cars at the starting line
-    cars = [Car(x, y, track_width) for x, y, angle in starting_positions]
+    cars = [Car(x, y, track_width, inner, outer) for x, y, angle in starting_positions]
     for car, (_, _, angle) in zip(cars, starting_positions):
         car.angle = angle
 
