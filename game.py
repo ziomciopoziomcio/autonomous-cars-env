@@ -198,7 +198,7 @@ class Car:
         :param surface: Pygame surface to draw on.
         :param rays: List of rays [(start_x, start_y, end_x, end_y)].
         """
-        if self.win is True:
+        if self.win:
             return
         for ray in rays:
             start_x, start_y, end_x, end_y = ray
