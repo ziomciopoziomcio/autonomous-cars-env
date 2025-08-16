@@ -122,10 +122,14 @@ class Car:
                 distances.append(distance)
         return distances
 
-    def get_rays_and_distances(self, mask, inner_polygon):
+    def get_rays_and_distances(self, mask, inner_polygon, cars=None):
         """
         Calculate the intersection points and distances for 8 rays extending
-        from the center of the car to the track border or screen edge.
+        from the center of the car to the track border or screen edge and other cars.
+        If another car is hit before the track, the ray ends at the car.
+        :param mask: Track mask
+        :param inner_polygon: Inner track polygon
+        :param cars: List of all cars (including self)
         """
         if self.img is None:
             car_width = 30
@@ -146,9 +150,16 @@ class Car:
         rays = []
         distances = []
 
-        # Border mask outline
         max_width, max_height = mask.get_size()
-        max_length = 1000  # Maximum ray length
+        max_length = 1000
+
+        # Prepare masks and rects for other cars
+        other_cars = []
+        if cars is not None:
+            for car in cars:
+                if car is not self and not getattr(car, "win", False):
+                    car_mask, car_rect = car.get_mask()
+                    other_cars.append((car_mask, car_rect))
 
         for ray_angle in ray_angles:
             # Calculate the absolute angle of the ray
@@ -161,11 +172,30 @@ class Car:
             last_valid_x = int(center_x)
             last_valid_y = int(center_y)
             hit = False
+            car_hit_distance = None
+            car_hit_point = None
+
             while ray_length < max_length:
                 test_x = int(center_x + ray_length * dx)
                 test_y = int(center_y + ray_length * dy)
 
-                # Check if the ray intersects the border
+                # Check car collision first
+                if other_cars:
+                    for car_mask, car_rect in other_cars:
+                        # Offset for mask.overlap: (car_rect.left - test_x, car_rect.top - test_y)
+                        offset = (test_x - car_rect.left, test_y - car_rect.top)
+                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < car_mask.get_size()[1]:
+                            if car_mask.get_at(offset):
+                                car_hit_distance = ray_length
+                                car_hit_point = (test_x, test_y)
+                                hit = True
+                                break
+                    if hit:
+                        rays.append((center_x, center_y, car_hit_point[0], car_hit_point[1]))
+                        distances.append(car_hit_distance)
+                        break
+
+                # Track border collision
                 if 0 <= test_x < max_width and 0 <= test_y < max_height:
                     last_valid_x = test_x
                     last_valid_y = test_y
@@ -678,7 +708,7 @@ def main():
                 car.speed = 0
             car.draw(screen)
             # Calculate rays and draw them
-            rays, distances = car.get_rays_and_distances(track_mask, inner)
+            rays, distances = car.get_rays_and_distances(track_mask, inner, cars)
             car.draw_rays(screen, rays)
 
         pygame.display.flip()
