@@ -184,7 +184,8 @@ class Car:
                     for car_mask, car_rect in other_cars:
                         # Offset for mask.overlap: (car_rect.left - test_x, car_rect.top - test_y)
                         offset = (test_x - car_rect.left, test_y - car_rect.top)
-                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < car_mask.get_size()[1]:
+                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < \
+                                car_mask.get_size()[1]:
                             if car_mask.get_at(offset):
                                 car_hit_distance = ray_length
                                 car_hit_point = (test_x, test_y)
