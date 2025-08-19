@@ -1,8 +1,8 @@
-
 from components.globals import *
 from components.car_class import Car
 
 MAP_FILE = os.path.join("map_generators", "map_data.json")
+
 
 def load_map(file_path):
     with open(file_path, "r") as f:

@@ -1,5 +1,5 @@
-
 from components.globals import *
+
 
 class Car:
     def __init__(self, x, y, track_width, inner_polygon, outer_polygon):
