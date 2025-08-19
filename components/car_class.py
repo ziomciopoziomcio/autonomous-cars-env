@@ -479,72 +479,76 @@ class Car:
         return (closest_index, progress)
 
     def state_screenshot(self, cars, screen):
-        # Save original images
-        original_imgs = [car.img for car in cars]
-        # Podmień obrazki
-        for car in cars:
-            if car is self:
-                car.img = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
-            else:
-                car.img = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
-            # Skalowanie i obrót jak w set_image
-            if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
-                # Wyznacz szerokość toru w miejscu samochodu
-                # Użyj środka samochodu do znalezienia najbliższych punktów na obu liniach
-                if hasattr(self, "_state_screenshot_map_data"):
-                    map_data = self._state_screenshot_map_data
+        turn_on = False
+        if turn_on:
+            # Save original images
+            original_imgs = [car.img for car in cars]
+            # Swap images
+            for car in cars:
+                if car is self:
+                    car.img = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
                 else:
-                    import components.globals as cg_local
-                    import json
-                    with open(cg_local.MAP_FILE, "r") as f:
-                        map_data = json.load(f)
-                        self._state_screenshot_map_data = map_data
-                min_x, min_y, scale = get_scaling_params([map_data["outer_points"], map_data["inner_points"]],
-                                                         screen.get_width(), screen.get_height(), scale_factor=0.9)
-                outer = scale_points(map_data["outer_points"], min_x, min_y, scale)
-                inner = scale_points(map_data["inner_points"], min_x, min_y, scale)
-                car_pos = (car.x, car.y)
-                outer_closest = min(outer, key=lambda p: math.dist(car_pos, p))
-                inner_closest = min(inner, key=lambda p: math.dist(car_pos, p))
-                track_width = math.dist(outer_closest, inner_closest)
-            else:
-                # Fallback
-                track_width = 40
-            desired_car_width = track_width * cg.CAR_SIZE_RATIO
-            original_width, original_height = car.img.get_size()
-            new_width = int(desired_car_width)
-            new_height = int(original_height * (new_width / original_width))
-            scaled_img = pygame.transform.scale(car.img, (new_width, new_height))
-            car.image = pygame.transform.rotate(scaled_img, -90)
-            car.mask = pygame.mask.from_surface(car.image)
-
-        # Stwórz osobną powierzchnię do screenshota
-        screenshot_surface = pygame.Surface(screen.get_size())
-        # Narysuj tło i tor
-        screenshot_surface.blit(cg.BACKGROUND_IMAGE, (0, 0))
-        from game import draw_track
-        if not hasattr(self, "_state_screenshot_map_data"):
-            import components.globals as cg_local
-            import json
-            with open(cg_local.MAP_FILE, "r") as f:
-                self._state_screenshot_map_data = json.load(f)
-        draw_track(screenshot_surface, self._state_screenshot_map_data)
-        # Narysuj samochody
-        for car in cars:
-            car.draw(screenshot_surface)
-        # Pobierz screenshot
-        screenshot = pygame.surfarray.array3d(screenshot_surface)
-        # Przywróć oryginalne obrazki
-        for car, orig_img in zip(cars, original_imgs):
-            car.img = orig_img
-            if orig_img is not None:
-                # Przywróć rozmiar i obrót jak w set_image
+                    car.img = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
+                # Scaling and rotation as in set_image
+                if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
+                    # Determine track width at the car's position
+                    # Use the car's center to find the closest points on both lines
+                    if hasattr(self, "_state_screenshot_map_data"):
+                        map_data = self._state_screenshot_map_data
+                    else:
+                        import components.globals as cg_local
+                        import json
+                        with open(cg_local.MAP_FILE, "r") as f:
+                            map_data = json.load(f)
+                            self._state_screenshot_map_data = map_data
+                    min_x, min_y, scale = get_scaling_params([map_data["outer_points"], map_data["inner_points"]],
+                                                             screen.get_width(), screen.get_height(), scale_factor=0.9)
+                    outer = scale_points(map_data["outer_points"], min_x, min_y, scale)
+                    inner = scale_points(map_data["inner_points"], min_x, min_y, scale)
+                    car_pos = (car.x, car.y)
+                    outer_closest = min(outer, key=lambda p: math.dist(car_pos, p))
+                    inner_closest = min(inner, key=lambda p: math.dist(car_pos, p))
+                    track_width = math.dist(outer_closest, inner_closest)
+                else:
+                    # Fallback
+                    track_width = 40
+                desired_car_width = track_width * cg.CAR_SIZE_RATIO
                 original_width, original_height = car.img.get_size()
                 new_width = int(desired_car_width)
                 new_height = int(original_height * (new_width / original_width))
                 scaled_img = pygame.transform.scale(car.img, (new_width, new_height))
                 car.image = pygame.transform.rotate(scaled_img, -90)
                 car.mask = pygame.mask.from_surface(car.image)
-        # Zapisz screenshot do pliku
-        pygame.image.save(screenshot_surface, "state_screenshot.png")
+
+            # Create a separate surface for the screenshot
+            screenshot_surface = pygame.Surface(screen.get_size())
+            # Draw background and track
+            screenshot_surface.blit(cg.BACKGROUND_IMAGE, (0, 0))
+            from game import draw_track
+            if not hasattr(self, "_state_screenshot_map_data"):
+                import components.globals as cg_local
+                import json
+                with open(cg_local.MAP_FILE, "r") as f:
+                    self._state_screenshot_map_data = json.load(f)
+            draw_track(screenshot_surface, self._state_screenshot_map_data)
+            # Draw cars
+            for car in cars:
+                car.draw(screenshot_surface)
+            # Get screenshot
+            screenshot = pygame.surfarray.array3d(screenshot_surface)
+            # Restore original images
+            for car, orig_img in zip(cars, original_imgs):
+                car.img = orig_img
+                if orig_img is not None:
+                    # Restore size and rotation as in set_image
+                    original_width, original_height = car.img.get_size()
+                    new_width = int(desired_car_width)
+                    new_height = int(original_height * (new_width / original_width))
+                    scaled_img = pygame.transform.scale(car.img, (new_width, new_height))
+                    car.image = pygame.transform.rotate(scaled_img, -90)
+                    car.mask = pygame.mask.from_surface(car.image)
+            # Save screenshot to file
+            # pygame.image.save(screenshot_surface, "state_screenshot.png")
+        else:
+            screenshot = None
         return screenshot
