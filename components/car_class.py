@@ -164,71 +164,61 @@ class Car:
 
             # Extend the ray until it hits the border
             ray_length = 0
-            last_valid_x = int(center_x)
-            last_valid_y = int(center_y)
-            hit = False
+            car_hit = None
             car_hit_distance = None
-            car_hit_point = None
+            border_hit = None
+            border_hit_distance = None
+            out_of_bounds = False
 
             while ray_length < max_length:
                 test_x = int(center_x + ray_length * dx)
                 test_y = int(center_y + ray_length * dy)
 
-                # Check car collision first
-                if other_cars:
-                    for car_mask, car_rect in other_cars:
-                        # Offset for mask.overlap: (car_rect.left - test_x, car_rect.top - test_y)
-                        offset = (test_x - car_rect.left, test_y - car_rect.top)
-                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < \
-                                car_mask.get_size()[1]:
-                            if car_mask.get_at(offset):
-                                car_hit_distance = ray_length
-                                car_hit_point = (test_x, test_y)
-                                hit = True
-                                break
-                    if hit:
-                        self.rays_to_cars.append((car_hit_point, car_hit_distance))
-                        self.distances_to_cars.append(car_hit_distance)
-                        self.rays.append((center_x, center_y, car_hit_point[0], car_hit_point[1]))
-                        self.distances.append(car_hit_distance)
-                        break
-                    else:
-                        self.rays_to_cars.append((None, -1))
-                        self.distances_to_cars.append(-1)
-
-
-                # Track border collision
-                if 0 <= test_x < max_width and 0 <= test_y < max_height:
-                    last_valid_x = test_x
-                    last_valid_y = test_y
-                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
-                                                                               inner_polygon)):
-                        self.rays_to_border.append((test_x, test_y))
-                        self.distances_to_border.append(ray_length)
-                        self.rays.append((center_x, center_y, test_x, test_y))
-                        self.distances.append(ray_length)
-                        hit = True
-                        break
-                else:
-                    # Ray goes out of bounds, treat as hit at the edge
-                    self.rays_to_border.append((last_valid_x, last_valid_y))
-                    self.distances_to_border.append(math.hypot(last_valid_x - center_x,
-                                                                last_valid_y - center_y))
-                    self.rays.append((center_x, center_y, last_valid_x, last_valid_y))
-                    self.distances.append(math.hypot(last_valid_x - center_x, last_valid_y - center_y))
-
-                    hit = True
+                if not (0 <= test_x < max_width and 0 <= test_y < max_height):
+                    border_hit = (test_x, test_y)
+                    border_hit_distance = math.hypot(test_x - center_x, test_y - center_y)
+                    out_of_bounds = True
                     break
 
+                if car_hit is None and other_cars:
+                    for car_mask, car_rect in other_cars:
+                        offset = (test_x - car_rect.left, test_y - car_rect.top)
+                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < car_mask.get_size()[1]:
+                            if car_mask.get_at(offset):
+                                car_hit = (test_x, test_y)
+                                car_hit_distance = ray_length
+                                break
+
+                if border_hit is None:
+                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)):
+                        border_hit = (test_x, test_y)
+                        border_hit_distance = ray_length
+                        break
+
                 ray_length += 1
-            if not hit:
-                # If no collision, the ray ends at its maximum length
+
+            if border_hit is None:
                 test_x = int(center_x + max_length * dx)
                 test_y = int(center_y + max_length * dy)
-                self.rays_to_border.append((test_x, test_y))
-                self.distances_to_border.append(max_length)
-                self.rays.append((center_x, center_y, test_x, test_y))
-                self.distances.append(max_length)
+                border_hit = (test_x, test_y)
+                border_hit_distance = max_length
+
+            if car_hit is not None and (car_hit_distance <= border_hit_distance):
+                self.rays.append((center_x, center_y, car_hit[0], car_hit[1]))
+                self.distances.append(car_hit_distance)
+            else:
+                self.rays.append((center_x, center_y, border_hit[0], border_hit[1]))
+                self.distances.append(border_hit_distance)
+
+            if car_hit is not None:
+                self.rays_to_cars.append((center_x, center_y, car_hit[0], car_hit[1]))
+                self.distances_to_cars.append(car_hit_distance)
+            else:
+                self.rays_to_cars.append(None)
+                self.distances_to_cars.append(None)
+
+            self.rays_to_border.append((center_x, center_y, border_hit[0], border_hit[1]))
+            self.distances_to_border.append(border_hit_distance)
 
         return self.rays, self.distances
 
