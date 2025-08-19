@@ -393,7 +393,7 @@ class Car:
         return True
 
     def check_collision(self, outer_polygon, inner_polygon, cars):
-        # Sprawdź kolizję z innymi samochodami (pełne maski)
+        # Check collision with other cars (full masks)
         self_mask, self_rect = self.get_mask()
         for other_car in cars:
             if other_car != self:
