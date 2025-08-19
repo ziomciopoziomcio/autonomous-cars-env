@@ -346,3 +346,30 @@ class Car:
             self.win = True
             return True
         return False
+    def check_if_on_track(self, track_mask, inner_polygon, outer_polygon):
+        # Pobierz maskę samochodu
+        car_mask = pygame.mask.from_surface(self.image)
+        car_rect = car.image.get_rect(center=(self.x, self.y))
+
+        # Oblicz offset między maską toru a maską samochodu
+        offset = (car_rect.left - 0,
+                  car_rect.top - 0)  # Zakładamy, że maska toru zaczyna się od (0, 0)
+
+        # Sprawdź, czy maski się pokrywają
+        overlap = track_mask.overlap(car_mask, offset)
+        if overlap is None:
+            return False
+
+        if point_in_polygon(self.x, self.y, inner_polygon):
+            return False
+
+        if not point_in_polygon(self.x, self.y, outer_polygon):
+            return False  # Samochód jest poza torem
+
+        return True
+
+    def check_collision(self, outer_polygon, inner_polygon):
+        cx, cy = int(self.x), int(self.y)
+        if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
+            return False  # Jest na torze
+        return True  # Kolizja
