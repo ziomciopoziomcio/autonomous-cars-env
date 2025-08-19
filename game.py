@@ -299,7 +299,7 @@ def main():
             car.check_checkpoints(data["checkpoints"], data, outer, inner, WIDTH, HEIGHT)
             car.check_finish_line(data["checkpoints"], data["finish_line"], data, outer, inner,
                                   WIDTH, HEIGHT)
-            if not check_if_on_track(car, track_mask, inner, outer):
+            if not car.check_if_on_track(track_mask, inner, outer):
                 car.speed = 0
             car.draw(screen)
             # Calculate rays and draw them

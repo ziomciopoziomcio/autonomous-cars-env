@@ -1,4 +1,5 @@
 from components.globals import *
+from components.functions_helper import *
 
 
 class Car:
@@ -61,7 +62,7 @@ class Car:
         # Car position update
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
-        if check_collision(self, self.outer_polygon, self.inner_polygon) is True:
+        if self.check_collision(self.outer_polygon, self.inner_polygon) is True:
             # If the car collides with the track border, revert to old position
             self.x, self.y = old_x, old_y
             self.speed = 0
