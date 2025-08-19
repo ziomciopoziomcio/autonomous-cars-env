@@ -230,7 +230,7 @@ class PlayerCar(Car):
         super().__init__(x, y, track_width, inner_line, outer_line)
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
 
-    def choose_action(self, state):
+    def choose_action(self, cars, state):
         keys = pygame.key.get_pressed()
         action = None
         if keys[pygame.K_UP]:
@@ -243,7 +243,7 @@ class PlayerCar(Car):
             action = 3
         if action is None:
             action = 10
-        self.update(action)
+        self.update(action, cars)
 
 
 def main():
@@ -309,7 +309,7 @@ def main():
 
         for car in cars:  # Iterate over all cars
             state = car.states_generation(screen, data["checkpoints"])
-            car.choose_action(state)
+            car.choose_action(cars, state)
             car.check_checkpoints(data["checkpoints"], data, outer, inner, cg.WIDTH, cg.HEIGHT)
             car.check_finish_line(data["checkpoints"], data["finish_line"], data, outer, inner,
                                   cg.WIDTH, cg.HEIGHT)
