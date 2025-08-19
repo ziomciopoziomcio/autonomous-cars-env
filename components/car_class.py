@@ -3,7 +3,13 @@ import os
 import math
 
 import components.globals as cg
-from components.functions_helper import point_in_polygon, scale_points
+from components.functions_helper import point_in_polygon, scale_points, get_scaling_params
+
+
+def state_screenshot(screen):
+    # screenshot = pygame.surfarray.array3d(screen)
+    screenshot = None
+    return screenshot
 
 
 class Car:
@@ -33,6 +39,13 @@ class Car:
 
         self.inner_polygon = inner_polygon
         self.outer_polygon = outer_polygon
+
+        self.rays_to_cars = []
+        self.rays_to_border = []
+        self.distances_to_cars = []
+        self.distances_to_border = []
+        self.rays = []
+        self.distances = []
 
     def update(self, action):
         if self.win is True:
@@ -125,8 +138,12 @@ class Car:
 
         # Define ray angles relative to the car's orientation
         ray_angles = [0, 45, 90, 135, 180, 225, 270, 315]  # Angles in degrees
-        rays = []
-        distances = []
+        self.rays = []
+        self.distances = []
+        self.rays_to_cars = []
+        self.distances_to_cars = []
+        self.rays_to_border = []
+        self.distances_to_border = []
 
         max_width, max_height = mask.get_size()
         max_length = 1000
@@ -147,59 +164,63 @@ class Car:
 
             # Extend the ray until it hits the border
             ray_length = 0
-            last_valid_x = int(center_x)
-            last_valid_y = int(center_y)
-            hit = False
+            car_hit = None
             car_hit_distance = None
-            car_hit_point = None
+            border_hit = None
+            border_hit_distance = None
+            out_of_bounds = False
 
             while ray_length < max_length:
                 test_x = int(center_x + ray_length * dx)
                 test_y = int(center_y + ray_length * dy)
 
-                # Check car collision first
-                if other_cars:
-                    for car_mask, car_rect in other_cars:
-                        # Offset for mask.overlap: (car_rect.left - test_x, car_rect.top - test_y)
-                        offset = (test_x - car_rect.left, test_y - car_rect.top)
-                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < \
-                                car_mask.get_size()[1]:
-                            if car_mask.get_at(offset):
-                                car_hit_distance = ray_length
-                                car_hit_point = (test_x, test_y)
-                                hit = True
-                                break
-                    if hit:
-                        rays.append((center_x, center_y, car_hit_point[0], car_hit_point[1]))
-                        distances.append(car_hit_distance)
-                        break
-
-                # Track border collision
-                if 0 <= test_x < max_width and 0 <= test_y < max_height:
-                    last_valid_x = test_x
-                    last_valid_y = test_y
-                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
-                                                                               inner_polygon)):
-                        rays.append((center_x, center_y, test_x, test_y))
-                        distances.append(ray_length)
-                        hit = True
-                        break
-                else:
-                    # Ray goes out of bounds, treat as hit at the edge
-                    rays.append((center_x, center_y, last_valid_x, last_valid_y))
-                    distances.append(math.hypot(last_valid_x - center_x, last_valid_y - center_y))
-                    hit = True
+                if not (0 <= test_x < max_width and 0 <= test_y < max_height):
+                    border_hit = (test_x, test_y)
+                    border_hit_distance = math.hypot(test_x - center_x, test_y - center_y)
+                    out_of_bounds = True
                     break
 
+                if car_hit is None and other_cars:
+                    for car_mask, car_rect in other_cars:
+                        offset = (test_x - car_rect.left, test_y - car_rect.top)
+                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < car_mask.get_size()[1]:
+                            if car_mask.get_at(offset):
+                                car_hit = (test_x, test_y)
+                                car_hit_distance = ray_length
+                                break
+
+                if border_hit is None:
+                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)):
+                        border_hit = (test_x, test_y)
+                        border_hit_distance = ray_length
+                        break
+
                 ray_length += 1
-            if not hit:
-                # If no collision, the ray ends at its maximum length
+
+            if border_hit is None:
                 test_x = int(center_x + max_length * dx)
                 test_y = int(center_y + max_length * dy)
-                rays.append((center_x, center_y, test_x, test_y))
-                distances.append(max_length)
+                border_hit = (test_x, test_y)
+                border_hit_distance = max_length
 
-        return rays, distances
+            if car_hit is not None and (car_hit_distance <= border_hit_distance):
+                self.rays.append((center_x, center_y, car_hit[0], car_hit[1]))
+                self.distances.append(car_hit_distance)
+            else:
+                self.rays.append((center_x, center_y, border_hit[0], border_hit[1]))
+                self.distances.append(border_hit_distance)
+
+            if car_hit is not None:
+                self.rays_to_cars.append((center_x, center_y, car_hit[0], car_hit[1]))
+                self.distances_to_cars.append(car_hit_distance)
+            else:
+                self.rays_to_cars.append(None)
+                self.distances_to_cars.append(None)
+
+            self.rays_to_border.append((center_x, center_y, border_hit[0], border_hit[1]))
+            self.distances_to_border.append(border_hit_distance)
+
+        return self.rays, self.distances
 
     def draw_rays(self, surface, rays):
         """
@@ -376,3 +397,75 @@ class Car:
         if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
             return False  # Jest na torze
         return True  # Kolizja
+
+    def states_generation(self, screen, checkpoints):
+        """
+         Parameters:
+            state (list): A 3-element list representing the car's current state:
+                - state[0]: A list of 8 float values representing distances to the track border
+                            in 8 directions (every 45 degrees, starting from forward).
+                - state[1]: A list of 8 float values representing distances to the nearest car
+                           in the same 8 directions.
+                - state[2]: A 2-element list representing progress information:
+                            - state[2][0]: The index of the closest checkpoint.
+                            - state[2][1]: The car's progress, e.g., distance to the next checkpoint
+                                           or normalized progress value.
+                - state[3]: A list of 8 float values representing rays distances to the track border or cars
+                            in 8 directions (every 45 degrees, starting from forward).
+                - state[4]: Image of the screen.
+        :return: list of states
+        """
+        state = []
+        # Distances to the track border
+        distances_to_border = self.state_from_distances_to_border()
+        state.append(distances_to_border)
+
+        # Distances to other cars
+        distances_to_cars = self.state_from_distances_to_cars()
+        state.append(distances_to_cars)
+
+        # Progress information
+        progress_info = self.progress_info(checkpoints)
+        state.append(progress_info)
+
+        # Distances to the track border or cars
+        distances = self.state_from_rays()
+        state.append(distances)
+
+        # Screenshot of the screen
+        screenshot = state_screenshot(screen)
+        state.append(screenshot)
+
+        return state
+
+
+
+    def state_from_rays(self):
+        return self.distances
+
+    def state_from_distances_to_border(self):
+        return self.distances_to_border
+
+    def state_from_distances_to_cars(self):
+        return self.distances_to_cars
+
+    def progress_info(self, checkpoints):
+        """
+        Returns progress information for the car.
+        :param checkpoints: List of checkpoints.
+        :return: A tuple containing the index of the closest checkpoint and the car's progress.
+        """
+        if not checkpoints:
+            return (-1. -1)  # No checkpoints available
+
+        # Find the closest checkpoint
+        closest_checkpoint = min(checkpoints, key=lambda cp: math.dist((self.x, self.y), cp))
+        closest_index = checkpoints.index(closest_checkpoint)
+
+        # Calculate progress (distance to the next checkpoint or normalized value)
+        if closest_index < len(checkpoints) - 1:
+            next_checkpoint = checkpoints[closest_index + 1]
+            progress = math.dist((self.x, self.y), next_checkpoint)
+        else:
+            progress = 0
+        return (closest_index, progress)
