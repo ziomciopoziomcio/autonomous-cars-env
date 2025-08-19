@@ -403,7 +403,7 @@ class Car:
                 offset = (other_rect.left - self_rect.left, other_rect.top - self_rect.top)
                 if self_mask.overlap(other_mask, offset):
                     return True
-        # Kolizja z torem
+        # Track collision
         cx, cy = int(self.x), int(self.y)
         if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
             return False  # Jest na torze
