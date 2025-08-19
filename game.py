@@ -224,6 +224,7 @@ def generate_track_mask(data, width, height):
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
 
+
 class PlayerCar(Car):
     def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
         super().__init__(x, y, track_width, inner_line, outer_line)
@@ -243,8 +244,6 @@ class PlayerCar(Car):
         if action is None:
             action = 10
         self.update(action)
-
-
 
 
 def main():
@@ -289,7 +288,8 @@ def main():
                                                       spacing)
 
     # Place the cars at the starting line
-    cars = [PlayerCar(x, y, track_width, inner, outer, method=1) for x, y, angle in starting_positions]
+    cars = [PlayerCar(x, y, track_width, inner, outer, method=1) for x, y, angle in
+            starting_positions]
     for car, (_, _, angle) in zip(cars, starting_positions):
         car.angle = angle
 

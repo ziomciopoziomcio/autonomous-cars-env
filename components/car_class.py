@@ -43,12 +43,12 @@ class Car:
         if action == 2:  # Turn left
             self.angle += 5
             turning = True
-        if action == 3: # Turn right
+        if action == 3:  # Turn right
             self.angle -= 5
             turning = True
-        if action == 0: # UP key
+        if action == 0:  # UP key
             self.speed += 1
-        if action == 1: # DOWN key
+        if action == 1:  # DOWN key
             self.speed -= 1
 
         if action == 10:  # No action
