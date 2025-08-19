@@ -26,9 +26,6 @@ USED_CARS = 0
 COLORS = ["red-car.png", "white-car.png", "green-car.png", "grey-car.png", "purple-car.png"]
 
 
-
-
-
 def load_map(file_path):
     with open(file_path, "r") as f:
         data = json.load(f)
