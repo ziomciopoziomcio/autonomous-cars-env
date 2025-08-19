@@ -174,3 +174,4 @@ cython_debug/
 .pypirc
 map_generators/map_data.json
 /.idea
+state_screenshot.png

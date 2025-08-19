@@ -6,10 +6,7 @@ import components.globals as cg
 from components.functions_helper import point_in_polygon, scale_points, get_scaling_params
 
 
-def state_screenshot(screen):
-    # screenshot = pygame.surfarray.array3d(screen)
-    screenshot = None
-    return screenshot
+
 
 
 class Car:
@@ -46,6 +43,9 @@ class Car:
         self.distances_to_border = []
         self.rays = []
         self.distances = []
+
+        self.white_car = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
+        self.purple_car = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
 
     def update(self, action, cars):
         if self.win is True:
@@ -371,15 +371,15 @@ class Car:
         return False
 
     def check_if_on_track(self, track_mask, inner_polygon, outer_polygon):
-        # Pobierz maskę samochodu
+        # Get the car's mask
         car_mask = pygame.mask.from_surface(self.image)
         car_rect = self.image.get_rect(center=(self.x, self.y))
 
-        # Oblicz offset między maską toru a maską samochodu
+        # Calculate offset between the track mask and the car mask
         offset = (car_rect.left - 0,
-                  car_rect.top - 0)  # Zakładamy, że maska toru zaczyna się od (0, 0)
+                  car_rect.top - 0)  # Assume the track mask starts at (0, 0)
 
-        # Sprawdź, czy maski się pokrywają
+        # Check if the masks overlap
         overlap = track_mask.overlap(car_mask, offset)
         if overlap is None:
             return False
@@ -388,7 +388,7 @@ class Car:
             return False
 
         if not point_in_polygon(self.x, self.y, outer_polygon):
-            return False  # Samochód jest poza torem
+            return False  # The car is outside the track
 
         return True
 
@@ -403,13 +403,13 @@ class Car:
                 offset = (other_rect.left - self_rect.left, other_rect.top - self_rect.top)
                 if self_mask.overlap(other_mask, offset):
                     return True
-        # Track collision
+        # Collision with the track
         cx, cy = int(self.x), int(self.y)
         if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
-            return False  # Jest na torze
-        return True  # Kolizja
+            return False  # The car is on the track
+        return True  # Collision
 
-    def states_generation(self, screen, checkpoints):
+    def states_generation(self, screen, checkpoints, cars):
         """
          Parameters:
             state (list): A 3-element list representing the car's current state:
@@ -444,7 +444,7 @@ class Car:
         state.append(distances)
 
         # Screenshot of the screen
-        screenshot = state_screenshot(screen)
+        screenshot = self.state_screenshot(cars, screen)
         state.append(screenshot)
 
         return state
@@ -480,3 +480,78 @@ class Car:
         else:
             progress = 0
         return (closest_index, progress)
+
+    def state_screenshot(self, cars, screen):
+        turn_on = False
+        if turn_on:
+            # Save original images
+            original_imgs = [car.img for car in cars]
+            # Swap images
+            for car in cars:
+                if car is self:
+                    car.img = self.white_car
+                else:
+                    car.img = self.purple_car
+                # Scaling and rotation as in set_image
+                if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
+                    # Determine track width at the car's position
+                    # Use the car's center to find the closest points on both lines
+                    if hasattr(self, "_state_screenshot_map_data"):
+                        map_data = self._state_screenshot_map_data
+                    else:
+                        import components.globals as cg_local
+                        import json
+                        with open(cg_local.MAP_FILE, "r") as f:
+                            map_data = json.load(f)
+                            self._state_screenshot_map_data = map_data
+                    min_x, min_y, scale = get_scaling_params([map_data["outer_points"], map_data["inner_points"]],
+                                                             screen.get_width(), screen.get_height(), scale_factor=0.9)
+                    outer = scale_points(map_data["outer_points"], min_x, min_y, scale)
+                    inner = scale_points(map_data["inner_points"], min_x, min_y, scale)
+                    car_pos = (car.x, car.y)
+                    outer_closest = min(outer, key=lambda p: math.dist(car_pos, p))
+                    inner_closest = min(inner, key=lambda p: math.dist(car_pos, p))
+                    track_width = math.dist(outer_closest, inner_closest)
+                else:
+                    # Fallback
+                    track_width = 40
+                desired_car_width = track_width * cg.CAR_SIZE_RATIO
+                original_width, original_height = car.img.get_size()
+                new_width = int(desired_car_width)
+                new_height = int(original_height * (new_width / original_width))
+                scaled_img = pygame.transform.scale(car.img, (new_width, new_height))
+                car.image = pygame.transform.rotate(scaled_img, -90)
+                car.mask = pygame.mask.from_surface(car.image)
+
+            # Create a separate surface for the screenshot
+            screenshot_surface = pygame.Surface(screen.get_size())
+            # Draw background and track
+            screenshot_surface.blit(cg.BACKGROUND_IMAGE, (0, 0))
+            from game import draw_track
+            if not hasattr(self, "_state_screenshot_map_data"):
+                import components.globals as cg_local
+                import json
+                with open(cg_local.MAP_FILE, "r") as f:
+                    self._state_screenshot_map_data = json.load(f)
+            draw_track(screenshot_surface, self._state_screenshot_map_data)
+            # Draw cars
+            for car in cars:
+                car.draw(screenshot_surface)
+            # Get screenshot
+            screenshot = pygame.surfarray.array3d(screenshot_surface)
+            # Restore original images
+            for car, orig_img in zip(cars, original_imgs):
+                car.img = orig_img
+                if orig_img is not None:
+                    # Restore size and rotation as in set_image
+                    original_width, original_height = car.img.get_size()
+                    new_width = int(desired_car_width)
+                    new_height = int(original_height * (new_width / original_width))
+                    scaled_img = pygame.transform.scale(car.img, (new_width, new_height))
+                    car.image = pygame.transform.rotate(scaled_img, -90)
+                    car.mask = pygame.mask.from_surface(car.image)
+            # Save screenshot to file
+            # pygame.image.save(screenshot_surface, "state_screenshot.png")
+        else:
+            screenshot = None
+        return screenshot
