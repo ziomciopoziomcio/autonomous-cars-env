@@ -47,7 +47,7 @@ class Car:
         self.rays = []
         self.distances = []
 
-    def update(self, action):
+    def update(self, action, cars):
         if self.win is True:
             return
         old_x, old_y = self.x, self.y
@@ -77,7 +77,7 @@ class Car:
         # Car position update
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
-        if self.check_collision(self.outer_polygon, self.inner_polygon):
+        if self.check_collision(self.outer_polygon, self.inner_polygon, cars):
             # If the car collides with the track border, revert to old position
             self.x, self.y = old_x, old_y
             self.speed = 0
@@ -392,7 +392,18 @@ class Car:
 
         return True
 
-    def check_collision(self, outer_polygon, inner_polygon):
+    def check_collision(self, outer_polygon, inner_polygon, cars):
+        # Sprawdź kolizję z innymi samochodami (pełne maski)
+        self_mask, self_rect = self.get_mask()
+        for other_car in cars:
+            if other_car != self:
+                if other_car.win is True:
+                    continue
+                other_mask, other_rect = other_car.get_mask()
+                offset = (other_rect.left - self_rect.left, other_rect.top - self_rect.top)
+                if self_mask.overlap(other_mask, offset):
+                    return True
+        # Kolizja z torem
         cx, cy = int(self.x), int(self.y)
         if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
             return False  # Jest na torze
