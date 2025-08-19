@@ -485,7 +485,7 @@ class Car:
             original_imgs = [car.img for car in cars]
             # Swap images
             for car in cars:
-                if car is self:
+                if car == self:
                     car.img = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
                 else:
                     car.img = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
