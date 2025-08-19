@@ -7,7 +7,21 @@ import math
 from components.functions_helper import *
 from components.car_class import Car
 
-MAP_FILE = os.path.join("map_generators", "map_data.json")
+components.globals.MAP_FILE = os.path.join("map_generators", "map_data.json")
+
+# Constants
+
+BG_COLOR = (30, 30, 30)
+INNER_COLOR = (200, 50, 50)  # (50, 50, 200)
+OUTER_COLOR = (200, 50, 50)
+TRACK_COLOR = (50, 200, 50)
+FINISH_COLOR = (255, 255, 0)
+
+ROW_OFFSET_FACTOR = 1.1
+OFFSET_DISTANCE_FACTOR = 2
+CAR_LENGTH_RATIO = 2
+CAR_SPACING_FACTOR = 1.5
+PERPENDICULAR_ANGLE_OFFSET = 90
 
 
 def load_map(file_path):
