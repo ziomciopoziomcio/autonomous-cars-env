@@ -4,7 +4,7 @@ import os
 import math
 
 import components.globals as cg
-from components.functions_helper import *
+from components.functions_helper import point_in_polygon, scale_points
 
 
 class Car:
