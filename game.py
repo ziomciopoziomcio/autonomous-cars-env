@@ -1,4 +1,5 @@
 from components.globals import *
+from components.functions_helper import *
 from components.car_class import Car
 
 MAP_FILE = os.path.join("map_generators", "map_data.json")
@@ -199,21 +200,8 @@ def draw_track(screen, data):
     return outer, inner
 
 
-def point_in_polygon(x, y, polygon):
-    # Algorytm ray-casting
-    num = len(polygon)
-    j = num - 1
-    inside = False
 
-    for i in range(num):
-        xi, yi = polygon[i]
-        xj, yj = polygon[j]
-        if ((yi > y) != (yj > y)) and \
-                (x < (xj - xi) * (y - yi) / (yj - yi + 1e-10) + xi):
-            inside = not inside
-        j = i
 
-    return inside
 
 
 
