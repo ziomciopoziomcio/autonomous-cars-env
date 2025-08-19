@@ -1,5 +1,3 @@
-
-
 MAP_FILE = None
 FINISH_TEXTURE = None
 TRACK_IMAGE = None

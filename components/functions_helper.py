@@ -14,6 +14,7 @@ def point_in_polygon(x, y, polygon):
 
     return inside
 
+
 def get_scaling_params(points_list, width, height, scale_factor=1.0):
     # Połącz wszystkie punkty z list
     all_points = [p for points in points_list for p in points]
@@ -26,6 +27,7 @@ def get_scaling_params(points_list, width, height, scale_factor=1.0):
     scale_y = height / (max_y - min_y)
     scale = min(scale_x, scale_y) * scale_factor
     return min_x, min_y, scale
+
 
 def scale_points(points, min_x, min_y, scale):
     return [(int((x - min_x) * scale), int((y - min_y) * scale)) for x, y in points]

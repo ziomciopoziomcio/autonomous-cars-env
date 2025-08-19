@@ -92,12 +92,6 @@ def calculate_starting_positions(finish_line, outer_line,
     return positions
 
 
-
-
-
-
-
-
 def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     """
     Draw the finish line between the outer and inner lines.
@@ -232,7 +226,6 @@ def generate_track_mask(data, width, height):
 
 
 def main():
-
     pygame.init()
     screen = pygame.display.set_mode((cg.WIDTH, cg.HEIGHT))
     pygame.display.set_caption("Wyścigówka")
