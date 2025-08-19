@@ -436,6 +436,8 @@ class Car:
         screenshot = state_screenshot(screen)
         state.append(screenshot)
 
+        return state
+
 
 
     def state_from_rays(self):
