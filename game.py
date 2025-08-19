@@ -1,4 +1,9 @@
 from components.globals import *
+import pygame
+import json
+import os
+import math
+
 from components.functions_helper import *
 from components.car_class import Car
 

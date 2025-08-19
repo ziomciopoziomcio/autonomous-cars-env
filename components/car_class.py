@@ -1,4 +1,9 @@
-from components.globals import *
+import pygame
+import json
+import os
+import math
+
+import components.globals
 from components.functions_helper import *
 
 

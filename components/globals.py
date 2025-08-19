@@ -1,7 +1,4 @@
-import pygame
-import json
-import os
-import math
+
 
 MAP_FILE = None
 FINISH_TEXTURE = None
