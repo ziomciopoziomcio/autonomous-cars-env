@@ -398,7 +398,7 @@ class Car:
             return False  # Jest na torze
         return True  # Kolizja
 
-    def states_generation(self, cars, screen, checkpoints, track_mask):
+    def states_generation(self, screen, checkpoints):
         """
          Parameters:
             state (list): A 3-element list representing the car's current state:
@@ -417,11 +417,11 @@ class Car:
         """
         state = []
         # Distances to the track border
-        distances_to_border = self.state_from_distances_to_border(track_mask)
+        distances_to_border = self.state_from_distances_to_border()
         state.append(distances_to_border)
 
         # Distances to other cars
-        distances_to_cars = self.state_from_distances_to_cars(cars, track_mask)
+        distances_to_cars = self.state_from_distances_to_cars()
         state.append(distances_to_cars)
 
         # Progress information
@@ -429,7 +429,7 @@ class Car:
         state.append(progress_info)
 
         # Distances to the track border or cars
-        distances = self.state_from_rays(cars, track_mask)
+        distances = self.state_from_rays()
         state.append(distances)
 
         # Screenshot of the screen
@@ -438,13 +438,13 @@ class Car:
 
 
 
-    def state_from_rays(self, cars, track_mask):
+    def state_from_rays(self):
         return self.distances
 
-    def state_from_distances_to_border(self, track_mask):
+    def state_from_distances_to_border(self):
         return self.distances_to_border
 
-    def state_from_distances_to_cars(self, cars, track_mask):
+    def state_from_distances_to_cars(self):
         return self.distances_to_cars
 
     def progress_info(self, checkpoints):
