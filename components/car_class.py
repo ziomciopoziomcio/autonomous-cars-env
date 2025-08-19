@@ -35,25 +35,23 @@ class Car:
         self.inner_polygon = inner_polygon
         self.outer_polygon = outer_polygon
 
-    def update(self):
+    def update(self, action):
         if self.win is True:
             return
         old_x, old_y = self.x, self.y
         turning = False
-        # pygame keyboard handling
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        if action == 2:  # Turn left
             self.angle += 5
             turning = True
-        if keys[pygame.K_RIGHT]:
+        if action == 3: # Turn right
             self.angle -= 5
             turning = True
-        if keys[pygame.K_UP]:
+        if action == 0: # UP key
             self.speed += 1
-        if keys[pygame.K_DOWN]:
+        if action == 1: # DOWN key
             self.speed -= 1
 
-        if not keys[pygame.K_UP] and not keys[pygame.K_DOWN]:
+        if action == 10:  # No action
             if self.speed > 0:
                 self.speed = max(self.speed - self.friction, 0)
             elif self.speed < 0:
