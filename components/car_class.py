@@ -368,15 +368,15 @@ class Car:
         return False
 
     def check_if_on_track(self, track_mask, inner_polygon, outer_polygon):
-        # Pobierz maskę samochodu
+        # Get the car's mask
         car_mask = pygame.mask.from_surface(self.image)
         car_rect = self.image.get_rect(center=(self.x, self.y))
 
-        # Oblicz offset między maską toru a maską samochodu
+        # Calculate offset between the track mask and the car mask
         offset = (car_rect.left - 0,
-                  car_rect.top - 0)  # Zakładamy, że maska toru zaczyna się od (0, 0)
+                  car_rect.top - 0)  # Assume the track mask starts at (0, 0)
 
-        # Sprawdź, czy maski się pokrywają
+        # Check if the masks overlap
         overlap = track_mask.overlap(car_mask, offset)
         if overlap is None:
             return False
@@ -385,12 +385,12 @@ class Car:
             return False
 
         if not point_in_polygon(self.x, self.y, outer_polygon):
-            return False  # Samochód jest poza torem
+            return False  # The car is outside the track
 
         return True
 
     def check_collision(self, outer_polygon, inner_polygon, cars):
-        # Sprawdź kolizję z innymi samochodami (pełne maski)
+        # Check collision with other cars (full masks)
         self_mask, self_rect = self.get_mask()
         for other_car in cars:
             if other_car != self:
@@ -400,11 +400,11 @@ class Car:
                 offset = (other_rect.left - self_rect.left, other_rect.top - self_rect.top)
                 if self_mask.overlap(other_mask, offset):
                     return True
-        # Kolizja z torem
+        # Collision with the track
         cx, cy = int(self.x), int(self.y)
         if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
-            return False  # Jest na torze
-        return True  # Kolizja
+            return False  # The car is on the track
+        return True  # Collision
 
     def states_generation(self, screen, checkpoints, cars):
         """
