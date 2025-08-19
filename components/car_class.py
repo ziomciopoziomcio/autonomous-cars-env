@@ -376,3 +376,34 @@ class Car:
         if point_in_polygon(cx, cy, outer_polygon) and not point_in_polygon(cx, cy, inner_polygon):
             return False  # Jest na torze
         return True  # Kolizja
+
+    def states_generation(self):
+        """
+         Parameters:
+            state (list): A 3-element list representing the car's current state:
+                - state[0]: A list of 8 float values representing distances to the track border
+                            in 8 directions (every 45 degrees, starting from forward).
+                - state[1]: A list of 8 float values representing distances to the nearest car
+                           in the same 8 directions.
+                - state[2]: A 2-element list representing progress information:
+                            - state[2][0]: The index of the closest checkpoint.
+                            - state[2][1]: The car's progress, e.g., distance to the next checkpoint
+                                           or normalized progress value.
+                - state[3]: A list of 8 float values representing rays distances to the track border or cars
+                            in 8 directions (every 45 degrees, starting from forward).
+                - state[4]: Image of the screen.
+        :return: list of states
+        """
+        pass
+
+    def state_from_rays(self):
+        pass
+
+    def state_from_distances_to_border(self):
+        pass
+
+    def state_from_distances_to_cars(self):
+        pass
+
+    def state_screenshot(self):
+        pass
