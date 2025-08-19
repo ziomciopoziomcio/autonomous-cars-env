@@ -44,6 +44,9 @@ class Car:
         self.rays = []
         self.distances = []
 
+        self.white_car = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
+        self.purple_car = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
+
     def update(self, action, cars):
         if self.win is True:
             return
@@ -486,9 +489,9 @@ class Car:
             # Swap images
             for car in cars:
                 if car is self:
-                    car.img = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
+                    car.img = self.white_car
                 else:
-                    car.img = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
+                    car.img = self.purple_car
                 # Scaling and rotation as in set_image
                 if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
                     # Determine track width at the car's position
