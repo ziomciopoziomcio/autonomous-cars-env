@@ -200,11 +200,6 @@ def draw_track(screen, data):
     return outer, inner
 
 
-
-
-
-
-
 def generate_track_mask(data, width, height):
     # Pobierz punkty toru
     outer_raw = data["outer_points"]
@@ -227,9 +222,6 @@ def generate_track_mask(data, width, height):
     # Wygeneruj maskę z powierzchni
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
-
-
-
 
 
 def main():

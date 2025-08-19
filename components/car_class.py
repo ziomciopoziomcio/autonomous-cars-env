@@ -347,6 +347,7 @@ class Car:
             self.win = True
             return True
         return False
+
     def check_if_on_track(self, track_mask, inner_polygon, outer_polygon):
         # Pobierz maskę samochodu
         car_mask = pygame.mask.from_surface(self.image)
