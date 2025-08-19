@@ -469,5 +469,3 @@ class Car:
         else:
             progress = 0
         return closest_index, progress
-
-
