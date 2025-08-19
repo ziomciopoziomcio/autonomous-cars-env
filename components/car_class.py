@@ -465,7 +465,7 @@ class Car:
         # Calculate progress (distance to the next checkpoint or normalized value)
         if closest_index < len(checkpoints) - 1:
             next_checkpoint = checkpoints[closest_index + 1]
-            progress = math.dist(closest_checkpoint, next_checkpoint)
+            progress = math.dist((self.x, self.y), next_checkpoint)
         else:
             progress = 0
         return closest_index, progress
