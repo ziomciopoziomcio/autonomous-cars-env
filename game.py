@@ -1,9 +1,9 @@
-from components.globals import *
 import pygame
 import json
 import os
 import math
 
+import components.globals
 from components.functions_helper import *
 from components.car_class import Car
 
@@ -141,7 +141,7 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     finish_height = 25
 
     # Scale the finish line image
-    scaled_finish = pygame.transform.scale(FINISH_TEXTURE, (finish_width, finish_height))
+    scaled_finish = pygame.transform.scale(components.globals.FINISH_TEXTURE, (finish_width, finish_height))
 
     # Rotate the finish line image
     rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
@@ -189,26 +189,26 @@ def draw_track(screen, data):
     inner_raw = data["inner_points"]
 
     min_x, min_y, scale = get_scaling_params([outer_raw, inner_raw],
-                                             WIDTH, HEIGHT, scale_factor=0.9)
+                                             components.globals.WIDTH, components.globals.HEIGHT, scale_factor=0.9)
     outer = scale_points(outer_raw, min_x, min_y, scale)
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
     # Create a surface for the track
-    track_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    track_surface = pygame.Surface((components.globals.WIDTH, components.globals.HEIGHT), pygame.SRCALPHA)
     track_surface.fill((0, 0, 0, 0))
 
     pygame.draw.polygon(track_surface, (255, 255, 255), outer)
     pygame.draw.polygon(track_surface, (0, 0, 0), inner)
 
     # Apply the track image to the surface
-    track_surface.blit(TRACK_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    track_surface.blit(components.globals.TRACK_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
     screen.blit(track_surface, (0, 0))
 
-    inner_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    inner_surface = pygame.Surface((components.globals.WIDTH, components.globals.HEIGHT), pygame.SRCALPHA)
     inner_surface.fill((0, 0, 0, 0))
     pygame.draw.polygon(inner_surface, (255, 255, 255), inner)
-    inner_surface.blit(BACKGROUND_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    inner_surface.blit(components.globals.BACKGROUND_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
     # Drawing on the screen
     screen.blit(inner_surface, (0, 0))
@@ -244,27 +244,26 @@ def generate_track_mask(data, width, height):
 
 
 def main():
-    global FINISH_TEXTURE, TRACK_IMAGE, BACKGROUND_IMAGE
 
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode((components.globals.WIDTH, components.globals.HEIGHT))
     pygame.display.set_caption("Wyścigówka")
 
-    FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
-    TRACK_IMAGE = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
-    TRACK_IMAGE = pygame.transform.scale(TRACK_IMAGE, (WIDTH, HEIGHT))
+    components.globals.FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
+    components.globals.TRACK_IMAGE = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
+    components.globals.TRACK_IMAGE = pygame.transform.scale(components.globals.TRACK_IMAGE, (components.globals.WIDTH, components.globals.HEIGHT))
 
     clock = pygame.time.Clock()
-    data = load_map(MAP_FILE)
+    data = load_map(components.globals.MAP_FILE)
 
     # Load and scale the background image to fill the entire screen
-    BACKGROUND_IMAGE = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
-    BACKGROUND_IMAGE = pygame.transform.scale(BACKGROUND_IMAGE, (WIDTH, HEIGHT))
+    components.globals.BACKGROUND_IMAGE = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
+    components.globals.BACKGROUND_IMAGE = pygame.transform.scale(components.globals.BACKGROUND_IMAGE, (components.globals.WIDTH, components.globals.HEIGHT))
 
     # Pobierz pozycję linii startu
     finish_line = data["finish_line"]["point"]
     min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]],
-                                             WIDTH, HEIGHT,
+                                             components.globals.WIDTH, components.globals.HEIGHT,
                                              scale_factor=0.9)
     finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
 
@@ -276,7 +275,7 @@ def main():
     track_width = math.dist(outer_closest, inner_closest)
 
     num_cars = 4
-    car_width = track_width * CAR_SIZE_RATIO
+    car_width = track_width * components.globals.CAR_SIZE_RATIO
     car_length = car_width * CAR_LENGTH_RATIO
     offset_distance = car_length * OFFSET_DISTANCE_FACTOR  # Distance from the finish line
     row_offset = car_length * ROW_OFFSET_FACTOR
@@ -291,15 +290,15 @@ def main():
     for car, (_, _, angle) in zip(cars, starting_positions):
         car.angle = angle
 
-    track_mask = generate_track_mask(data, WIDTH, HEIGHT)
+    track_mask = generate_track_mask(data, components.globals.WIDTH, components.globals.HEIGHT)
 
     running = True
     while running:
-        screen.blit(BACKGROUND_IMAGE, (0, 0))
+        screen.blit(components.globals.BACKGROUND_IMAGE, (0, 0))
         outer, inner = draw_track(screen, data)  # its switched?
 
-        draw_finish_line(screen, data, WIDTH, HEIGHT, outer, inner)
-        draw_checkpoints_line(screen, data, WIDTH, HEIGHT, outer, inner, cars)
+        draw_finish_line(screen, data, components.globals.WIDTH, components.globals.HEIGHT, outer, inner)
+        draw_checkpoints_line(screen, data, components.globals.WIDTH, components.globals.HEIGHT, outer, inner, cars)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -307,9 +306,9 @@ def main():
 
         for car in cars:  # Iterate over all cars
             car.update()
-            car.check_checkpoints(data["checkpoints"], data, outer, inner, WIDTH, HEIGHT)
+            car.check_checkpoints(data["checkpoints"], data, outer, inner, components.globals.WIDTH, components.globals.HEIGHT)
             car.check_finish_line(data["checkpoints"], data["finish_line"], data, outer, inner,
-                                  WIDTH, HEIGHT)
+                                  components.globals.WIDTH, components.globals.HEIGHT)
             if not car.check_if_on_track(track_mask, inner, outer):
                 car.speed = 0
             car.draw(screen)

@@ -230,18 +230,17 @@ class Car:
 
         :param track_width: The width of the track, used to scale the car's image.
         """
-        global USED_CARS
         # Check if the limit of available colors is exceeded
-        if USED_CARS >= len(COLORS):
+        if components.globals.USED_CARS >= len(components.globals.COLORS):
             raise ValueError("Too many cars created, not enough colors available.")
 
         # Load the image
-        self.img = pygame.image.load(os.path.join("imgs", COLORS[USED_CARS])).convert_alpha()
+        self.img = pygame.image.load(os.path.join("imgs", components.globals.COLORS[components.globals.USED_CARS])).convert_alpha()
 
-        # Increment USED_CARS only after the check passes
-        USED_CARS += 1
+        # Increment components.globals.USED_CARS only after the check passes
+        components.globals.USED_CARS += 1
         # Preserve original aspect ratio
-        desired_car_width = track_width * CAR_SIZE_RATIO
+        desired_car_width = track_width * components.globals.CAR_SIZE_RATIO
         original_width, original_height = self.img.get_size()
         new_width = int(desired_car_width)
         new_height = int(original_height * (new_width / original_width))
@@ -254,7 +253,7 @@ class Car:
         self.mask = pygame.mask.from_surface(self.image)
 
     def check_checkpoints(self, checkpoints, data=None, outer_line=None, inner_line=None,
-                          width=WIDTH, height=HEIGHT):
+                          width=components.globals.WIDTH, height=components.globals.HEIGHT):
         """
         Check if the car has passed any checkpoints using mask collision.
         :param checkpoints: List of checkpoint positions [(x, y), ...].
@@ -265,7 +264,7 @@ class Car:
         :param height: Screen height
         :return: True if the car has passed a checkpoint, False otherwise.
         """
-        if FINISH_TEXTURE is None or data is None:
+        if components.globals.FINISH_TEXTURE is None or data is None:
             return False
 
         # Prepare scaling params
@@ -286,7 +285,7 @@ class Car:
                                             inner_closest[0] - outer_closest[0]))
             checkpoint_width = int(math.dist(outer_closest, inner_closest))
             checkpoint_height = 25
-            scaled_checkpoint = pygame.transform.scale(FINISH_TEXTURE,
+            scaled_checkpoint = pygame.transform.scale(components.globals.FINISH_TEXTURE,
                                                        (checkpoint_width, checkpoint_height))
             rotated_checkpoint = pygame.transform.rotate(scaled_checkpoint, -angle)
             checkpoint_rect = rotated_checkpoint.get_rect()
@@ -302,7 +301,7 @@ class Car:
         return False
 
     def check_finish_line(self, checkpoints, finish_line, data=None, outer_line=None,
-                          inner_line=None, width=WIDTH, height=HEIGHT):
+                          inner_line=None, width=components.globals.WIDTH, height=components.globals.HEIGHT):
         """
         Check if the car has crossed the finish line using mask collision.
         :param finish_line: List of finish line positions [(x, y), ...].
@@ -313,7 +312,7 @@ class Car:
         :param height: Screen height
         :return: True if the car has crossed the finish line, False otherwise.
         """
-        if FINISH_TEXTURE is None or data is None:
+        if components.globals.FINISH_TEXTURE is None or data is None:
             return False
 
         if self.win is True:
@@ -340,7 +339,7 @@ class Car:
             math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
         finish_width = int(math.dist(outer_closest, inner_closest))
         finish_height = 25
-        scaled_finish = pygame.transform.scale(FINISH_TEXTURE, (finish_width, finish_height))
+        scaled_finish = pygame.transform.scale(components.globals.FINISH_TEXTURE, (finish_width, finish_height))
         rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
         finish_rect = rotated_finish.get_rect()
         finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2,
@@ -356,7 +355,7 @@ class Car:
     def check_if_on_track(self, track_mask, inner_polygon, outer_polygon):
         # Pobierz maskę samochodu
         car_mask = pygame.mask.from_surface(self.image)
-        car_rect = car.image.get_rect(center=(self.x, self.y))
+        car_rect = self.image.get_rect(center=(self.x, self.y))
 
         # Oblicz offset między maską toru a maską samochodu
         offset = (car_rect.left - 0,
