@@ -308,7 +308,7 @@ def main():
                 running = False
 
         for car in cars:  # Iterate over all cars
-            state = car.states_generation(cars, screen, data["checkpoints"], track_mask)
+            state = car.states_generation(screen, data["checkpoints"])
             car.choose_action(state)
             car.check_checkpoints(data["checkpoints"], data, outer, inner, cg.WIDTH, cg.HEIGHT)
             car.check_finish_line(data["checkpoints"], data["finish_line"], data, outer, inner,
