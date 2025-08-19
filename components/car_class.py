@@ -456,7 +456,7 @@ class Car:
         :return: A tuple containing the index of the closest checkpoint and the car's progress.
         """
         if not checkpoints:
-            return None
+            return (-1. -1)  # No checkpoints available
 
         # Find the closest checkpoint
         closest_checkpoint = min(checkpoints, key=lambda cp: math.dist((self.x, self.y), cp))
@@ -468,4 +468,4 @@ class Car:
             progress = math.dist(closest_checkpoint, next_checkpoint)
         else:
             progress = 0
-        return closest_index, progress
+        return (closest_index, progress)
