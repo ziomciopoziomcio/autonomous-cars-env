@@ -482,6 +482,31 @@ class Car:
             progress = 0
         return (closest_index, progress)
 
+    def track_width_calculation(self, car):
+        if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
+            # Determine track width at the car's position
+            # Use the car's center to find the closest points on both lines
+            if hasattr(self, "_state_screenshot_map_data"):
+                map_data = self._state_screenshot_map_data
+            else:
+                with open(cg.MAP_FILE, "r") as f:
+                    map_data = json.load(f)
+                    self._state_screenshot_map_data = map_data
+            min_x, min_y, scale = get_scaling_params(
+                [map_data["outer_points"], map_data["inner_points"]],
+                screen.get_width(), screen.get_height(), scale_factor=0.9)
+            outer = scale_points(map_data["outer_points"], min_x, min_y, scale)
+            inner = scale_points(map_data["inner_points"], min_x, min_y, scale)
+            car_pos = (car.x, car.y)
+            outer_closest = min(outer, key=lambda p: math.dist(car_pos, p))
+            inner_closest = min(inner, key=lambda p: math.dist(car_pos, p))
+            track_width = math.dist(outer_closest, inner_closest)
+        else:
+            # Fallback
+            track_width = 40
+
+        return track_width
+
     def state_screenshot(self, cars, screen):
         turn_on = False
         if turn_on:
@@ -494,26 +519,7 @@ class Car:
                 else:
                     car.img = self.purple_car
                 # Scaling and rotation as in set_image
-                if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
-                    # Determine track width at the car's position
-                    # Use the car's center to find the closest points on both lines
-                    if hasattr(self, "_state_screenshot_map_data"):
-                        map_data = self._state_screenshot_map_data
-                    else:
-                        with open(cg.MAP_FILE, "r") as f:
-                            map_data = json.load(f)
-                            self._state_screenshot_map_data = map_data
-                    min_x, min_y, scale = get_scaling_params([map_data["outer_points"], map_data["inner_points"]],
-                                                             screen.get_width(), screen.get_height(), scale_factor=0.9)
-                    outer = scale_points(map_data["outer_points"], min_x, min_y, scale)
-                    inner = scale_points(map_data["inner_points"], min_x, min_y, scale)
-                    car_pos = (car.x, car.y)
-                    outer_closest = min(outer, key=lambda p: math.dist(car_pos, p))
-                    inner_closest = min(inner, key=lambda p: math.dist(car_pos, p))
-                    track_width = math.dist(outer_closest, inner_closest)
-                else:
-                    # Fallback
-                    track_width = 40
+                track_width = self.track_width_calculation(car)
                 desired_car_width = track_width * cg.CAR_SIZE_RATIO
                 original_width, original_height = car.img.get_size()
                 new_width = int(desired_car_width)
