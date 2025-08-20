@@ -499,24 +499,40 @@ class Car:
         return track_width
 
     def _swap_car_images_for_screenshot(self, cars, screen):
-        """Swap car images for screenshot: player to white, others to purple. Returns original images and desired_car_width."""
-        original_imgs = [car.img for car in cars]
+        """Swap car images for screenshot: player to white, others to purple. Returns original (img, image, mask) for each car and desired_car_width for self."""
+        original_states = [(car.img, car.image, car.mask) for car in cars]
         desired_car_width = None
         for car in cars:
-            if car is self:
-                car.img = self.white_car
+            if car == self:
+                # Assign a fresh, scaled copy of the white car image
+                car.img = self.white_car.copy()
+                track_width = self.track_width_calculation(car, screen)
+                desired_car_width = track_width * cg.CAR_SIZE_RATIO
+                original_width, original_height = car.img.get_size()
+                new_width = int(desired_car_width)
+                new_height = int(original_height * (new_width / original_width))
+                scaled_image = pygame.transform.scale(car.img, (new_width, new_height))
+                car.image = pygame.transform.rotate(scaled_image, -90)
+                car.mask = pygame.mask.from_surface(car.image)
             else:
-                car.img = self.purple_car
-            track_width = self.track_width_calculation(car, screen)
-            desired_car_width = self.image_setter(track_width)
-        return original_imgs, desired_car_width
+                # Assign a fresh, scaled copy of the purple car image
+                car.img = self.purple_car.copy()
+                track_width = self.track_width_calculation(car, screen)
+                desired_car_width_other = track_width * cg.CAR_SIZE_RATIO
+                original_width, original_height = car.img.get_size()
+                new_width = int(desired_car_width_other)
+                new_height = int(original_height * (new_width / original_width))
+                scaled_image = pygame.transform.scale(car.img, (new_width, new_height))
+                car.image = pygame.transform.rotate(scaled_image, -90)
+                car.mask = pygame.mask.from_surface(car.image)
+        return original_states, desired_car_width
 
-    def _restore_car_images_after_screenshot(self, cars, original_imgs, desired_car_width):
-        """Restore original car images and scaling after screenshot."""
-        for car, orig_img in zip(cars, original_imgs):
+    def _restore_car_images_after_screenshot(self, cars, original_states, desired_car_width):
+        """Restore original car images, image, and mask after screenshot."""
+        for car, (orig_img, orig_image, orig_mask) in zip(cars, original_states):
             car.img = orig_img
-            if orig_img is not None and desired_car_width is not None:
-                self.image_setter(track_width=None, desired_car_width=desired_car_width)
+            car.image = orig_image
+            car.mask = orig_mask
 
     def _get_or_load_map_data(self):
         """Load map data if not already loaded."""
@@ -537,7 +553,7 @@ class Car:
         return screenshot_surface
 
     def state_screenshot(self, cars, screen):
-        turn_on = False
+        turn_on = True
         if not turn_on:
             return None
         # Swap images and scale for screenshot
