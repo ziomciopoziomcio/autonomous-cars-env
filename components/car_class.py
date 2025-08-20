@@ -497,9 +497,8 @@ class Car:
                     if hasattr(self, "_state_screenshot_map_data"):
                         map_data = self._state_screenshot_map_data
                     else:
-                        import components.globals as cg_local
                         import json
-                        with open(cg_local.MAP_FILE, "r") as f:
+                        with open(cg.MAP_FILE, "r") as f:
                             map_data = json.load(f)
                             self._state_screenshot_map_data = map_data
                     min_x, min_y, scale = get_scaling_params([map_data["outer_points"], map_data["inner_points"]],
@@ -527,9 +526,8 @@ class Car:
             screenshot_surface.blit(cg.BACKGROUND_IMAGE, (0, 0))
             from game import draw_track
             if not hasattr(self, "_state_screenshot_map_data"):
-                import components.globals as cg_local
                 import json
-                with open(cg_local.MAP_FILE, "r") as f:
+                with open(cg.MAP_FILE, "r") as f:
                     self._state_screenshot_map_data = json.load(f)
             draw_track(screenshot_surface, self._state_screenshot_map_data)
             # Draw cars
