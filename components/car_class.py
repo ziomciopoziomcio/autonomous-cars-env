@@ -486,44 +486,56 @@ class Car:
             track_width = 40
         return track_width
 
+    def _swap_car_images_for_screenshot(self, cars, screen):
+        """Swap car images for screenshot: player to white, others to purple. Returns original images and desired_car_width."""
+        original_imgs = [car.img for car in cars]
+        desired_car_width = None
+        for car in cars:
+            if car is self:
+                car.img = self.white_car
+            else:
+                car.img = self.purple_car
+            track_width = self.track_width_calculation(car, screen)
+            desired_car_width = self.image_setter(track_width)
+        return original_imgs, desired_car_width
+
+    def _restore_car_images_after_screenshot(self, cars, original_imgs, desired_car_width):
+        """Restore original car images and scaling after screenshot."""
+        for car, orig_img in zip(cars, original_imgs):
+            car.img = orig_img
+            if orig_img is not None and desired_car_width is not None:
+                self.image_setter(track_width=None, desired_car_width=desired_car_width)
+
+    def _get_or_load_map_data(self):
+        """Load map data if not already loaded."""
+        if not hasattr(self, "_state_screenshot_map_data"):
+            with open(cg.MAP_FILE, "r") as f:
+                self._state_screenshot_map_data = json.load(f)
+        return self._state_screenshot_map_data
+
+    def _draw_screenshot_surface(self, screen, cars):
+        """Draw background, track, and cars on a new surface."""
+        screenshot_surface = pygame.Surface(screen.get_size())
+        screenshot_surface.blit(cg.BACKGROUND_IMAGE, (0, 0))
+        from game import draw_track
+        map_data = self._get_or_load_map_data()
+        draw_track(screenshot_surface, map_data)
+        for car in cars:
+            car.draw(screenshot_surface)
+        return screenshot_surface
+
     def state_screenshot(self, cars, screen):
         turn_on = False
-        desired_car_width = None
-        if turn_on:
-            # Save original images
-            original_imgs = [car.img for car in cars]
-            # Swap images
-            for car in cars:
-                if car is self:
-                    car.img = self.white_car
-                else:
-                    car.img = self.purple_car
-                # Scaling and rotation as in set_image
-                track_width = self.track_width_calculation(car, screen)
-                desired_car_width = self.image_setter(track_width)
-
-            # Create a separate surface for the screenshot
-            screenshot_surface = pygame.Surface(screen.get_size())
-            # Draw background and track
-            screenshot_surface.blit(cg.BACKGROUND_IMAGE, (0, 0))
-            from game import draw_track
-            if not hasattr(self, "_state_screenshot_map_data"):
-                with open(cg.MAP_FILE, "r") as f:
-                    self._state_screenshot_map_data = json.load(f)
-            draw_track(screenshot_surface, self._state_screenshot_map_data)
-            # Draw cars
-            for car in cars:
-                car.draw(screenshot_surface)
-            # Get screenshot
-            screenshot = pygame.surfarray.array3d(screenshot_surface)
-            # Restore original images
-            for car, orig_img in zip(cars, original_imgs):
-                car.img = orig_img
-                if orig_img is not None and desired_car_width is not None:
-                    # Restore size and rotation as in set_image
-                    self.image_setter(track_width=None, desired_car_width=desired_car_width)
-            # Save screenshot to file
-            pygame.image.save(screenshot_surface, "state_screenshot.png")
-        else:
-            screenshot = None
+        if not turn_on:
+            return None
+        # Swap images and scale for screenshot
+        original_imgs, desired_car_width = self._swap_car_images_for_screenshot(cars, screen)
+        # Draw everything on screenshot surface
+        screenshot_surface = self._draw_screenshot_surface(screen, cars)
+        # Get screenshot array
+        screenshot = pygame.surfarray.array3d(screenshot_surface)
+        # Restore original images and scaling
+        self._restore_car_images_after_screenshot(cars, original_imgs, desired_car_width)
+        # Save screenshot to file
+        pygame.image.save(screenshot_surface, "state_screenshot.png")
         return screenshot
