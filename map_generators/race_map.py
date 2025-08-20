@@ -412,13 +412,6 @@ def save_map():
     print("Map saved to 'map_data.json'.")
 
 
-def load_map():
-    """Load the map from a file."""
-    map_data.load_from_file('map_data.json')
-    update_layers_list()
-    print("Map loaded from 'map_data.json'.")
-
-
 def handle_mouse_click_road(event):
     if event.type == pygame.MOUSEBUTTONDOWN:  # Ensure the event is a mouse button down event
         if event.button == 1:  # Left mouse button
