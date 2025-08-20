@@ -216,6 +216,32 @@ class Map:
         self.finish_line = data.get('finish_line', {'point': None})
         self.checkpoints = data.get('checkpoints', [])
 
+    def _generate_inner_boundary(self, center_line, width):
+        inner_poly = center_line.buffer(-width, cap_style=2, join_style=2, resolution=256)
+        if inner_poly.is_empty:
+            inner = np.array(center_line.coords)
+            if np.allclose(inner[0], inner[-1]):
+                inner = inner[:-1]
+            return inner.tolist()
+        else:
+            inner = np.array(inner_poly.exterior.coords)
+            if np.allclose(inner[0], inner[-1]):
+                inner = inner[:-1]
+            return inner.tolist()
+
+    def _snap_point_to_centerline(self, center_line, point):
+        return center_line.interpolate(center_line.project(Point(point))).coords[0]
+
+    def _snap_checkpoints(self, center_line, checkpoints):
+        snapped = []
+        for checkpoint in checkpoints:
+            if not center_line.contains(Point(checkpoint)):
+                snapped_point = self._snap_point_to_centerline(center_line, checkpoint)
+                snapped.append(snapped_point)
+            else:
+                snapped.append(checkpoint)
+        return snapped
+
     def generate_track_width(self, width=50):
         """
           Generate smooth inner and outer track boundaries based on the centerline points.
@@ -227,7 +253,6 @@ class Map:
           :param width: The half-width of the track (distance from centerline to edge).
           :return: Tuple (inner_points, outer_points) as lists of (x, y) coordinates.
         """
-        # Extract centerline coordinates from points
         coords = [(p[1], p[2]) for p in self.points]
         if coords[0] != coords[-1]:
             coords.append(coords[0])
@@ -239,39 +264,18 @@ class Map:
         if np.allclose(outer[0], outer[-1]):
             outer = outer[:-1]
 
-        # Generate the inner boundary
-        inner_poly = center_line.buffer(-width, cap_style=2, join_style=2, resolution=256)
-        if inner_poly.is_empty:
-            # If the inner buffer fails, return the centerline as a fallback
-            inner = np.array(center_line.coords)
-            if np.allclose(inner[0], inner[-1]):
-                inner = inner[:-1]
-            inner = inner.tolist()
-        else:
-            inner = np.array(inner_poly.exterior.coords)
-            if np.allclose(inner[0], inner[-1]):
-                inner = inner[:-1]
-            inner = inner.tolist()
+        # Generate the inner boundary using helper
+        inner = self._generate_inner_boundary(center_line, width)
 
         # Ensure the finish line is included in the track
         if self.finish_line['point']:
             finish_point = self.finish_line['point']
             if not center_line.contains(Point(finish_point)):
-                # Snap the finish line to the nearest point on the centerline
-                finish_point = \
-                    center_line.interpolate(center_line.project(Point(finish_point))).coords[0]
+                finish_point = self._snap_point_to_centerline(center_line, finish_point)
                 self.finish_line['point'] = finish_point
 
-        # Snap all checkpoints to the nearest point on the centerline
-        snapped_checkpoints = []
-        for checkpoint in self.checkpoints:
-            if not center_line.contains(Point(checkpoint)):
-                snapped_point = \
-                    center_line.interpolate(center_line.project(Point(checkpoint))).coords[0]
-                snapped_checkpoints.append(snapped_point)
-            else:
-                snapped_checkpoints.append(checkpoint)
-        self.checkpoints = snapped_checkpoints
+        # Snap all checkpoints using helper
+        self.checkpoints = self._snap_checkpoints(center_line, self.checkpoints)
 
         return inner, outer.tolist()
 
