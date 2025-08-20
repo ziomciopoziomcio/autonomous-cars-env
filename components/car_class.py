@@ -503,7 +503,7 @@ class Car:
         original_states = [(car.img, car.image, car.mask) for car in cars]
         desired_car_width = None
         for car in cars:
-            if car == self:
+            if car is self:
                 # Assign a fresh, scaled copy of the white car image
                 car.img = self.white_car.copy()
                 track_width = self.track_width_calculation(car, screen)
