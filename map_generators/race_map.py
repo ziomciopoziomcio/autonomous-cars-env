@@ -58,7 +58,6 @@ def extrapolate_points(start, end, distance=50):
 drawing_area_rect = pygame.Rect(0, 0, window_size[0], window_size[1])
 
 
-
 class Map:
     def __init__(self):
         self.points = []
@@ -401,6 +400,7 @@ class StepController:
             del self.wait_window
             self.wait_window = None
 
+
 def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
     """Draw a coordinate grid in the specified rectangle."""
     # Draw vertical lines
@@ -416,12 +416,6 @@ def draw_coordinate_grid(surface, rect, grid_size=50, color=(0, 0, 0)):
         # Draw y-axis labels
         label = pygame.font.Font(None, 20).render(str(y - rect.top), True, color)
         surface.blit(label, (rect.left + 2, y + 2))
-
-
-
-
-
-
 
 
 class generator:
@@ -556,7 +550,7 @@ class generator:
         """Save the current map to a file."""
         self.map_data.save_to_file('map_data.json')
         print("Map saved to 'map_data.json'.")
-        
+
     def main_loop(self):
         while True:
             for event in pygame.event.get():

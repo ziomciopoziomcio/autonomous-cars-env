@@ -7,9 +7,6 @@ import components.globals as cg
 from components.functions_helper import point_in_polygon, scale_points, get_scaling_params
 
 
-
-
-
 class Car:
     def __init__(self, x, y, track_width, inner_polygon, outer_polygon):
         self.x = x
@@ -184,14 +181,16 @@ class Car:
                 if car_hit is None and other_cars:
                     for car_mask, car_rect in other_cars:
                         offset = (test_x - car_rect.left, test_y - car_rect.top)
-                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < car_mask.get_size()[1]:
+                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < \
+                                car_mask.get_size()[1]:
                             if car_mask.get_at(offset):
                                 car_hit = (test_x, test_y)
                                 car_hit_distance = ray_length
                                 break
 
                 if border_hit is None:
-                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)):
+                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
+                                                                               inner_polygon)):
                         border_hit = (test_x, test_y)
                         border_hit_distance = ray_length
                         break
@@ -450,8 +449,6 @@ class Car:
 
         return state
 
-
-
     def state_from_rays(self):
         return self.distances
 
@@ -468,7 +465,7 @@ class Car:
         :return: A tuple containing the index of the closest checkpoint and the car's progress.
         """
         if not checkpoints:
-            return (-1. -1)  # No checkpoints available
+            return (-1. - 1)  # No checkpoints available
 
         # Find the closest checkpoint
         closest_checkpoint = min(checkpoints, key=lambda cp: math.dist((self.x, self.y), cp))
@@ -486,7 +483,8 @@ class Car:
         if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
             # Determine track width at the car's position
             # Use the car's center to find the closest points on both lines
-            if hasattr(self, "_state_screenshot_map_data") and self._state_screenshot_map_data is not None:
+            if hasattr(self,
+                       "_state_screenshot_map_data") and self._state_screenshot_map_data is not None:
                 map_data = self._state_screenshot_map_data
             else:
                 with open(cg.MAP_FILE, "r") as f:
