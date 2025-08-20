@@ -432,23 +432,26 @@ class generator:
         self.main_loop()
 
     # Function to handle mouse clicks for adding/removing points
+    def _handle_point_click(self, event):
+        if event.type != pygame.MOUSEBUTTONDOWN:
+            return
+        if event.button == 1:
+            if drawing_area_rect.collidepoint(event.pos):
+                self.map_data.add_point(event.pos)
+        elif event.button == 3:
+            for point in self.map_data.points:
+                if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                    self.map_data.remove_point((point[1], point[2]))
+                    break
+
     def handle_mouse_click(self, event):
-        if self.selected_tool == 'Draw Tool' and self.selected_detailed_tool == 'Point':
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left mouse button
-                    # Add point only if within the drawing area
-                    if drawing_area_rect.collidepoint(event.pos):
-                        self.map_data.add_point(event.pos)
-                elif event.button == 3:  # Left mouse button
-                    # Remove point
-                    for point in self.map_data.points:
-                        if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
-                            self.map_data.remove_point((point[1], point[2]))
-                            break
-        elif self.selected_tool == 'Draw Tool' and self.selected_detailed_tool == 'Road':
-            self.handle_mouse_click_road(event)
-        elif self.selected_tool == 'Draw Tool' and self.selected_detailed_tool == 'Finish Line':
-            self.handle_mouse_click_finish_line(event)
+        if self.selected_tool == 'Draw Tool':
+            if self.selected_detailed_tool == 'Point':
+                self._handle_point_click(event)
+            elif self.selected_detailed_tool == 'Road':
+                self.handle_mouse_click_road(event)
+            elif self.selected_detailed_tool == 'Finish Line':
+                self.handle_mouse_click_finish_line(event)
 
     def handle_mouse_click_road(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:  # Ensure the event is a mouse button down event
