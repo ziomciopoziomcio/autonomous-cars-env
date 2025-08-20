@@ -246,9 +246,6 @@ class PlayerCar(Car):
         self.update(action, cars)
 
 
-
-
-
 class GameEngine:
     def __init__(self):
         self.pygame_load()
@@ -262,8 +259,6 @@ class GameEngine:
         pygame.init()
         self.screen = pygame.display.set_mode((cg.WIDTH, cg.HEIGHT))
         pygame.display.set_caption("Wyścigówka")
-
-
 
         self.clock = pygame.time.Clock()
         self.data = load_map(cg.MAP_FILE)
@@ -279,9 +274,10 @@ class GameEngine:
     def track_load(self):
         # Pobierz pozycję linii startu
         finish_line = self.data["finish_line"]["point"]
-        min_x, min_y, scale = get_scaling_params([self.data["outer_points"], self.data["inner_points"]],
-                                                 cg.WIDTH, cg.HEIGHT,
-                                                 scale_factor=0.9)
+        min_x, min_y, scale = get_scaling_params(
+            [self.data["outer_points"], self.data["inner_points"]],
+            cg.WIDTH, cg.HEIGHT,
+            scale_factor=0.9)
         self.finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
 
         # Calculate track width
@@ -299,13 +295,15 @@ class GameEngine:
         row_offset = car_length * ROW_OFFSET_FACTOR
         spacing = car_width * CAR_SPACING_FACTOR  # Spacing between cars
         starting_positions = calculate_starting_positions(self.finish_scaled,
-                                                          self.outer, self.inner, num_cars, offset_distance,
+                                                          self.outer, self.inner, num_cars,
+                                                          offset_distance,
                                                           row_offset,
                                                           spacing)
 
         # Place the cars at the starting line
-        self.cars = [PlayerCar(x, y, self.track_width, self.inner, self.outer, method=1) for x, y, angle in
-                starting_positions]
+        self.cars = [PlayerCar(x, y, self.track_width, self.inner, self.outer, method=1) for
+                     x, y, angle in
+                     starting_positions]
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
 
@@ -317,7 +315,8 @@ class GameEngine:
             self.outer, self.inner = draw_track(self.screen, self.data)  # its switched?
 
             draw_finish_line(self.screen, self.data, cg.WIDTH, cg.HEIGHT, self.outer, self.inner)
-            draw_checkpoints_line(self.screen, self.data, cg.WIDTH, cg.HEIGHT, self.outer, self.inner, self.cars)
+            draw_checkpoints_line(self.screen, self.data, cg.WIDTH, cg.HEIGHT, self.outer,
+                                  self.inner, self.cars)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -326,8 +325,10 @@ class GameEngine:
             for car in self.cars:  # Iterate over all cars
                 state = car.states_generation(self.screen, self.data["checkpoints"], self.cars)
                 car.choose_action(self.cars, state)
-                car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner, cg.WIDTH, cg.HEIGHT)
-                car.check_finish_line(self.data["checkpoints"], self.data["finish_line"], self.data, self.outer, self.inner,
+                car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
+                                      cg.WIDTH, cg.HEIGHT)
+                car.check_finish_line(self.data["checkpoints"], self.data["finish_line"], self.data,
+                                      self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
                 if not car.check_if_on_track(self.track_mask, self.inner, self.outer):
                     car.speed = 0
@@ -340,7 +341,6 @@ class GameEngine:
             self.clock.tick(60)
 
         pygame.quit()
-
 
 
 if __name__ == "__main__":
