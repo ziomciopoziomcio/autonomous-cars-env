@@ -139,7 +139,10 @@ class Car:
             return (test_x, test_y)
         return None
 
-    def _cast_single_ray(self, center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars):
+    def _cast_single_ray(self, center, direction, max_length, bounds, mask, inner_polygon, other_cars):
+        center_x, center_y = center
+        dx, dy = direction
+        max_width, max_height = bounds
         ray_length = 0
         car_hit = None
         car_hit_distance = None
@@ -172,6 +175,12 @@ class Car:
             border_hit = (test_x, test_y)
             border_hit_distance = max_length
         return car_hit, car_hit_distance, border_hit, border_hit_distance
+
+    def _get_ray_params(self, center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars):
+        center = (center_x, center_y)
+        direction = (dx, dy)
+        bounds = (max_width, max_height)
+        return center, direction, max_length, bounds, mask, inner_polygon, other_cars
 
     def get_rays_and_distances(self, mask, inner_polygon, cars=None):
         """
@@ -210,8 +219,8 @@ class Car:
             total_angle = angle_rad + math.radians(ray_angle)
             dx = math.cos(total_angle)
             dy = math.sin(total_angle)
-            car_hit, car_hit_distance, border_hit, border_hit_distance = self._cast_single_ray(
-                center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
+            params = self._get_ray_params(center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
+            car_hit, car_hit_distance, border_hit, border_hit_distance = self._cast_single_ray(*params)
             if car_hit is not None and (car_hit_distance <= border_hit_distance):
                 self.rays.append((center_x, center_y, car_hit[0], car_hit[1]))
                 self.distances.append(car_hit_distance)
