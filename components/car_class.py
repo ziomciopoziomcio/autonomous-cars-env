@@ -50,10 +50,7 @@ class Car:
 
         self._state_screenshot_map_data = None  # Cache for map data used in state_screenshot
 
-    def update(self, action, cars):
-        if self.win is True:
-            return
-        old_x, old_y = self.x, self.y
+    def _handle_action(self, action):
         turning = False
         if action == 2:  # Turn left
             self.angle += 5
@@ -65,25 +62,38 @@ class Car:
             self.speed += 1
         if action == 1:  # DOWN key
             self.speed -= 1
+        return turning
 
+    def _handle_no_action(self):
+        if self.speed > 0:
+            self.speed = max(self.speed - self.friction, 0)
+        elif self.speed < 0:
+            self.speed = min(self.speed + self.friction, 0)
+
+    def _handle_turning(self):
+        if self.speed > 0:
+            self.speed = max(self.speed - self.turn_slowdown, 0)
+        elif self.speed < 0:
+            self.speed = min(self.speed + self.turn_slowdown, 0)
+
+    def _handle_collision(self, old_x, old_y, cars):
+        if self.check_collision(self.outer_polygon, self.inner_polygon, cars):
+            self.x, self.y = old_x, old_y
+            self.speed = 0
+
+    def update(self, action, cars):
+        if self.win is True:
+            return
+        old_x, old_y = self.x, self.y
+        turning = self._handle_action(action)
         if action == 10:  # No action
-            if self.speed > 0:
-                self.speed = max(self.speed - self.friction, 0)
-            elif self.speed < 0:
-                self.speed = min(self.speed + self.friction, 0)
-
+            self._handle_no_action()
         if turning:
-            if self.speed > 0:
-                self.speed = max(self.speed - self.turn_slowdown, 0)
-            elif self.speed < 0:
-                self.speed = min(self.speed + self.turn_slowdown, 0)
+            self._handle_turning()
         # Car position update
         self.x += self.speed * math.cos(math.radians(self.angle))
         self.y -= self.speed * math.sin(math.radians(self.angle))
-        if self.check_collision(self.outer_polygon, self.inner_polygon, cars):
-            # If the car collides with the track border, revert to old position
-            self.x, self.y = old_x, old_y
-            self.speed = 0
+        self._handle_collision(old_x, old_y, cars)
 
     def draw(self, screen):
         if self.win is True:
