@@ -469,10 +469,7 @@ class generator:
 
                 # Find the closest road to the cursor
                 for road in self.map_data.roads:
-                    start_number, end_number = road
-                    start = next(p for p in self.map_data.points if p[0] == start_number)
-                    end = next(p for p in self.map_data.points if p[0] == end_number)
-                    mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
+                    end, mid_point, start = self.start_end_road_prep(road)
 
                     # Calculate distance from cursor to the midpoint of the road
                     distance = ((event.pos[0] - mid_point[0]) ** 2 + (
@@ -486,6 +483,13 @@ class generator:
                     start, end = closest_road
                     self.map_data.remove_road(start, end)
 
+    def start_end_road_prep(self, road):
+        start_number, end_number = road
+        start = next(p for p in self.map_data.points if p[0] == start_number)
+        end = next(p for p in self.map_data.points if p[0] == end_number)
+        mid_point = ((start[1] + end[1]) // 2, (start[2] + end[2]) // 2)
+        return end, mid_point, start
+
     def handle_mouse_click_finish_line(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
@@ -496,9 +500,7 @@ class generator:
                 max_distance = 15  # Maximum distance to consider for finish line placement
 
                 for road in self.map_data.roads:
-                    start_number, end_number = road
-                    start = next(p for p in self.map_data.points if p[0] == start_number)
-                    end = next(p for p in self.map_data.points if p[0] == end_number)
+                    end, _, start = self.start_end_road_prep(road)
 
                     # Calculate the closest point on the road to the cursor
                     road_vector = (end[1] - start[1], end[2] - start[2])
