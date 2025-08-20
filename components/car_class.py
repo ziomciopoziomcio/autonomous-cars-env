@@ -7,6 +7,25 @@ import components.globals as cg
 from components.functions_helper import point_in_polygon, scale_points, get_scaling_params
 
 
+def lines_params_prep(car_rect, finish, inner_line, min_x, min_y, outer_line,
+                      scale):
+    finish_scaled = scale_points([finish], min_x, min_y, scale)[0]
+    outer_closest = min(outer_line, key=lambda p: math.dist(finish_scaled, p))
+    inner_closest = min(inner_line, key=lambda p: math.dist(finish_scaled, p))
+    angle = math.degrees(
+        math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
+    finish_width = int(math.dist(outer_closest, inner_closest))
+    finish_height = 25
+    scaled_finish = pygame.transform.scale(cg.FINISH_TEXTURE, (finish_width, finish_height))
+    rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
+    finish_rect = rotated_finish.get_rect()
+    finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2,
+                          (outer_closest[1] + inner_closest[1]) // 2)
+    finish_mask = pygame.mask.from_surface(rotated_finish)
+    offset = (finish_rect.left - car_rect.left, finish_rect.top - car_rect.top)
+    return finish_mask, offset
+
+
 class Car:
     def __init__(self, x, y, track_width, inner_polygon, outer_polygon):
         self.x = x
@@ -289,7 +308,7 @@ class Car:
         car_mask, car_rect, inner_line, min_x, min_y, outer_line, scale = self.scaling_params_prep(
             data, height, inner_line, outer_line, width)
         for checkpoint in checkpoints:
-            checkpoint_mask, offset = self.lines_params_prep(car_rect, checkpoint, inner_line, min_x,
+            checkpoint_mask, offset = lines_params_prep(car_rect, checkpoint, inner_line, min_x,
                                                              min_y, outer_line, scale)
             if car_mask.overlap(checkpoint_mask, offset):
                 if checkpoint not in self.checkpoints:
@@ -324,31 +343,13 @@ class Car:
             data, height, inner_line, outer_line, width)
 
         finish = finish_line["point"]
-        finish_mask, offset = self.lines_params_prep(car_rect, finish, inner_line, min_x,
+        finish_mask, offset = lines_params_prep(car_rect, finish, inner_line, min_x,
                                                      min_y, outer_line, scale)
         if car_mask.overlap(finish_mask, offset):
             # print(f"Finish line crossed: {finish}")
             self.win = True
             return True
         return False
-
-    def lines_params_prep(self, car_rect, finish, inner_line, min_x, min_y, outer_line,
-                          scale):
-        finish_scaled = scale_points([finish], min_x, min_y, scale)[0]
-        outer_closest = min(outer_line, key=lambda p: math.dist(finish_scaled, p))
-        inner_closest = min(inner_line, key=lambda p: math.dist(finish_scaled, p))
-        angle = math.degrees(
-            math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
-        finish_width = int(math.dist(outer_closest, inner_closest))
-        finish_height = 25
-        scaled_finish = pygame.transform.scale(cg.FINISH_TEXTURE, (finish_width, finish_height))
-        rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
-        finish_rect = rotated_finish.get_rect()
-        finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2,
-                              (outer_closest[1] + inner_closest[1]) // 2)
-        finish_mask = pygame.mask.from_surface(rotated_finish)
-        offset = (finish_rect.left - car_rect.left, finish_rect.top - car_rect.top)
-        return finish_mask, offset
 
     def scaling_params_prep(self, data, height, inner_line, outer_line, width):
         min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]],
