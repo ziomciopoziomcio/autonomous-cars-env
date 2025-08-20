@@ -177,7 +177,6 @@ class Car:
                 if not (0 <= test_x < max_width and 0 <= test_y < max_height):
                     border_hit = (test_x, test_y)
                     border_hit_distance = math.hypot(test_x - center_x, test_y - center_y)
-                    out_of_bounds = True
                     break
 
                 if car_hit is None and other_cars:
