@@ -29,7 +29,7 @@ class Car:
         self.friction = 0.05
         self.turn_slowdown = 0.1
 
-        self.set_image(track_width)
+        self.set_image(track_width=track_width)
 
         # checkpoints, finish line
         self.checkpoints = []
@@ -261,10 +261,12 @@ class Car:
         # Increment cg.USED_CARS only after the check passes
         cg.USED_CARS += 1
         # Preserve original aspect ratio
-        self.image_setter(track_width)
+        self.image_setter(track_width=track_width)
 
-    def image_setter(self, track_width):
-        desired_car_width = track_width * cg.CAR_SIZE_RATIO
+    def image_setter(self, track_width=None, desired_car_width=None):
+        if desired_car_width is None:
+            # Calculate desired car width based on the track width
+            desired_car_width = track_width * cg.CAR_SIZE_RATIO
         original_width, original_height = self.img.get_size()
         new_width = int(desired_car_width)
         new_height = int(original_height * (new_width / original_width))
@@ -483,7 +485,7 @@ class Car:
         return track_width
 
     def state_screenshot(self, cars, screen):
-        turn_on = True
+        turn_on = False
         if turn_on:
             # Save original images
             original_imgs = [car.img for car in cars]
@@ -516,14 +518,10 @@ class Car:
                 car.img = orig_img
                 if orig_img is not None:
                     # Restore size and rotation as in set_image
-                    original_width, original_height = car.img.get_size()
-                    new_width = int(desired_car_width)
-                    new_height = int(original_height * (new_width / original_width))
-                    scaled_img = pygame.transform.scale(car.img, (new_width, new_height))
-                    car.image = pygame.transform.rotate(scaled_img, -90)
-                    car.mask = pygame.mask.from_surface(car.image)
+                    self.image_setter(track_width=None,
+                                      desired_car_width=desired_car_width)
             # Save screenshot to file
-            # pygame.image.save(screenshot_surface, "state_screenshot.png")
+            pygame.image.save(screenshot_surface, "state_screenshot.png")
         else:
             screenshot = None
         return screenshot
