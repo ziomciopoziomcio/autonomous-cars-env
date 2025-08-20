@@ -1,6 +1,7 @@
 import pygame
 import os
 import math
+import json
 
 import components.globals as cg
 from components.functions_helper import point_in_polygon, scale_points, get_scaling_params
@@ -497,7 +498,6 @@ class Car:
                     if hasattr(self, "_state_screenshot_map_data"):
                         map_data = self._state_screenshot_map_data
                     else:
-                        import json
                         with open(cg.MAP_FILE, "r") as f:
                             map_data = json.load(f)
                             self._state_screenshot_map_data = map_data
@@ -526,7 +526,6 @@ class Car:
             screenshot_surface.blit(cg.BACKGROUND_IMAGE, (0, 0))
             from game import draw_track
             if not hasattr(self, "_state_screenshot_map_data"):
-                import json
                 with open(cg.MAP_FILE, "r") as f:
                     self._state_screenshot_map_data = json.load(f)
             draw_track(screenshot_surface, self._state_screenshot_map_data)
