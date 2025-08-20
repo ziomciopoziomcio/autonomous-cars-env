@@ -182,15 +182,32 @@ class Car:
         bounds = (max_width, max_height)
         return center, direction, max_length, bounds, mask, inner_polygon, other_cars
 
+    def _prepare_other_cars(self, cars):
+        other_cars = []
+        if cars is not None:
+            for car in cars:
+                if car is not self and not getattr(car, "win", False):
+                    car_mask, car_rect = car.get_mask()
+                    other_cars.append((car_mask, car_rect))
+        return other_cars
+
+    def _process_single_ray(self, center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars):
+        params = self._get_ray_params(center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
+        car_hit, car_hit_distance, border_hit, border_hit_distance = self._cast_single_ray(*params)
+        ray_result = {}
+        if car_hit is not None and (car_hit_distance <= border_hit_distance):
+            ray_result['ray'] = (center_x, center_y, car_hit[0], car_hit[1])
+            ray_result['distance'] = car_hit_distance
+        else:
+            ray_result['ray'] = (center_x, center_y, border_hit[0], border_hit[1])
+            ray_result['distance'] = border_hit_distance
+        ray_result['ray_to_car'] = (center_x, center_y, car_hit[0], car_hit[1]) if car_hit is not None else None
+        ray_result['distance_to_car'] = car_hit_distance if car_hit is not None else None
+        ray_result['ray_to_border'] = (center_x, center_y, border_hit[0], border_hit[1])
+        ray_result['distance_to_border'] = border_hit_distance
+        return ray_result
+
     def get_rays_and_distances(self, mask, inner_polygon, cars=None):
-        """
-        Calculate the intersection points and distances for 8 rays extending
-        from the center of the car to the track border or screen edge and other cars.
-        If another car is hit before the track, the ray ends at the car.
-        :param mask: Track mask
-        :param inner_polygon: Inner track polygon
-        :param cars: List of all cars (including self)
-        """
         if self.img is None:
             car_width = 30
             car_height = 20
@@ -209,32 +226,18 @@ class Car:
         self.distances_to_border = []
         max_width, max_height = mask.get_size()
         max_length = 1000
-        other_cars = []
-        if cars is not None:
-            for car in cars:
-                if car is not self and not getattr(car, "win", False):
-                    car_mask, car_rect = car.get_mask()
-                    other_cars.append((car_mask, car_rect))
+        other_cars = self._prepare_other_cars(cars)
         for ray_angle in ray_angles:
             total_angle = angle_rad + math.radians(ray_angle)
             dx = math.cos(total_angle)
             dy = math.sin(total_angle)
-            params = self._get_ray_params(center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
-            car_hit, car_hit_distance, border_hit, border_hit_distance = self._cast_single_ray(*params)
-            if car_hit is not None and (car_hit_distance <= border_hit_distance):
-                self.rays.append((center_x, center_y, car_hit[0], car_hit[1]))
-                self.distances.append(car_hit_distance)
-            else:
-                self.rays.append((center_x, center_y, border_hit[0], border_hit[1]))
-                self.distances.append(border_hit_distance)
-            if car_hit is not None:
-                self.rays_to_cars.append((center_x, center_y, car_hit[0], car_hit[1]))
-                self.distances_to_cars.append(car_hit_distance)
-            else:
-                self.rays_to_cars.append(None)
-                self.distances_to_cars.append(None)
-            self.rays_to_border.append((center_x, center_y, border_hit[0], border_hit[1]))
-            self.distances_to_border.append(border_hit_distance)
+            ray_result = self._process_single_ray(center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
+            self.rays.append(ray_result['ray'])
+            self.distances.append(ray_result['distance'])
+            self.rays_to_cars.append(ray_result['ray_to_car'])
+            self.distances_to_cars.append(ray_result['distance_to_car'])
+            self.rays_to_border.append(ray_result['ray_to_border'])
+            self.distances_to_border.append(ray_result['distance_to_border'])
         return self.rays, self.distances
 
     def draw_rays(self, surface, rays):
