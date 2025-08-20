@@ -101,14 +101,7 @@ class Map:
                 end_number, start_number) not in self.roads:
             self.roads.append((start_number, end_number))
 
-    def is_track_closed(self):
-        """
-        Check if the track is logically closed based on the roads.
-        """
-        if not self.roads:
-            return False
-
-        # Build adjacency list for the graph
+    def _build_adjacency_list(self):
         graph = {}
         for road in self.roads:
             start, end = road
@@ -118,18 +111,26 @@ class Map:
                 graph[end] = []
             graph[start].append(end)
             graph[end].append(start)
+        return graph
 
-        # Perform DFS to check connectivity and closure
+    def _get_connected_points(self, graph, start_point):
         visited = set()
-        stack = [self.roads[0][0]]  # Start from the first point in the first road
-
+        stack = [start_point]
         while stack:
             current = stack.pop()
             if current not in visited:
                 visited.add(current)
                 stack.extend(neighbor for neighbor in graph[current] if neighbor not in visited)
+        return visited
 
-        # Check if all points are visited and if we returned to the starting point
+    def is_track_closed(self):
+        """
+        Check if the track is logically closed based on the roads.
+        """
+        if not self.roads:
+            return False
+        graph = self._build_adjacency_list()
+        visited = self._get_connected_points(graph, self.roads[0][0])
         all_points = {point[0] for point in self.points}
         return visited == all_points and len(visited) > 2
 
