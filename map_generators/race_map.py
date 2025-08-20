@@ -553,59 +553,67 @@ class generator:
         self.map_data.save_to_file('map_data.json')
         print("Map saved to 'map_data.json'.")
 
+    def handle_step_1(self, event):
+        self.selected_tool = 'Draw Tool'
+        self.selected_detailed_tool = 'Point'
+        self.step_controller.stop_wait_window()
+        self.handle_mouse_click(event)
+
+    def handle_step_2(self, event):
+        self.step_controller.stop_wait_window()
+        self.handle_mouse_click_road(event)
+
+    def handle_step_3(self, event):
+        try:
+            self.map_data.smooth_or_extrapolate_track()
+            for index, value in enumerate(self.map_data.points):
+                start = value
+                end = self.map_data.points[(index + 1) % len(self.map_data.points)]
+                self.map_data.add_road(start, end)
+            self.step = 4  # Proceed to the next step
+        except ValueError as e:
+            print(f"Error: {e}")
+        finally:
+            self.step_controller.stop_wait_window()
+            self.step_controller.next_step()
+
+    def handle_step_4(self, event):
+        self.selected_tool = 'Draw Tool'
+        self.selected_detailed_tool = 'Finish Line'
+        self.step_controller.stop_wait_window()
+        self.handle_mouse_click(event)
+
+    def handle_step_5(self, event):
+        self.selected_tool = 'Draw Tool'
+        self.selected_detailed_tool = 'Checkpoint'
+        self.step_controller.stop_wait_window()
+        self.handle_mouse_click_checkpoint(event)
+
+    def handle_step_6(self, event):
+        self.save_map()
+        self.step_controller.stop_wait_window()
+        print("Map saved successfully.")
+        return True  # Signal to exit
+
     def main_loop(self):
+        step_handlers = {
+            1: self.handle_step_1,
+            2: self.handle_step_2,
+            3: self.handle_step_3,
+            4: self.handle_step_4,
+            5: self.handle_step_5,
+            6: self.handle_step_6,
+        }
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return  # Exit the generator
-
                 manager.process_events(event)
-
-                if self.step == 1:  # Step 1: Create points
-                    self.selected_tool = 'Draw Tool'
-                    self.selected_detailed_tool = 'Point'
-                    self.step_controller.stop_wait_window()
-                    self.handle_mouse_click(event)
-
-                elif self.step == 2:  # Step 2: Connect points with roads
-                    self.step_controller.stop_wait_window()
-                    self.handle_mouse_click_road(event)
-
-                elif self.step == 3:  # Step 3: Finish track
-
-                    try:
-                        self.map_data.smooth_or_extrapolate_track()
-                        for index, value in enumerate(self.map_data.points):
-                            start = value
-                            end = self.map_data.points[(index + 1) % len(self.map_data.points)]
-                            self.map_data.add_road(start, end)
-
-                        self.step = 4  # Proceed to the next step
-                    except ValueError as e:
-                        print(f"Error: {e}")
-
-                    finally:
-                        self.step_controller.stop_wait_window()
-                        self.step_controller.next_step()
-
-                elif self.step == 4:  # Step 4: Set finish line
-                    self.selected_tool = 'Draw Tool'
-                    self.selected_detailed_tool = 'Finish Line'
-                    self.step_controller.stop_wait_window()
-                    self.handle_mouse_click(event)
-
-                elif self.step == 5:  # Step 5: Add checkpoints
-                    self.selected_tool = 'Draw Tool'
-                    self.selected_detailed_tool = 'Checkpoint'
-                    self.step_controller.stop_wait_window()
-                    self.handle_mouse_click_checkpoint(event)
-
-                elif self.step == 6:  # Step 6: Save to file
-                    self.save_map()
-                    self.step_controller.stop_wait_window()
-                    print("Map saved successfully.")
-                    return  # Exit the generator
-
+                handler = step_handlers.get(self.step)
+                if handler:
+                    result = handler(event)
+                    if result:
+                        return
             # Draw the UI and map
             window_surface.fill(WHITE)
             pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
