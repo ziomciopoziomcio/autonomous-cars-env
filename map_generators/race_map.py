@@ -598,6 +598,33 @@ class generator:
         print("Map saved successfully.")
         return True  # Signal to exit
 
+    def _draw_points(self):
+        for point in self.map_data.points:
+            number, x, y = point
+            color = (0, 0, 255) if point in self.map_data.selected_points else (255, 0, 0)
+            pygame.draw.circle(window_surface, color, (x, y), 5)
+            label = pygame.font.Font(None, 20).render(str(number), True, (0, 0, 0))
+            window_surface.blit(label, (x + 5, y - 10))
+
+    def _draw_roads(self):
+        for start_number, end_number in self.map_data.roads:
+            start = next(p for p in self.map_data.points if p[0] == start_number)
+            end = next(p for p in self.map_data.points if p[0] == end_number)
+            pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]), 2)
+
+    def _draw_checkpoints(self):
+        for checkpoint in self.map_data.checkpoints:
+            pygame.draw.circle(window_surface, (255, 255, 0), checkpoint, 6)
+            label = pygame.font.Font(None, 20).render("Checkpoint", True, (255, 255, 0))
+            window_surface.blit(label, (checkpoint[0] + 10, checkpoint[1] - 10))
+
+    def _draw_finish_line(self):
+        if self.map_data.finish_line['point']:
+            finish_point = self.map_data.finish_line['point']
+            pygame.draw.circle(window_surface, (0, 255, 0), (int(finish_point[0]), int(finish_point[1])), 6)
+            label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
+            window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
+
     def main_loop(self):
         step_handlers = {
             1: self.handle_step_1,
@@ -622,31 +649,10 @@ class generator:
             pygame.draw.rect(window_surface, GRAY, drawing_area_rect)
             draw_coordinate_grid(window_surface, drawing_area_rect)
 
-            for point in self.map_data.points:
-                number, x, y = point
-                color = (0, 0, 255) if point in self.map_data.selected_points else (255, 0, 0)
-                pygame.draw.circle(window_surface, color, (x, y), 5)
-                label = pygame.font.Font(None, 20).render(str(number), True, (0, 0, 0))
-                window_surface.blit(label, (x + 5, y - 10))
-
-            for start_number, end_number in self.map_data.roads:
-                start = next(p for p in self.map_data.points if p[0] == start_number)
-                end = next(p for p in self.map_data.points if p[0] == end_number)
-                pygame.draw.line(window_surface, (0, 0, 0), (start[1], start[2]), (end[1], end[2]),
-                                 2)
-
-            # Draw checkpoints
-            for checkpoint in self.map_data.checkpoints:
-                pygame.draw.circle(window_surface, (255, 255, 0), checkpoint, 6)
-                label = pygame.font.Font(None, 20).render("Checkpoint", True, (255, 255, 0))
-                window_surface.blit(label, (checkpoint[0] + 10, checkpoint[1] - 10))
-
-            if self.map_data.finish_line['point']:
-                finish_point = self.map_data.finish_line['point']
-                pygame.draw.circle(window_surface, (0, 255, 0),
-                                   (int(finish_point[0]), int(finish_point[1])), 6)
-                label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
-                window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
+            self._draw_points()
+            self._draw_roads()
+            self._draw_checkpoints()
+            self._draw_finish_line()
 
             manager.update(self.clock.tick(60) / 1000.0)
             manager.draw_ui(window_surface)
