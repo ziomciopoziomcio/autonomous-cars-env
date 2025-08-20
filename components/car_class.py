@@ -168,7 +168,6 @@ class Car:
             car_hit_distance = None
             border_hit = None
             border_hit_distance = None
-            out_of_bounds = False
 
             while ray_length < max_length:
                 test_x = int(center_x + ray_length * dx)

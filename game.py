@@ -334,7 +334,7 @@ class GameEngine:
                     car.speed = 0
                 car.draw(self.screen)
                 # Calculate rays and draw them
-                rays, distances = car.get_rays_and_distances(self.track_mask, self.inner, self.cars)
+                rays, _ = car.get_rays_and_distances(self.track_mask, self.inner, self.cars)
                 car.draw_rays(self.screen, rays)
 
             pygame.display.flip()
