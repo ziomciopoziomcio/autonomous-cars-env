@@ -580,9 +580,9 @@ def step_by_step_generator():
 
                 try:
                     map_data.smooth_or_extrapolate_track()
-                    for i in range(len(map_data.points)):
-                        start = map_data.points[i]
-                        end = map_data.points[(i + 1) % len(map_data.points)]
+                    for index, value in enumerate(map_data.points):
+                        start = value
+                        end = map_data.points[(index + 1) % len(map_data.points)]
                         map_data.add_road(start, end)
 
                     step = 4  # Proceed to the next step
