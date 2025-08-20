@@ -116,6 +116,53 @@ class Car:
                 distances.append(distance)
         return distances
 
+    def _check_car_collision(self, test_x, test_y, other_cars):
+        for car_mask, car_rect in other_cars:
+            offset = (test_x - car_rect.left, test_y - car_rect.top)
+            if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < car_mask.get_size()[1]:
+                if car_mask.get_at(offset):
+                    return (test_x, test_y)
+        return None
+
+    def _check_border_collision(self, test_x, test_y, mask, inner_polygon):
+        if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y, inner_polygon)):
+            return (test_x, test_y)
+        return None
+
+    def _cast_single_ray(self, center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars):
+        ray_length = 0
+        car_hit = None
+        car_hit_distance = None
+        border_hit = None
+        border_hit_distance = None
+        while ray_length < max_length:
+            test_x = int(center_x + ray_length * dx)
+            test_y = int(center_y + ray_length * dy)
+            if not (0 <= test_x < max_width and 0 <= test_y < max_height):
+                border_hit = (test_x, test_y)
+                border_hit_distance = math.hypot(test_x - center_x, test_y - center_y)
+                break
+            if car_hit is None and other_cars:
+                car_collision = self._check_car_collision(test_x, test_y, other_cars)
+                if car_collision:
+                    car_hit = car_collision
+                    car_hit_distance = ray_length
+            if border_hit is None:
+                border_collision = self._check_border_collision(test_x, test_y, mask, inner_polygon)
+                if border_collision:
+                    border_hit = border_collision
+                    border_hit_distance = ray_length
+                    break
+            if car_hit is not None and border_hit is not None:
+                break
+            ray_length += 1
+        if border_hit is None:
+            test_x = int(center_x + max_length * dx)
+            test_y = int(center_y + max_length * dy)
+            border_hit = (test_x, test_y)
+            border_hit_distance = max_length
+        return car_hit, car_hit_distance, border_hit, border_hit_distance
+
     def get_rays_and_distances(self, mask, inner_polygon, cars=None):
         """
         Calculate the intersection points and distances for 8 rays extending
@@ -128,101 +175,47 @@ class Car:
         if self.img is None:
             car_width = 30
             car_height = 20
-
-            # Calculate center of the car
             center_x = self.x + car_width // 2
             center_y = self.y + car_height // 2
         else:
-            # Calculate center of the car
             car_rect = self.image.get_rect(center=(self.x, self.y))
             center_x, center_y = car_rect.center
-
         angle_rad = -math.radians(self.angle)
-
-        # Define ray angles relative to the car's orientation
-        ray_angles = [0, 45, 90, 135, 180, 225, 270, 315]  # Angles in degrees
+        ray_angles = [0, 45, 90, 135, 180, 225, 270, 315]
         self.rays = []
         self.distances = []
         self.rays_to_cars = []
         self.distances_to_cars = []
         self.rays_to_border = []
         self.distances_to_border = []
-
         max_width, max_height = mask.get_size()
         max_length = 1000
-
-        # Prepare masks and rects for other cars
         other_cars = []
         if cars is not None:
             for car in cars:
                 if car is not self and not getattr(car, "win", False):
                     car_mask, car_rect = car.get_mask()
                     other_cars.append((car_mask, car_rect))
-
         for ray_angle in ray_angles:
-            # Calculate the absolute angle of the ray
             total_angle = angle_rad + math.radians(ray_angle)
             dx = math.cos(total_angle)
             dy = math.sin(total_angle)
-
-            # Extend the ray until it hits the border
-            ray_length = 0
-            car_hit = None
-            car_hit_distance = None
-            border_hit = None
-            border_hit_distance = None
-
-            while ray_length < max_length:
-                test_x = int(center_x + ray_length * dx)
-                test_y = int(center_y + ray_length * dy)
-
-                if not (0 <= test_x < max_width and 0 <= test_y < max_height):
-                    border_hit = (test_x, test_y)
-                    border_hit_distance = math.hypot(test_x - center_x, test_y - center_y)
-                    break
-
-                if car_hit is None and other_cars:
-                    for car_mask, car_rect in other_cars:
-                        offset = (test_x - car_rect.left, test_y - car_rect.top)
-                        if 0 <= offset[0] < car_mask.get_size()[0] and 0 <= offset[1] < \
-                                car_mask.get_size()[1]:
-                            if car_mask.get_at(offset):
-                                car_hit = (test_x, test_y)
-                                car_hit_distance = ray_length
-                                break
-
-                if border_hit is None:
-                    if (mask.get_at((test_x, test_y)) != 1 or point_in_polygon(test_x, test_y,
-                                                                               inner_polygon)):
-                        border_hit = (test_x, test_y)
-                        border_hit_distance = ray_length
-                        break
-
-                ray_length += 1
-
-            if border_hit is None:
-                test_x = int(center_x + max_length * dx)
-                test_y = int(center_y + max_length * dy)
-                border_hit = (test_x, test_y)
-                border_hit_distance = max_length
-
+            car_hit, car_hit_distance, border_hit, border_hit_distance = self._cast_single_ray(
+                center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
             if car_hit is not None and (car_hit_distance <= border_hit_distance):
                 self.rays.append((center_x, center_y, car_hit[0], car_hit[1]))
                 self.distances.append(car_hit_distance)
             else:
                 self.rays.append((center_x, center_y, border_hit[0], border_hit[1]))
                 self.distances.append(border_hit_distance)
-
             if car_hit is not None:
                 self.rays_to_cars.append((center_x, center_y, car_hit[0], car_hit[1]))
                 self.distances_to_cars.append(car_hit_distance)
             else:
                 self.rays_to_cars.append(None)
                 self.distances_to_cars.append(None)
-
             self.rays_to_border.append((center_x, center_y, border_hit[0], border_hit[1]))
             self.distances_to_border.append(border_hit_distance)
-
         return self.rays, self.distances
 
     def draw_rays(self, surface, rays):
@@ -444,7 +437,7 @@ class Car:
         :return: A tuple containing the index of the closest checkpoint and the car's progress.
         """
         if not checkpoints:
-            return (-1. - 1)  # No checkpoints available
+            return (-1. - 1) # No checkpoints available
 
         # Find the closest checkpoint
         closest_checkpoint = min(checkpoints, key=lambda cp: math.dist((self.x, self.y), cp))
@@ -459,11 +452,11 @@ class Car:
         return (closest_index, progress)
 
     def track_width_calculation(self, car, screen):
+        map_data = None
         if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
             # Determine track width at the car's position
             # Use the car's center to find the closest points on both lines
-            if hasattr(self,
-                       "_state_screenshot_map_data") and self._state_screenshot_map_data is not None:
+            if hasattr(self, "_state_screenshot_map_data") and self._state_screenshot_map_data is not None:
                 map_data = self._state_screenshot_map_data
             else:
                 with open(cg.MAP_FILE, "r") as f:
@@ -481,11 +474,11 @@ class Car:
         else:
             # Fallback
             track_width = 40
-
         return track_width
 
     def state_screenshot(self, cars, screen):
         turn_on = False
+        desired_car_width = None
         if turn_on:
             # Save original images
             original_imgs = [car.img for car in cars]
@@ -516,10 +509,9 @@ class Car:
             # Restore original images
             for car, orig_img in zip(cars, original_imgs):
                 car.img = orig_img
-                if orig_img is not None:
+                if orig_img is not None and desired_car_width is not None:
                     # Restore size and rotation as in set_image
-                    self.image_setter(track_width=None,
-                                      desired_car_width=desired_car_width)
+                    self.image_setter(track_width=None, desired_car_width=desired_car_width)
             # Save screenshot to file
             pygame.image.save(screenshot_surface, "state_screenshot.png")
         else:
