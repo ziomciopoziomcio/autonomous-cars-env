@@ -156,11 +156,7 @@ def draw_track(screen, data):
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
     # Create a surface for the track
-    track_surface = pygame.Surface((cg.WIDTH, cg.HEIGHT), pygame.SRCALPHA)
-    track_surface.fill((0, 0, 0, 0))
-
-    pygame.draw.polygon(track_surface, (255, 255, 255), outer)
-    pygame.draw.polygon(track_surface, (0, 0, 0), inner)
+    track_surface = track_surface_create(inner, outer, cg.WIDTH, cg.HEIGHT)
 
     # Apply the track image to the surface
     track_surface.blit(cg.TRACK_IMAGE, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
@@ -181,6 +177,14 @@ def draw_track(screen, data):
     return outer, inner
 
 
+def track_surface_create(inner, outer, width, height):
+    track_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+    track_surface.fill((0, 0, 0, 0))
+    pygame.draw.polygon(track_surface, (255, 255, 255), outer)
+    pygame.draw.polygon(track_surface, (0, 0, 0), inner)
+    return track_surface
+
+
 def generate_track_mask(data, width, height):
     # Pobierz punkty toru
     outer_raw = data["outer_points"]
@@ -193,12 +197,7 @@ def generate_track_mask(data, width, height):
     inner = scale_points(inner_raw, min_x, min_y, scale)
 
     # Stwórz powierzchnię toru
-    track_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-    track_surface.fill((0, 0, 0, 0))  # Przezroczyste tło
-
-    # Narysuj tor jako biały obszar
-    pygame.draw.polygon(track_surface, (255, 255, 255), outer)  # Zewnętrzny wielokąt
-    pygame.draw.polygon(track_surface, (0, 0, 0), inner)  # Wewnętrzny wielokąt (dziura)
+    track_surface = track_surface_create(inner, outer, width, height)
 
     # Wygeneruj maskę z powierzchni
     track_mask = pygame.mask.from_surface(track_surface)
