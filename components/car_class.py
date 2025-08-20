@@ -289,8 +289,8 @@ class Car:
         car_mask, car_rect, inner_line, min_x, min_y, outer_line, scale = self.scaling_params_prep(
             data, height, inner_line, outer_line, width)
         for checkpoint in checkpoints:
-            checkpoint_mask, offset = self.finish_line_params_prep(car_rect, checkpoint, inner_line, min_x,
-                                                               min_y, outer_line, scale)
+            checkpoint_mask, offset = self.lines_params_prep(car_rect, checkpoint, inner_line, min_x,
+                                                             min_y, outer_line, scale)
             if car_mask.overlap(checkpoint_mask, offset):
                 if checkpoint not in self.checkpoints:
                     self.checkpoints.append(checkpoint)
@@ -324,16 +324,16 @@ class Car:
             data, height, inner_line, outer_line, width)
 
         finish = finish_line["point"]
-        finish_mask, offset = self.finish_line_params_prep(car_rect, finish, inner_line, min_x,
-                                                           min_y, outer_line, scale)
+        finish_mask, offset = self.lines_params_prep(car_rect, finish, inner_line, min_x,
+                                                     min_y, outer_line, scale)
         if car_mask.overlap(finish_mask, offset):
             # print(f"Finish line crossed: {finish}")
             self.win = True
             return True
         return False
 
-    def finish_line_params_prep(self, car_rect, finish, inner_line, min_x, min_y, outer_line,
-                                scale):
+    def lines_params_prep(self, car_rect, finish, inner_line, min_x, min_y, outer_line,
+                          scale):
         finish_scaled = scale_points([finish], min_x, min_y, scale)[0]
         outer_closest = min(outer_line, key=lambda p: math.dist(finish_scaled, p))
         inner_closest = min(inner_line, key=lambda p: math.dist(finish_scaled, p))
