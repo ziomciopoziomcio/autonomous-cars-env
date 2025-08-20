@@ -482,11 +482,11 @@ class Car:
             progress = 0
         return (closest_index, progress)
 
-    def track_width_calculation(self, car):
+    def track_width_calculation(self, car, screen):
         if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
             # Determine track width at the car's position
             # Use the car's center to find the closest points on both lines
-            if hasattr(self, "_state_screenshot_map_data"):
+            if hasattr(self, "_state_screenshot_map_data") and self._state_screenshot_map_data is not None:
                 map_data = self._state_screenshot_map_data
             else:
                 with open(cg.MAP_FILE, "r") as f:
@@ -519,7 +519,7 @@ class Car:
                 else:
                     car.img = self.purple_car
                 # Scaling and rotation as in set_image
-                track_width = self.track_width_calculation(car)
+                track_width = self.track_width_calculation(car, screen)
                 desired_car_width = track_width * cg.CAR_SIZE_RATIO
                 original_width, original_height = car.img.get_size()
                 new_width = int(desired_car_width)
