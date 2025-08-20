@@ -457,39 +457,41 @@ class generator:
             elif self.selected_detailed_tool == 'Finish Line':
                 self.handle_mouse_click_finish_line(event)
 
+    def _handle_left_click_road(self, event):
+        # Check if a point was clicked
+        for point in self.map_data.points:
+            if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
+                self.map_data.toggle_point_selection((point[1], point[2]))
+                break
+        # If two points are selected, create a road
+        if len(self.map_data.selected_points) == 2:
+            start, end = self.map_data.selected_points
+            self.map_data.add_road(start, end)
+            self.map_data.selected_points.clear()
+
+    def _handle_right_click_road(self, event):
+        closest_road = None
+        min_distance = float('inf')
+        max_distance = 15  # Maximum distance to consider for road removal
+        # Find the closest road to the cursor
+        for road in self.map_data.roads:
+            end, mid_point, start = self.start_end_road_prep(road)
+            distance = ((event.pos[0] - mid_point[0]) ** 2 + (event.pos[1] - mid_point[1]) ** 2) ** 0.5
+            if distance < min_distance and distance <= max_distance:
+                closest_road = (start, end)
+                min_distance = distance
+        # Remove the closest road if found
+        if closest_road:
+            start, end = closest_road
+            self.map_data.remove_road(start, end)
+
     def handle_mouse_click_road(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:  # Ensure the event is a mouse button down event
-            if event.button == 1:  # Left mouse button
-                # Check if a point was clicked
-                for point in self.map_data.points:
-                    if pygame.Rect(point[1] - 5, point[2] - 5, 10, 10).collidepoint(event.pos):
-                        self.map_data.toggle_point_selection((point[1], point[2]))
-                        break
-                # If two points are selected, create a road
-                if len(self.map_data.selected_points) == 2:
-                    start, end = self.map_data.selected_points
-                    self.map_data.add_road(start, end)
-                    self.map_data.selected_points.clear()
-            elif event.button == 3:  # Right mouse button
-                closest_road = None
-                min_distance = float('inf')
-                max_distance = 15  # Maximum distance to consider for road removal
-
-                # Find the closest road to the cursor
-                for road in self.map_data.roads:
-                    end, mid_point, start = self.start_end_road_prep(road)
-
-                    # Calculate distance from cursor to the midpoint of the road
-                    distance = ((event.pos[0] - mid_point[0]) ** 2 + (
-                            event.pos[1] - mid_point[1]) ** 2) ** 0.5
-                    if distance < min_distance and distance <= max_distance:
-                        closest_road = (start, end)
-                        min_distance = distance
-
-                # Remove the closest road if found
-                if closest_road:
-                    start, end = closest_road
-                    self.map_data.remove_road(start, end)
+        if event.type != pygame.MOUSEBUTTONDOWN:
+            return
+        if event.button == 1:
+            self._handle_left_click_road(event)
+        elif event.button == 3:
+            self._handle_right_click_road(event)
 
     def start_end_road_prep(self, road):
         start_number, end_number = road
