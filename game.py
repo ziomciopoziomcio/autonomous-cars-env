@@ -4,7 +4,7 @@ import os
 import math
 
 import components.globals as cg
-from components.functions_helper import get_scaling_params, scale_points
+from components.functions_helper import get_scaling_params, scale_points, lines_params_prep
 from components.car_class import Car
 
 cg.MAP_FILE = os.path.join("map_generators", "map_data.json")
@@ -109,29 +109,9 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
     min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]], width,
                                              height,
                                              scale_factor=0.9)
-    center_scaled = scale_points([center_point], min_x, min_y, scale)[0]
 
-    # Find the closest points on the outer and inner lines
-    outer_closest = min(outer_line, key=lambda p: math.dist(center_scaled, p))
-    inner_closest = min(inner_line, key=lambda p: math.dist(center_scaled, p))
-
-    # Calculate the rotation angle of the finish line
-    angle = math.degrees(
-        math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
-
-    finish_width = int(math.dist(outer_closest, inner_closest))
-    finish_height = 25
-
-    # Scale the finish line image
-    scaled_finish = pygame.transform.scale(cg.FINISH_TEXTURE, (finish_width, finish_height))
-
-    # Rotate the finish line image
-    rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
-
-    # Center the finish line image
-    finish_rect = rotated_finish.get_rect()
-    finish_rect.center = (
-        (outer_closest[0] + inner_closest[0]) // 2, (outer_closest[1] + inner_closest[1]) // 2)
+    _ , _, rotated_finish, finish_rect = lines_params_prep(None, center_point, inner_line, min_x,
+                                                min_y, outer_line, scale)
 
     # Draw the finish line image on the screen
     screen.blit(rotated_finish, finish_rect.topleft)

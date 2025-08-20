@@ -4,26 +4,10 @@ import math
 import json
 
 import components.globals as cg
-from components.functions_helper import point_in_polygon, scale_points, get_scaling_params
+from components.functions_helper import point_in_polygon, scale_points, get_scaling_params, lines_params_prep
 
 
-def lines_params_prep(car_rect, finish, inner_line, min_x, min_y, outer_line,
-                      scale):
-    finish_scaled = scale_points([finish], min_x, min_y, scale)[0]
-    outer_closest = min(outer_line, key=lambda p: math.dist(finish_scaled, p))
-    inner_closest = min(inner_line, key=lambda p: math.dist(finish_scaled, p))
-    angle = math.degrees(
-        math.atan2(inner_closest[1] - outer_closest[1], inner_closest[0] - outer_closest[0]))
-    finish_width = int(math.dist(outer_closest, inner_closest))
-    finish_height = 25
-    scaled_finish = pygame.transform.scale(cg.FINISH_TEXTURE, (finish_width, finish_height))
-    rotated_finish = pygame.transform.rotate(scaled_finish, -angle)
-    finish_rect = rotated_finish.get_rect()
-    finish_rect.center = ((outer_closest[0] + inner_closest[0]) // 2,
-                          (outer_closest[1] + inner_closest[1]) // 2)
-    finish_mask = pygame.mask.from_surface(rotated_finish)
-    offset = (finish_rect.left - car_rect.left, finish_rect.top - car_rect.top)
-    return finish_mask, offset
+
 
 
 class Car:
@@ -277,17 +261,19 @@ class Car:
         # Increment cg.USED_CARS only after the check passes
         cg.USED_CARS += 1
         # Preserve original aspect ratio
+        self.image_setter(track_width)
+
+    def image_setter(self, track_width):
         desired_car_width = track_width * cg.CAR_SIZE_RATIO
         original_width, original_height = self.img.get_size()
         new_width = int(desired_car_width)
         new_height = int(original_height * (new_width / original_width))
-
         # Scale the image
         scaled_image = pygame.transform.scale(self.img, (new_width, new_height))
-
         # Rotate the image 90 degrees to the left (counterclockwise)
         self.image = pygame.transform.rotate(scaled_image, -90)
         self.mask = pygame.mask.from_surface(self.image)
+        return desired_car_width
 
     def check_checkpoints(self, checkpoints, data=None, outer_line=None, inner_line=None,
                           width=cg.WIDTH, height=cg.HEIGHT):
@@ -308,7 +294,7 @@ class Car:
         car_mask, car_rect, inner_line, min_x, min_y, outer_line, scale = self.scaling_params_prep(
             data, height, inner_line, outer_line, width)
         for checkpoint in checkpoints:
-            checkpoint_mask, offset = lines_params_prep(car_rect, checkpoint, inner_line, min_x,
+            checkpoint_mask, offset, _, _ = lines_params_prep(car_rect, checkpoint, inner_line, min_x,
                                                              min_y, outer_line, scale)
             if car_mask.overlap(checkpoint_mask, offset):
                 if checkpoint not in self.checkpoints:
@@ -343,7 +329,7 @@ class Car:
             data, height, inner_line, outer_line, width)
 
         finish = finish_line["point"]
-        finish_mask, offset = lines_params_prep(car_rect, finish, inner_line, min_x,
+        finish_mask, offset, _, _ = lines_params_prep(car_rect, finish, inner_line, min_x,
                                                      min_y, outer_line, scale)
         if car_mask.overlap(finish_mask, offset):
             # print(f"Finish line crossed: {finish}")
@@ -497,7 +483,7 @@ class Car:
         return track_width
 
     def state_screenshot(self, cars, screen):
-        turn_on = False
+        turn_on = True
         if turn_on:
             # Save original images
             original_imgs = [car.img for car in cars]
@@ -509,13 +495,7 @@ class Car:
                     car.img = self.purple_car
                 # Scaling and rotation as in set_image
                 track_width = self.track_width_calculation(car, screen)
-                desired_car_width = track_width * cg.CAR_SIZE_RATIO
-                original_width, original_height = car.img.get_size()
-                new_width = int(desired_car_width)
-                new_height = int(original_height * (new_width / original_width))
-                scaled_img = pygame.transform.scale(car.img, (new_width, new_height))
-                car.image = pygame.transform.rotate(scaled_img, -90)
-                car.mask = pygame.mask.from_surface(car.image)
+                desired_car_width = self.image_setter(track_width)
 
             # Create a separate surface for the screenshot
             screenshot_surface = pygame.Surface(screen.get_size())
