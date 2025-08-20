@@ -553,7 +553,7 @@ class Car:
         return screenshot_surface
 
     def state_screenshot(self, cars, screen):
-        turn_on = True
+        turn_on = False
         if not turn_on:
             return None
         # Swap images and scale for screenshot
