@@ -4,7 +4,7 @@ import os
 import math
 
 import components.globals as cg
-from components.functions_helper import *
+from components.functions_helper import get_scaling_params, scale_points
 from components.car_class import Car
 
 cg.MAP_FILE = os.path.join("map_generators", "map_data.json")
