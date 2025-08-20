@@ -246,85 +246,102 @@ class PlayerCar(Car):
         self.update(action, cars)
 
 
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((cg.WIDTH, cg.HEIGHT))
-    pygame.display.set_caption("Wyścigówka")
 
-    cg.FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
-    cg.TRACK_IMAGE = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
-    cg.TRACK_IMAGE = pygame.transform.scale(cg.TRACK_IMAGE, (cg.WIDTH, cg.HEIGHT))
 
-    clock = pygame.time.Clock()
-    data = load_map(cg.MAP_FILE)
 
-    # Load and scale the background image to fill the entire screen
-    cg.BACKGROUND_IMAGE = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
-    cg.BACKGROUND_IMAGE = pygame.transform.scale(cg.BACKGROUND_IMAGE, (cg.WIDTH, cg.HEIGHT))
+class GameEngine:
+    def __init__(self):
+        self.pygame_load()
+        self.textures_load()
+        self.track_load()
+        self.cars_load()
+        self.track_mask = generate_track_mask(self.data, cg.WIDTH, cg.HEIGHT)
+        self.main_loop()
 
-    # Pobierz pozycję linii startu
-    finish_line = data["finish_line"]["point"]
-    min_x, min_y, scale = get_scaling_params([data["outer_points"], data["inner_points"]],
-                                             cg.WIDTH, cg.HEIGHT,
-                                             scale_factor=0.9)
-    finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
+    def pygame_load(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((cg.WIDTH, cg.HEIGHT))
+        pygame.display.set_caption("Wyścigówka")
 
-    # Calculate track width
-    outer = scale_points(data["outer_points"], min_x, min_y, scale)
-    inner = scale_points(data["inner_points"], min_x, min_y, scale)
-    outer_closest = min(outer, key=lambda p: math.dist(finish_scaled, p))
-    inner_closest = min(inner, key=lambda p: math.dist(finish_scaled, p))
-    track_width = math.dist(outer_closest, inner_closest)
 
-    num_cars = 4
-    car_width = track_width * cg.CAR_SIZE_RATIO
-    car_length = car_width * CAR_LENGTH_RATIO
-    offset_distance = car_length * OFFSET_DISTANCE_FACTOR  # Distance from the finish line
-    row_offset = car_length * ROW_OFFSET_FACTOR
-    spacing = car_width * CAR_SPACING_FACTOR  # Spacing between cars
-    starting_positions = calculate_starting_positions(finish_scaled,
-                                                      outer, inner, num_cars, offset_distance,
-                                                      row_offset,
-                                                      spacing)
 
-    # Place the cars at the starting line
-    cars = [PlayerCar(x, y, track_width, inner, outer, method=1) for x, y, angle in
-            starting_positions]
-    for car, (_, _, angle) in zip(cars, starting_positions):
-        car.angle = angle
+        self.clock = pygame.time.Clock()
+        self.data = load_map(cg.MAP_FILE)
 
-    track_mask = generate_track_mask(data, cg.WIDTH, cg.HEIGHT)
+    def textures_load(self):
+        cg.FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
+        cg.TRACK_IMAGE = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
+        cg.TRACK_IMAGE = pygame.transform.scale(cg.TRACK_IMAGE, (cg.WIDTH, cg.HEIGHT))
+        # Load and scale the background image to fill the entire screen
+        cg.BACKGROUND_IMAGE = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
+        cg.BACKGROUND_IMAGE = pygame.transform.scale(cg.BACKGROUND_IMAGE, (cg.WIDTH, cg.HEIGHT))
 
-    running = True
-    while running:
-        screen.blit(cg.BACKGROUND_IMAGE, (0, 0))
-        outer, inner = draw_track(screen, data)  # its switched?
+    def track_load(self):
+        # Pobierz pozycję linii startu
+        finish_line = self.data["finish_line"]["point"]
+        min_x, min_y, scale = get_scaling_params([self.data["outer_points"], self.data["inner_points"]],
+                                                 cg.WIDTH, cg.HEIGHT,
+                                                 scale_factor=0.9)
+        self.finish_scaled = scale_points([finish_line], min_x, min_y, scale)[0]
 
-        draw_finish_line(screen, data, cg.WIDTH, cg.HEIGHT, outer, inner)
-        draw_checkpoints_line(screen, data, cg.WIDTH, cg.HEIGHT, outer, inner, cars)
+        # Calculate track width
+        self.outer = scale_points(self.data["outer_points"], min_x, min_y, scale)
+        self.inner = scale_points(self.data["inner_points"], min_x, min_y, scale)
+        outer_closest = min(self.outer, key=lambda p: math.dist(self.finish_scaled, p))
+        inner_closest = min(self.inner, key=lambda p: math.dist(self.finish_scaled, p))
+        self.track_width = math.dist(outer_closest, inner_closest)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+    def cars_load(self):
+        num_cars = 4
+        car_width = self.track_width * cg.CAR_SIZE_RATIO
+        car_length = car_width * CAR_LENGTH_RATIO
+        offset_distance = car_length * OFFSET_DISTANCE_FACTOR  # Distance from the finish line
+        row_offset = car_length * ROW_OFFSET_FACTOR
+        spacing = car_width * CAR_SPACING_FACTOR  # Spacing between cars
+        starting_positions = calculate_starting_positions(self.finish_scaled,
+                                                          self.outer, self.inner, num_cars, offset_distance,
+                                                          row_offset,
+                                                          spacing)
 
-        for car in cars:  # Iterate over all cars
-            state = car.states_generation(screen, data["checkpoints"], cars)
-            car.choose_action(cars, state)
-            car.check_checkpoints(data["checkpoints"], data, outer, inner, cg.WIDTH, cg.HEIGHT)
-            car.check_finish_line(data["checkpoints"], data["finish_line"], data, outer, inner,
-                                  cg.WIDTH, cg.HEIGHT)
-            if not car.check_if_on_track(track_mask, inner, outer):
-                car.speed = 0
-            car.draw(screen)
-            # Calculate rays and draw them
-            rays, distances = car.get_rays_and_distances(track_mask, inner, cars)
-            car.draw_rays(screen, rays)
+        # Place the cars at the starting line
+        self.cars = [PlayerCar(x, y, self.track_width, self.inner, self.outer, method=1) for x, y, angle in
+                starting_positions]
+        for car, (_, _, angle) in zip(self.cars, starting_positions):
+            car.angle = angle
 
-        pygame.display.flip()
-        clock.tick(60)
+    def main_loop(self):
 
-    pygame.quit()
+        running = True
+        while running:
+            self.screen.blit(cg.BACKGROUND_IMAGE, (0, 0))
+            self.outer, self.inner = draw_track(self.screen, self.data)  # its switched?
+
+            draw_finish_line(self.screen, self.data, cg.WIDTH, cg.HEIGHT, self.outer, self.inner)
+            draw_checkpoints_line(self.screen, self.data, cg.WIDTH, cg.HEIGHT, self.outer, self.inner, self.cars)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            for car in self.cars:  # Iterate over all cars
+                state = car.states_generation(self.screen, self.data["checkpoints"], self.cars)
+                car.choose_action(self.cars, state)
+                car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner, cg.WIDTH, cg.HEIGHT)
+                car.check_finish_line(self.data["checkpoints"], self.data["finish_line"], self.data, self.outer, self.inner,
+                                      cg.WIDTH, cg.HEIGHT)
+                if not car.check_if_on_track(self.track_mask, self.inner, self.outer):
+                    car.speed = 0
+                car.draw(self.screen)
+                # Calculate rays and draw them
+                rays, distances = car.get_rays_and_distances(self.track_mask, self.inner, self.cars)
+                car.draw_rays(self.screen, rays)
+
+            pygame.display.flip()
+            self.clock.tick(60)
+
+        pygame.quit()
+
 
 
 if __name__ == "__main__":
-    main()
+    GameEngine()
