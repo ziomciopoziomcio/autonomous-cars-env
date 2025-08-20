@@ -48,6 +48,8 @@ class Car:
         self.white_car = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
         self.purple_car = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
 
+        self._state_screenshot_map_data = None  # Cache for map data used in state_screenshot
+
     def update(self, action, cars):
         if self.win is True:
             return
