@@ -468,7 +468,7 @@ class generator:
                 max_distance = 15  # Maximum distance to consider for road removal
 
                 # Find the closest road to the cursor
-                for road in map_data.roads:
+                for road in self.map_data.roads:
                     start_number, end_number = road
                     start = next(p for p in self.map_data.points if p[0] == start_number)
                     end = next(p for p in self.map_data.points if p[0] == end_number)
