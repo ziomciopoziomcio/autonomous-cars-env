@@ -441,8 +441,6 @@ class Car:
 
         return state
 
-    def state_from_rays(self):
-        return self.distances
 
     def state_from_distances_to_border(self):
         return self.distances_to_border
