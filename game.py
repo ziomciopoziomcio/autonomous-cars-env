@@ -204,7 +204,76 @@ def generate_track_mask(data, width, height):
     return track_mask
 
 
-class PlayerCar(Car):
+class PlayerCar1(Car):
+    def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
+        super().__init__(x, y, track_width, inner_line, outer_line)
+        self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
+
+    def choose_action(self, cars, state):
+        # IMPORTANT
+        # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+
+        keys = pygame.key.get_pressed()
+        action = None
+        if keys[pygame.K_UP]:
+            action = 0
+        if keys[pygame.K_DOWN]:
+            action = 1
+        if keys[pygame.K_LEFT]:
+            action = 2
+        if keys[pygame.K_RIGHT]:
+            action = 3
+        if action is None:
+            action = 10
+        self.update(action, cars)
+
+class PlayerCar2(Car):
+    def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
+        super().__init__(x, y, track_width, inner_line, outer_line)
+        self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
+
+    def choose_action(self, cars, state):
+        # IMPORTANT
+        # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+
+        keys = pygame.key.get_pressed()
+        action = None
+        if keys[pygame.K_UP]:
+            action = 0
+        if keys[pygame.K_DOWN]:
+            action = 1
+        if keys[pygame.K_LEFT]:
+            action = 2
+        if keys[pygame.K_RIGHT]:
+            action = 3
+        if action is None:
+            action = 10
+        self.update(action, cars)
+
+class PlayerCar3(Car):
+    def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
+        super().__init__(x, y, track_width, inner_line, outer_line)
+        self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
+
+    def choose_action(self, cars, state):
+        # IMPORTANT
+        # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+
+        keys = pygame.key.get_pressed()
+        action = None
+        if keys[pygame.K_UP]:
+            action = 0
+        if keys[pygame.K_DOWN]:
+            action = 1
+        if keys[pygame.K_LEFT]:
+            action = 2
+        if keys[pygame.K_RIGHT]:
+            action = 3
+        if action is None:
+            action = 10
+        self.update(action, cars)
+
+class PlayerCar4(Car):
     def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
         super().__init__(x, y, track_width, inner_line, outer_line)
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
@@ -230,6 +299,7 @@ class PlayerCar(Car):
 
 class GameEngine:
     def __init__(self):
+        self.cars = []
         self.pygame_load()
         self.textures_load()
         self.track_load()
@@ -283,9 +353,17 @@ class GameEngine:
                                                           spacing)
 
         # Place the cars at the starting line
-        self.cars = [PlayerCar(x, y, self.track_width, self.inner, self.outer, method=1) for
-                     x, y, angle in
-                     starting_positions]
+        # self.cars = [PlayerCar(x, y, self.track_width, self.inner, self.outer, method=1) for
+        #              x, y, angle in
+        #              starting_positions]
+        self.cars.append(PlayerCar1(starting_positions[0][0], starting_positions[0][1],
+                                   self.track_width, self.inner, self.outer, method=1))
+        self.cars.append(PlayerCar2(starting_positions[1][0], starting_positions[1][1],
+                                   self.track_width, self.inner, self.outer, method=1))
+        self.cars.append(PlayerCar3(starting_positions[2][0], starting_positions[2][1],
+                                   self.track_width, self.inner, self.outer, method=1))
+        self.cars.append(PlayerCar4(starting_positions[3][0], starting_positions[3][1],
+                                   self.track_width, self.inner, self.outer, method=1))
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
 
