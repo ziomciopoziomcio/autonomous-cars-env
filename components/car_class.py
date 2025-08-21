@@ -415,8 +415,7 @@ class Car:
                             - state[2][0]: The index of the closest checkpoint.
                             - state[2][1]: The car's progress, e.g., distance to the next checkpoint
                                            or normalized progress value.
-                - state[3]: A list of 8 float values representing rays distances to the track border or cars
-                            in 8 directions (every 45 degrees, starting from forward).
+                - state[3]: Temporary None, reserved for future use.
                 - state[4]: Image of the screen.
         :return: list of states
         """
@@ -433,9 +432,8 @@ class Car:
         progress_info = self.progress_info(checkpoints)
         state.append(progress_info)
 
-        # Distances to the track border or cars
-        distances = self.state_from_rays()
-        state.append(distances)
+        # Temporary None for future use
+        state.append(None)
 
         # Screenshot of the screen
         screenshot = self.state_screenshot(cars, screen)
@@ -443,8 +441,6 @@ class Car:
 
         return state
 
-    def state_from_rays(self):
-        return self.distances
 
     def state_from_distances_to_border(self):
         return self.distances_to_border
