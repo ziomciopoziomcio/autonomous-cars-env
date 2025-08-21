@@ -476,7 +476,8 @@ class generator:
         # Find the closest road to the cursor
         for road in self.map_data.roads:
             end, mid_point, start = self.start_end_road_prep(road)
-            distance = ((event.pos[0] - mid_point[0]) ** 2 + (event.pos[1] - mid_point[1]) ** 2) ** 0.5
+            distance = ((event.pos[0] - mid_point[0]) ** 2 + (
+                        event.pos[1] - mid_point[1]) ** 2) ** 0.5
             if distance < min_distance and distance <= max_distance:
                 closest_road = (start, end)
                 min_distance = distance
@@ -506,7 +507,8 @@ class generator:
         if road_length_squared == 0:
             return start[1], start[2]  # Degenerate segment
         cursor_vector = (point[0] - start[1], point[1] - start[2])
-        t = max(0, min(1, (cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[1]) / road_length_squared))
+        t = max(0, min(1, (cursor_vector[0] * road_vector[0] + cursor_vector[1] * road_vector[
+            1]) / road_length_squared))
         return (start[1] + t * road_vector[0], start[2] + t * road_vector[1])
 
     def _find_closest_road_and_point(self, cursor_pos, max_distance=15):
@@ -516,7 +518,8 @@ class generator:
         for road in self.map_data.roads:
             end, _, start = self.start_end_road_prep(road)
             closest_point = self._closest_point_on_segment(start, end, cursor_pos)
-            distance = ((cursor_pos[0] - closest_point[0]) ** 2 + (cursor_pos[1] - closest_point[1]) ** 2) ** 0.5
+            distance = ((cursor_pos[0] - closest_point[0]) ** 2 + (
+                        cursor_pos[1] - closest_point[1]) ** 2) ** 0.5
             if distance < min_distance and distance <= max_distance:
                 min_distance = distance
                 closest_road = road
@@ -621,7 +624,8 @@ class generator:
     def _draw_finish_line(self):
         if self.map_data.finish_line['point']:
             finish_point = self.map_data.finish_line['point']
-            pygame.draw.circle(window_surface, (0, 255, 0), (int(finish_point[0]), int(finish_point[1])), 6)
+            pygame.draw.circle(window_surface, (0, 255, 0),
+                               (int(finish_point[0]), int(finish_point[1])), 6)
             label = pygame.font.Font(None, 20).render("Finish", True, (0, 255, 0))
             window_surface.blit(label, (int(finish_point[0]) + 10, int(finish_point[1]) - 10))
 
