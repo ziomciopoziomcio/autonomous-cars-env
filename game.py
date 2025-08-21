@@ -210,6 +210,9 @@ class PlayerCar(Car):
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
 
     def choose_action(self, cars, state):
+        # IMPORTANT
+        # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+        
         keys = pygame.key.get_pressed()
         action = None
         if keys[pygame.K_UP]:
