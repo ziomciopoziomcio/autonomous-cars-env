@@ -2,6 +2,7 @@ import math
 import pygame
 import components.globals as cg
 
+
 def point_in_polygon(x, y, polygon):
     # Algorytm ray-casting
     num = len(polygon)
@@ -35,6 +36,7 @@ def get_scaling_params(points_list, width, height, scale_factor=1.0):
 
 def scale_points(points, min_x, min_y, scale):
     return [(int((x - min_x) * scale), int((y - min_y) * scale)) for x, y in points]
+
 
 def lines_params_prep(car_rect, finish, inner_line, min_x, min_y, outer_line,
                       scale):

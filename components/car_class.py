@@ -4,10 +4,8 @@ import math
 import json
 
 import components.globals as cg
-from components.functions_helper import point_in_polygon, scale_points, get_scaling_params, lines_params_prep
-
-
-
+from components.functions_helper import point_in_polygon, scale_points, get_scaling_params, \
+    lines_params_prep
 
 
 class Car:
@@ -139,7 +137,8 @@ class Car:
             return (test_x, test_y)
         return None
 
-    def _cast_single_ray(self, center, direction, max_length, bounds, mask, inner_polygon, other_cars):
+    def _cast_single_ray(self, center, direction, max_length, bounds, mask, inner_polygon,
+                         other_cars):
         center_x, center_y = center
         dx, dy = direction
         max_width, max_height = bounds
@@ -176,7 +175,8 @@ class Car:
             border_hit_distance = max_length
         return car_hit, car_hit_distance, border_hit, border_hit_distance
 
-    def _get_ray_params(self, center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars):
+    def _get_ray_params(self, center_x, center_y, dx, dy, max_length, max_width, max_height, mask,
+                        inner_polygon, other_cars):
         center = (center_x, center_y)
         direction = (dx, dy)
         bounds = (max_width, max_height)
@@ -191,8 +191,10 @@ class Car:
                     other_cars.append((car_mask, car_rect))
         return other_cars
 
-    def _process_single_ray(self, center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars):
-        params = self._get_ray_params(center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
+    def _process_single_ray(self, center_x, center_y, dx, dy, max_length, max_width, max_height,
+                            mask, inner_polygon, other_cars):
+        params = self._get_ray_params(center_x, center_y, dx, dy, max_length, max_width, max_height,
+                                      mask, inner_polygon, other_cars)
         car_hit, car_hit_distance, border_hit, border_hit_distance = self._cast_single_ray(*params)
         ray_result = {}
         if car_hit is not None and (car_hit_distance <= border_hit_distance):
@@ -201,7 +203,8 @@ class Car:
         else:
             ray_result['ray'] = (center_x, center_y, border_hit[0], border_hit[1])
             ray_result['distance'] = border_hit_distance
-        ray_result['ray_to_car'] = (center_x, center_y, car_hit[0], car_hit[1]) if car_hit is not None else None
+        ray_result['ray_to_car'] = (center_x, center_y, car_hit[0],
+                                    car_hit[1]) if car_hit is not None else None
         ray_result['distance_to_car'] = car_hit_distance if car_hit is not None else None
         ray_result['ray_to_border'] = (center_x, center_y, border_hit[0], border_hit[1])
         ray_result['distance_to_border'] = border_hit_distance
@@ -231,7 +234,8 @@ class Car:
             total_angle = angle_rad + math.radians(ray_angle)
             dx = math.cos(total_angle)
             dy = math.sin(total_angle)
-            ray_result = self._process_single_ray(center_x, center_y, dx, dy, max_length, max_width, max_height, mask, inner_polygon, other_cars)
+            ray_result = self._process_single_ray(center_x, center_y, dx, dy, max_length, max_width,
+                                                  max_height, mask, inner_polygon, other_cars)
             self.rays.append(ray_result['ray'])
             self.distances.append(ray_result['distance'])
             self.rays_to_cars.append(ray_result['ray_to_car'])
@@ -311,8 +315,9 @@ class Car:
         car_mask, car_rect, inner_line, min_x, min_y, outer_line, scale = self.scaling_params_prep(
             data, height, inner_line, outer_line, width)
         for checkpoint in checkpoints:
-            checkpoint_mask, offset, _, _ = lines_params_prep(car_rect, checkpoint, inner_line, min_x,
-                                                             min_y, outer_line, scale)
+            checkpoint_mask, offset, _, _ = lines_params_prep(car_rect, checkpoint, inner_line,
+                                                              min_x,
+                                                              min_y, outer_line, scale)
             if car_mask.overlap(checkpoint_mask, offset):
                 if checkpoint not in self.checkpoints:
                     self.checkpoints.append(checkpoint)
@@ -347,7 +352,7 @@ class Car:
 
         finish = finish_line["point"]
         finish_mask, offset, _, _ = lines_params_prep(car_rect, finish, inner_line, min_x,
-                                                     min_y, outer_line, scale)
+                                                      min_y, outer_line, scale)
         if car_mask.overlap(finish_mask, offset):
             # print(f"Finish line crossed: {finish}")
             self.win = True
@@ -403,7 +408,7 @@ class Car:
             return False  # The car is on the track
         return True  # Collision
 
-    def states_generation(self, screen, checkpoints, cars):
+    def states_generation(self, screen, checkpoints, cars, screenshots=False):
         """
          Parameters:
             state (list): A 3-element list representing the car's current state:
@@ -436,7 +441,7 @@ class Car:
         state.append(None)
 
         # Screenshot of the screen
-        screenshot = self.state_screenshot(cars, screen)
+        screenshot = self.state_screenshot(cars, screen, screenshots)
         state.append(screenshot)
 
         return state
@@ -455,7 +460,7 @@ class Car:
         :return: A tuple containing the index of the closest checkpoint and the car's progress.
         """
         if not checkpoints:
-            return (-1. - 1) # No checkpoints available
+            return (-1. - 1)  # No checkpoints available
 
         # Find the closest checkpoint
         closest_checkpoint = min(checkpoints, key=lambda cp: math.dist((self.x, self.y), cp))
@@ -474,7 +479,8 @@ class Car:
         if hasattr(car, "outer_polygon") and hasattr(car, "inner_polygon"):
             # Determine track width at the car's position
             # Use the car's center to find the closest points on both lines
-            if hasattr(self, "_state_screenshot_map_data") and self._state_screenshot_map_data is not None:
+            if hasattr(self,
+                       "_state_screenshot_map_data") and self._state_screenshot_map_data is not None:
                 map_data = self._state_screenshot_map_data
             else:
                 with open(cg.MAP_FILE, "r") as f:
@@ -548,9 +554,8 @@ class Car:
             car.draw(screenshot_surface)
         return screenshot_surface
 
-    def state_screenshot(self, cars, screen):
-        turn_on = False
-        if not turn_on:
+    def state_screenshot(self, cars, screen, screenshots_state):
+        if not screenshots_state:
             return None
         # Swap images and scale for screenshot
         original_imgs, desired_car_width = self._swap_car_images_for_screenshot(cars, screen)

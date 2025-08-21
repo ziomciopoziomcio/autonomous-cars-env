@@ -110,8 +110,8 @@ def draw_finish_line(screen, data, width, height, outer_line, inner_line):
                                              height,
                                              scale_factor=0.9)
 
-    _ , _, rotated_finish, finish_rect = lines_params_prep(None, center_point, inner_line, min_x,
-                                                min_y, outer_line, scale)
+    _, _, rotated_finish, finish_rect = lines_params_prep(None, center_point, inner_line, min_x,
+                                                          min_y, outer_line, scale)
 
     # Draw the finish line image on the screen
     screen.blit(rotated_finish, finish_rect.topleft)
@@ -210,6 +210,9 @@ class PlayerCar(Car):
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
 
     def choose_action(self, cars, state):
+        # IMPORTANT
+        # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+
         keys = pygame.key.get_pressed()
         action = None
         if keys[pygame.K_UP]:
@@ -302,7 +305,8 @@ class GameEngine:
                     running = False
 
             for car in self.cars:  # Iterate over all cars
-                state = car.states_generation(self.screen, self.data["checkpoints"], self.cars)
+                state = car.states_generation(self.screen, self.data["checkpoints"], self.cars,
+                                              screenshots=False)
                 car.choose_action(self.cars, state)
                 car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
