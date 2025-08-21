@@ -432,9 +432,8 @@ class Car:
         progress_info = self.progress_info(checkpoints)
         state.append(progress_info)
 
-        # Distances to the track border or cars
-        distances = self.state_from_rays()
-        state.append(distances)
+        # Temporary None for future use
+        state.append(None)
 
         # Screenshot of the screen
         screenshot = self.state_screenshot(cars, screen)
