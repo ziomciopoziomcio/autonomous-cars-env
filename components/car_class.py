@@ -403,7 +403,7 @@ class Car:
             return False  # The car is on the track
         return True  # Collision
 
-    def states_generation(self, screen, checkpoints, cars):
+    def states_generation(self, screen, checkpoints, cars, screenshots=False):
         """
          Parameters:
             state (list): A 3-element list representing the car's current state:
@@ -438,7 +438,7 @@ class Car:
         state.append(distances)
 
         # Screenshot of the screen
-        screenshot = self.state_screenshot(cars, screen)
+        screenshot = self.state_screenshot(cars, screen, screenshots)
         state.append(screenshot)
 
         return state
@@ -552,9 +552,8 @@ class Car:
             car.draw(screenshot_surface)
         return screenshot_surface
 
-    def state_screenshot(self, cars, screen):
-        turn_on = False
-        if not turn_on:
+    def state_screenshot(self, cars, screen, screenshots_state):
+        if not screenshots_state:
             return None
         # Swap images and scale for screenshot
         original_imgs, desired_car_width = self._swap_car_images_for_screenshot(cars, screen)
