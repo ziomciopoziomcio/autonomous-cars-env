@@ -203,6 +203,8 @@ def generate_track_mask(data, width, height):
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
 
+# DO NOT MERGE CLASSES BELOW
+# Didactic purposes
 
 class PlayerCar1(Car):
     def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
