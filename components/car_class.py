@@ -415,8 +415,7 @@ class Car:
                             - state[2][0]: The index of the closest checkpoint.
                             - state[2][1]: The car's progress, e.g., distance to the next checkpoint
                                            or normalized progress value.
-                - state[3]: A list of 8 float values representing rays distances to the track border or cars
-                            in 8 directions (every 45 degrees, starting from forward).
+                - state[3]: Temporary None, reserved for future use.
                 - state[4]: Image of the screen.
         :return: list of states
         """
