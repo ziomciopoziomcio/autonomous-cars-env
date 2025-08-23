@@ -538,6 +538,9 @@ class generator:
             self.map_data.finish_line['point'] = None
 
     def is_point_on_track(self, position):
+        """
+        Checks if the given position is on the track (between the outer and inner boundaries).
+        """
         inner_points, outer_points = self.map_data.generate_track_width()
         outer_polygon = Polygon(outer_points)
         inner_polygon = Polygon(inner_points)
