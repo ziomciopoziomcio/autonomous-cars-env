@@ -536,11 +536,22 @@ class generator:
         elif event.button == 3:  # Right mouse button
             self.map_data.finish_line['point'] = None
 
+    def is_point_on_track(self, position):
+        inner_points, outer_points = self.map_data.generate_track_width()
+        from shapely.geometry import Point, Polygon
+        outer_polygon = Polygon(outer_points)
+        inner_polygon = Polygon(inner_points)
+        point = Point(position)
+        return outer_polygon.contains(point) and not inner_polygon.contains(point)
+
     def handle_mouse_click_checkpoint(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
                 # Add a checkpoint at the clicked position
-                self.map_data.add_checkpoint(event.pos)
+                if self.is_point_on_track(event.pos):
+                    self.map_data.add_checkpoint(event.pos)
+                else:
+                    print("Checkpoint musi być na torze!")
             elif event.button == 3:  # Right mouse button
                 # Remove a checkpoint at the clicked position
                 for checkpoint in self.map_data.checkpoints:
