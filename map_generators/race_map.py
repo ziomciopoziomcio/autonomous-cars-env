@@ -7,6 +7,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
+from shapely.geometry.polygon import Polygon
 
 # Initialize pygame and pygame_gui
 pygame.init()
@@ -538,7 +539,6 @@ class generator:
 
     def is_point_on_track(self, position):
         inner_points, outer_points = self.map_data.generate_track_width()
-        from shapely.geometry import Point, Polygon
         outer_polygon = Polygon(outer_points)
         inner_polygon = Polygon(inner_points)
         point = Point(position)
