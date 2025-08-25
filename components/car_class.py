@@ -48,6 +48,17 @@ class Car:
 
         self._state_screenshot_map_data = None  # Cache for map data used in state_screenshot
 
+    def fix_angle(self, finish_line):
+        """
+        Set the car's angle so it points directly at the finish_line point.
+        :param finish_line: tuple (x, y) - point between outer and inner line
+        """
+        dx = finish_line[0] - self.x
+        dy = finish_line[1] - self.y
+        # In pygame, y axis is inverted, so angle is calculated accordingly
+        angle_rad = math.atan2(-dy, dx)
+        self.angle = math.degrees(angle_rad)
+
     def _handle_action(self, action):
         turning = False
         if action == 2:  # Turn left
