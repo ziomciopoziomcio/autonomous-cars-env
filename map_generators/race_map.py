@@ -540,7 +540,9 @@ class generator:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
                 # Add a checkpoint at the clicked position
-                self.map_data.add_checkpoint(event.pos)
+                closest_road, closest_point_on_road = self._find_closest_road_and_point(event.pos)
+                if closest_road and closest_point_on_road:
+                    self.map_data.add_checkpoint(closest_point_on_road)
             elif event.button == 3:  # Right mouse button
                 # Remove a checkpoint at the clicked position
                 for checkpoint in self.map_data.checkpoints:
