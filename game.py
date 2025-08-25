@@ -368,6 +368,7 @@ class GameEngine:
                                    self.track_width, self.inner, self.outer, method=1))
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
+            car.fix_angle(self.data["finish_line"]["point"])
 
     def main_loop(self):
 
