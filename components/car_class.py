@@ -48,16 +48,21 @@ class Car:
 
         self._state_screenshot_map_data = None  # Cache for map data used in state_screenshot
 
-    def fix_angle(self, finish_line):
+    def fix_angle(self, finish_point):
         """
-        Set the car's angle so it points directly at the finish_line point.
-        :param finish_line: tuple (x, y) - point between outer and inner line
+        Adjust the car's angle so it looks directly along the finish line segment
+        (from closest point on outer_polygon to closest point on inner_polygon).
+        :param finish_point: tuple (x, y) - finish line center point
         """
-        dx = finish_line[0] - self.x
-        dy = finish_line[1] - self.y
-        # In pygame, y axis is inverted, so angle is calculated accordingly
+        # Find closest points on outer and inner polygons to the finish_point
+        outer_closest = min(self.outer_polygon, key=lambda p: math.dist(finish_point, p))
+        inner_closest = min(self.inner_polygon, key=lambda p: math.dist(finish_point, p))
+
+        # The finish line is the segment from outer_closest to inner_closest
+        dx = inner_closest[0] - outer_closest[0]
+        dy = inner_closest[1] - outer_closest[1]
         angle_rad = math.atan2(-dy, dx)
-        self.angle = math.degrees(angle_rad)
+        self.angle = math.degrees(angle_rad) + 90
 
     def _handle_action(self, action):
         turning = False
