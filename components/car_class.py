@@ -606,7 +606,7 @@ class Car:
         # Draw everything on screenshot surface
         screenshot_surface = self._draw_screenshot_surface(screen, cars)
 
-        ZOOM_SIZE = 200  # rozmiar wycinka (np. 200x200 px)
+        ZOOM_SIZE = 200  # crop size (e.g. 200x200 px)
         car_center_x = int(self.x)
         car_center_y = int(self.y)
         surf_w, surf_h = screenshot_surface.get_size()
