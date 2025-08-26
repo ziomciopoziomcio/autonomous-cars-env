@@ -470,7 +470,7 @@ class generator:
             self.map_data.selected_points.clear()
 
     def _handle_right_click_road(self, event):
-        closest_road, closest_point_on_road = self._find_closest_road_and_point(event.pos, max_distance=15)
+        closest_road, _ = self._find_closest_road_and_point(event.pos, max_distance=15)
         if closest_road:
             start_number, end_number = closest_road
             start = next(p for p in self.map_data.points if p[0] == start_number)
