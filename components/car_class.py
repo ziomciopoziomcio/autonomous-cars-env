@@ -433,10 +433,11 @@ class Car:
                 - state[1]: A list of 8 float values representing distances to the nearest car
                            in the same 8 directions.
                 - state[2]: A 2-element list representing progress information:
-                            - state[2][0]: The index of the closest checkpoint.
-                            - state[2][1]: The car's progress, e.g., distance to the next checkpoint
-                                           or normalized progress value.
-                - state[3]: Temporary None, reserved for future use.
+                            - state[2][0]: The index of the next checkpoint.
+                            - state[2][1]: The car's progress, e.g., distance to the next checkpoint.
+                - state[3]: A 2-element list representing car angles:
+                            - state[3][0]: The car's current angle (compass).
+                            - state[3][1]: The angle to the next checkpoint.
                 - state[4]: Image of the screen.
         :return: list of states
         """
@@ -462,6 +463,31 @@ class Car:
 
         return state
 
+    def state_from_angles(self, checkpoints):
+        """
+        Returns a tuple:
+            (car's current angle, angle to the next checkpoint)
+        """
+        state_compass = self.angle
+
+        # Find next checkpoint index (first not in self.checkpoints)
+        next_index = None
+        for i, cp in enumerate(checkpoints):
+            if cp not in self.checkpoints:
+                next_index = i
+                break
+        if next_index is None:
+            # All checkpoints passed, wrap to first
+            return (state_compass, None)
+
+        next_checkpoint = checkpoints[next_index]
+        dx = next_checkpoint[0] - self.x
+        dy = next_checkpoint[1] - self.y
+        angle_to_next = math.degrees(math.atan2(-dy, dx))
+        # Normalize angle difference to [-180, 180]
+        angle_diff = (angle_to_next - self.angle + 180) % 360 - 180
+
+        return (state_compass, angle_diff)
 
     def state_from_distances_to_border(self):
         return self.distances_to_border
@@ -473,22 +499,24 @@ class Car:
         """
         Returns progress information for the car.
         :param checkpoints: List of checkpoints.
-        :return: A tuple containing the index of the closest checkpoint and the car's progress.
+        :return: A tuple containing the index of the next checkpoint and the car's progress.
         """
         if not checkpoints:
             return (-1. - 1)  # No checkpoints available
 
-        # Find the closest checkpoint
-        closest_checkpoint = min(checkpoints, key=lambda cp: math.dist((self.x, self.y), cp))
-        closest_index = checkpoints.index(closest_checkpoint)
+        # Find the next checkpoint not yet passed
+        next_index = None
+        for i, cp in enumerate(checkpoints):
+            if cp not in self.checkpoints:
+                next_index = i
+                break
+        if next_index is None:
+            # All checkpoints passed, wrap to first
+            next_index = 0
 
-        # Calculate progress (distance to the next checkpoint or normalized value)
-        if closest_index < len(checkpoints) - 1:
-            next_checkpoint = checkpoints[closest_index + 1]
-            progress = math.dist((self.x, self.y), next_checkpoint)
-        else:
-            progress = 0
-        return (closest_index, progress)
+        next_checkpoint = checkpoints[next_index]
+        progress = math.dist((self.x, self.y), next_checkpoint)
+        return (next_index, progress)
 
     def track_width_calculation(self, car, screen):
         map_data = None
