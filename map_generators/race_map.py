@@ -470,20 +470,11 @@ class generator:
             self.map_data.selected_points.clear()
 
     def _handle_right_click_road(self, event):
-        closest_road = None
-        min_distance = float('inf')
-        max_distance = 15  # Maximum distance to consider for road removal
-        # Find the closest road to the cursor
-        for road in self.map_data.roads:
-            end, mid_point, start = self.start_end_road_prep(road)
-            distance = ((event.pos[0] - mid_point[0]) ** 2 + (
-                        event.pos[1] - mid_point[1]) ** 2) ** 0.5
-            if distance < min_distance and distance <= max_distance:
-                closest_road = (start, end)
-                min_distance = distance
-        # Remove the closest road if found
+        closest_road, _ = self._find_closest_road_and_point(event.pos, max_distance=15)
         if closest_road:
-            start, end = closest_road
+            start_number, end_number = closest_road
+            start = next(p for p in self.map_data.points if p[0] == start_number)
+            end = next(p for p in self.map_data.points if p[0] == end_number)
             self.map_data.remove_road(start, end)
 
     def handle_mouse_click_road(self, event):
