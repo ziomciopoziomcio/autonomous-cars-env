@@ -368,8 +368,7 @@ class StepController:
         """Move to the next step if available."""
 
         # Check if the finish line is set before proceeding from step 4
-        if (self.current_index == 3 and not self.map_data.finish_line.get('start')
-                or not self.map_data.finish_line.get('end')):
+        if self.current_index == 3 and not self.map_data.finish_line['point']:
             print("Error: Finish line must be set before proceeding.")
             return
         if self.current_index < len(self.steps) - 1:
