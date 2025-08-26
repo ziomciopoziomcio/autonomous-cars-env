@@ -17,10 +17,10 @@ OUTER_COLOR = (200, 50, 50)
 TRACK_COLOR = (50, 200, 50)
 FINISH_COLOR = (255, 255, 0)
 
-ROW_OFFSET_FACTOR = 1.1
-OFFSET_DISTANCE_FACTOR = 2
+ROW_OFFSET_FACTOR = 1.5
+OFFSET_DISTANCE_FACTOR = 3
 CAR_LENGTH_RATIO = 2
-CAR_SPACING_FACTOR = 1.5
+CAR_SPACING_FACTOR = 2.1
 PERPENDICULAR_ANGLE_OFFSET = 90
 
 
@@ -368,6 +368,7 @@ class GameEngine:
                                    self.track_width, self.inner, self.outer, method=1))
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
+            car.fix_angle(self.data["finish_line"]["point"])
 
     def main_loop(self):
 
