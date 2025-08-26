@@ -398,7 +398,7 @@ class GameEngine:
 
             for car in self.cars:  # Iterate over all cars
                 state = car.states_generation(self.screen, self.data["checkpoints"], self.cars,
-                                              screenshots=True, debug=False)
+                                              screenshots=False, debug=False)
                 car.choose_action(self.cars, state)
                 car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
