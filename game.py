@@ -174,6 +174,9 @@ def draw_track(screen, data):
     pygame.draw.lines(screen, OUTER_COLOR, True, outer, 5)
     pygame.draw.lines(screen, INNER_COLOR, True, inner, 5)
 
+    # Draw arrows with track direction
+    draw_track_direction_arrows(screen, inner, outer)
+
     return outer, inner
 
 
@@ -406,6 +409,58 @@ class GameEngine:
 
         pygame.quit()
 
+
+def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40, arrow_width=6, step=10):
+    """
+    Draw arrows along the centerline of the track to indicate direction.
+    :param screen: Pygame surface to draw on.
+    :param inner: List of inner track points (scaled).
+    :param outer: List of outer track points (scaled).
+    :param arrow_color: Color of the arrows.
+    :param arrow_length: Length of each arrow.
+    :param arrow_width: Width of the arrow shaft.
+    :param step: Distance between arrows (in points, not pixels).
+    """
+    num_points = min(len(inner), len(outer))
+    for i in range(0, num_points, step):
+        # Get corresponding points
+        p_inner = inner[i % len(inner)]
+        p_outer = outer[i % len(outer)]
+        # Centerline point
+        cx = (p_inner[0] + p_outer[0]) / 2
+        cy = (p_inner[1] + p_outer[1]) / 2
+
+        # Next centerline point for direction
+        next_i = (i + 1) % num_points
+        p_inner_next = inner[next_i % len(inner)]
+        p_outer_next = outer[next_i % len(outer)]
+        nx = (p_inner_next[0] + p_outer_next[0]) / 2
+        ny = (p_inner_next[1] + p_outer_next[1]) / 2
+
+        # Reverse direction vector to fix arrow direction
+        dx = cx - nx
+        dy = cy - ny
+        length = math.hypot(dx, dy)
+        if length == 0:
+            continue
+        dx /= length
+        dy /= length
+
+        # Arrow shaft
+        end_x = cx + dx * arrow_length
+        end_y = cy + dy * arrow_length
+        pygame.draw.line(screen, arrow_color, (cx, cy), (end_x, end_y), arrow_width)
+
+        # Arrow head
+        head_size = arrow_length * 0.4
+        angle = math.atan2(dy, dx)
+        left_angle = angle + math.radians(150)
+        right_angle = angle - math.radians(150)
+        left_x = end_x + head_size * math.cos(left_angle)
+        left_y = end_y + head_size * math.sin(left_angle)
+        right_x = end_x + head_size * math.cos(right_angle)
+        right_y = end_y + head_size * math.sin(right_angle)
+        pygame.draw.polygon(screen, arrow_color, [(end_x, end_y), (left_x, left_y), (right_x, right_y)])
 
 if __name__ == "__main__":
     GameEngine()
