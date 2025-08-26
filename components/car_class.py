@@ -605,8 +605,24 @@ class Car:
         original_imgs, desired_car_width = self._swap_car_images_for_screenshot(cars, screen)
         # Draw everything on screenshot surface
         screenshot_surface = self._draw_screenshot_surface(screen, cars)
-        # Get screenshot array
-        screenshot = pygame.surfarray.array3d(screenshot_surface)
+
+        ZOOM_SIZE = 200  # rozmiar wycinka (np. 200x200 px)
+        car_center_x = int(self.x)
+        car_center_y = int(self.y)
+        surf_w, surf_h = screenshot_surface.get_size()
+        left = max(0, car_center_x - ZOOM_SIZE // 2)
+        top = max(0, car_center_y - ZOOM_SIZE // 2)
+        right = min(surf_w, left + ZOOM_SIZE)
+        bottom = min(surf_h, top + ZOOM_SIZE)
+        if right - left < ZOOM_SIZE:
+            left = max(0, right - ZOOM_SIZE)
+        if bottom - top < ZOOM_SIZE:
+            top = max(0, bottom - ZOOM_SIZE)
+        zoom_rect = pygame.Rect(left, top, ZOOM_SIZE, ZOOM_SIZE)
+        zoom_surface = pygame.Surface((ZOOM_SIZE, ZOOM_SIZE))
+        zoom_surface.blit(screenshot_surface, (0, 0), zoom_rect)
+
+        screenshot = pygame.surfarray.array3d(zoom_surface)
         # Restore original images and scaling
         self._restore_car_images_after_screenshot(cars, original_imgs, desired_car_width)
         if debug:
