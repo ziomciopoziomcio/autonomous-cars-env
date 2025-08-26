@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import threading
 import pygame
 import pygame_gui
@@ -369,7 +370,7 @@ class StepController:
 
         # Check if the finish line is set before proceeding from step 4
         if self.current_index == 3 and not self.map_data.finish_line['point']:
-            print("Error: Finish line must be set before proceeding.")
+            tk.messagebox.showerror("Error", "Finish line must be set before proceeding.")
             return
         if self.current_index < len(self.steps) - 1:
             self.current_index += 1
