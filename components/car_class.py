@@ -424,7 +424,7 @@ class Car:
             return False  # The car is on the track
         return True  # Collision
 
-    def states_generation(self, screen, checkpoints, cars, screenshots=False):
+    def states_generation(self, screen, checkpoints, cars, screenshots=False, debug=False):
         """
          Parameters:
             state (list): A 3-element list representing the car's current state:
@@ -458,7 +458,7 @@ class Car:
         state.append(None)
 
         # Screenshot of the screen
-        screenshot = self.state_screenshot(cars, screen, screenshots)
+        screenshot = self.state_screenshot(cars, screen, screenshots, debug=debug)
         state.append(screenshot)
 
         return state
@@ -598,7 +598,7 @@ class Car:
             car.draw(screenshot_surface)
         return screenshot_surface
 
-    def state_screenshot(self, cars, screen, screenshots_state):
+    def state_screenshot(self, cars, screen, screenshots_state, debug=False):
         if not screenshots_state:
             return None
         # Swap images and scale for screenshot
@@ -609,6 +609,7 @@ class Car:
         screenshot = pygame.surfarray.array3d(screenshot_surface)
         # Restore original images and scaling
         self._restore_car_images_after_screenshot(cars, original_imgs, desired_car_width)
-        # Save screenshot to file
-        pygame.image.save(screenshot_surface, "state_screenshot.png")
+        if debug:
+            # Save screenshot to file
+            pygame.image.save(zoom_surface, "state_screenshot.png")
         return screenshot
