@@ -370,13 +370,13 @@ class GameEngine:
         #              x, y, angle in
         #              starting_positions]
         self.cars.append(PlayerCar1(starting_positions[0][0], starting_positions[0][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         self.cars.append(PlayerCar2(starting_positions[1][0], starting_positions[1][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         self.cars.append(PlayerCar3(starting_positions[2][0], starting_positions[2][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         self.cars.append(PlayerCar4(starting_positions[3][0], starting_positions[3][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
             car.fix_angle(self.data["finish_line"]["point"])
@@ -418,7 +418,8 @@ class GameEngine:
         pygame.quit()
 
 
-def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40, arrow_width=6, step=10):
+def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40,
+                                arrow_width=6, step=10):
     """
     Draw arrows along the centerline of the track to indicate direction.
     :param screen: Pygame surface to draw on.
@@ -468,7 +469,9 @@ def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255),
         left_y = end_y + head_size * math.sin(left_angle)
         right_x = end_x + head_size * math.cos(right_angle)
         right_y = end_y + head_size * math.sin(right_angle)
-        pygame.draw.polygon(screen, arrow_color, [(end_x, end_y), (left_x, left_y), (right_x, right_y)])
+        pygame.draw.polygon(screen, arrow_color,
+                            [(end_x, end_y), (left_x, left_y), (right_x, right_y)])
+
 
 if __name__ == "__main__":
     GameEngine()
