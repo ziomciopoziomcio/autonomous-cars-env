@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import threading
 import pygame
 import pygame_gui
@@ -305,7 +306,8 @@ class StepController:
     Class to control the steps of the map generation process using Tkinter.
     """
 
-    def __init__(self):
+    def __init__(self, map_data):
+        self.map_data = map_data
         self.steps = []  # List of steps (functions)
         self.step_names = []
         self.current_index = 0  # Current step index
@@ -365,6 +367,11 @@ class StepController:
 
     def next_step(self):
         """Move to the next step if available."""
+
+        # Check if the finish line is set before proceeding from step 4
+        if self.current_index == 3 and not self.map_data.finish_line['point']:
+            tk.messagebox.showerror("Error", "Finish line must be set before proceeding.")
+            return
         if self.current_index < len(self.steps) - 1:
             self.current_index += 1
             self.start_wait_window()
@@ -431,7 +438,7 @@ class generator:
         # Create an instance of the Map class
         self.map_data = Map()
         self.clock = pygame.time.Clock()
-        self.step_controller = StepController()
+        self.step_controller = StepController(self.map_data)
 
         self.main_loop()
 
@@ -581,6 +588,8 @@ class generator:
         self.selected_detailed_tool = 'Finish Line'
         self.step_controller.stop_wait_window()
         self.handle_mouse_click(event)
+        # if not self.map_data.finish_line['point']:
+        #     print("Error: Finish line must be set before proceeding.")
 
     def handle_step_5(self, event):
         self.selected_tool = 'Draw Tool'
