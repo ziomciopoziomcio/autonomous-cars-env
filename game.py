@@ -206,6 +206,7 @@ def generate_track_mask(data, width, height):
     track_mask = pygame.mask.from_surface(track_surface)
     return track_mask
 
+
 # DO NOT MERGE CLASSES BELOW
 # Didactic purposes
 
@@ -217,6 +218,7 @@ class PlayerCar1(Car):
     def choose_action(self, cars, state):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+        # You could also save screenshots to file! Just add debug=True to car.states_generation
 
         keys = pygame.key.get_pressed()
         action = None
@@ -231,6 +233,7 @@ class PlayerCar1(Car):
         if action is None:
             action = 10
         self.update(action, cars)
+
 
 class PlayerCar2(Car):
     def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
@@ -240,6 +243,7 @@ class PlayerCar2(Car):
     def choose_action(self, cars, state):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+        # You could also save screenshots to file! Just add debug=True to car.states_generation
 
         keys = pygame.key.get_pressed()
         action = None
@@ -254,6 +258,7 @@ class PlayerCar2(Car):
         if action is None:
             action = 10
         self.update(action, cars)
+
 
 class PlayerCar3(Car):
     def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
@@ -263,6 +268,7 @@ class PlayerCar3(Car):
     def choose_action(self, cars, state):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+        # You could also save screenshots to file! Just add debug=True to car.states_generation
 
         keys = pygame.key.get_pressed()
         action = None
@@ -278,6 +284,7 @@ class PlayerCar3(Car):
             action = 10
         self.update(action, cars)
 
+
 class PlayerCar4(Car):
     def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
         super().__init__(x, y, track_width, inner_line, outer_line)
@@ -286,6 +293,7 @@ class PlayerCar4(Car):
     def choose_action(self, cars, state):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
+        # You could also save screenshots to file! Just add debug=True to car.states_generation
 
         keys = pygame.key.get_pressed()
         action = None
@@ -362,13 +370,13 @@ class GameEngine:
         #              x, y, angle in
         #              starting_positions]
         self.cars.append(PlayerCar1(starting_positions[0][0], starting_positions[0][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         self.cars.append(PlayerCar2(starting_positions[1][0], starting_positions[1][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         self.cars.append(PlayerCar3(starting_positions[2][0], starting_positions[2][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         self.cars.append(PlayerCar4(starting_positions[3][0], starting_positions[3][1],
-                                   self.track_width, self.inner, self.outer, method=1))
+                                    self.track_width, self.inner, self.outer, method=1))
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
             car.fix_angle(self.data["finish_line"]["point"])
@@ -390,7 +398,7 @@ class GameEngine:
 
             for car in self.cars:  # Iterate over all cars
                 state = car.states_generation(self.screen, self.data["checkpoints"], self.cars,
-                                              screenshots=False)
+                                              screenshots=False, debug=False)
                 car.choose_action(self.cars, state)
                 car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
@@ -410,7 +418,8 @@ class GameEngine:
         pygame.quit()
 
 
-def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40, arrow_width=6, step=10):
+def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40,
+                                arrow_width=6, step=10):
     """
     Draw arrows along the centerline of the track to indicate direction.
     :param screen: Pygame surface to draw on.
@@ -460,7 +469,9 @@ def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255),
         left_y = end_y + head_size * math.sin(left_angle)
         right_x = end_x + head_size * math.cos(right_angle)
         right_y = end_y + head_size * math.sin(right_angle)
-        pygame.draw.polygon(screen, arrow_color, [(end_x, end_y), (left_x, left_y), (right_x, right_y)])
+        pygame.draw.polygon(screen, arrow_color,
+                            [(end_x, end_y), (left_x, left_y), (right_x, right_y)])
+
 
 if __name__ == "__main__":
     GameEngine()
