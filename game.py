@@ -311,14 +311,15 @@ class PlayerCar4(Car):
 
 
 class GameEngine:
-    def __init__(self):
+    def __init__(self, visualize=True):
+        self.visualize = visualize
         self.cars = []
         self.pygame_load()
         self.textures_load()
         self.track_load()
         self.cars_load()
+        self.cars_number = len(self.cars)
         self.track_mask = generate_track_mask(self.data, cg.WIDTH, cg.HEIGHT)
-        self.main_loop()
 
     def pygame_load(self):
         pygame.init()
@@ -382,7 +383,7 @@ class GameEngine:
             car.fix_angle(self.data["finish_line"]["point"])
 
     def main_loop(self):
-
+        winners = 0
         running = True
         while running:
             self.screen.blit(cg.BACKGROUND_IMAGE, (0, 0))
@@ -407,15 +408,24 @@ class GameEngine:
                                       cg.WIDTH, cg.HEIGHT)
                 if not car.check_if_on_track(self.track_mask, self.inner, self.outer):
                     car.speed = 0
+                if car.win_state():
+                    winners += 1
+                    self.cars.remove(car)
+                    continue
                 car.draw(self.screen)
                 # Calculate rays and draw them
                 rays, _ = car.get_rays_and_distances(self.track_mask, self.inner, self.cars)
                 car.draw_rays(self.screen, rays)
 
-            pygame.display.flip()
-            self.clock.tick(60)
+            if self.visualize:
+                pygame.display.flip()
+                self.clock.tick(60)
+
+            if winners == self.cars_number:
+                running = False
 
         pygame.quit()
+        return winners
 
 
 def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40,
@@ -474,4 +484,5 @@ def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255),
 
 
 if __name__ == "__main__":
-    GameEngine()
+    game = GameEngine()
+    game.main_loop()

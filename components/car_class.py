@@ -629,3 +629,6 @@ class Car:
             # Save screenshot to file
             pygame.image.save(zoom_surface, "state_screenshot.png")
         return screenshot
+
+    def win_state(self):
+        return self.win
