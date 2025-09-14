@@ -318,7 +318,6 @@ class GameEngine:
         self.track_load()
         self.cars_load()
         self.track_mask = generate_track_mask(self.data, cg.WIDTH, cg.HEIGHT)
-        self.main_loop()
 
     def pygame_load(self):
         pygame.init()
@@ -474,4 +473,5 @@ def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255),
 
 
 if __name__ == "__main__":
-    GameEngine()
+    game = GameEngine()
+    game.main_loop()
