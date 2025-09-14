@@ -412,8 +412,9 @@ class GameEngine:
                 rays, _ = car.get_rays_and_distances(self.track_mask, self.inner, self.cars)
                 car.draw_rays(self.screen, rays)
 
-            pygame.display.flip()
-            self.clock.tick(60)
+            if self.visualize:
+                pygame.display.flip()
+                self.clock.tick(60)
 
         pygame.quit()
 
