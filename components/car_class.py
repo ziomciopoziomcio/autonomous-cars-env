@@ -464,7 +464,24 @@ class Car:
         screenshot = self.state_screenshot(cars, screen, screenshots, debug=debug)
         state.append(screenshot)
 
-        return state
+        # Convert screenshot to float32 and normalize
+        if state[4] is not None:
+            screenshot = state[4].astype(np.float32) / 255.0
+        else:
+            screenshot = np.zeros((200, 200, 3), dtype=np.float32)
+
+        # Convert all state elements to numpy arrays
+        state_np = np.concatenate([
+            np.array(state[0], dtype=np.float32).flatten(),
+            np.array(state[1], dtype=np.float32).flatten(),
+            np.array(state[2], dtype=np.float32).flatten(),
+            np.array(state[3], dtype=np.float32).flatten(),
+            screenshot.flatten()
+        ])
+
+        # Convert to TensorFlow tensor
+        state_tensor = tf.convert_to_tensor(state_np, dtype=tf.float32)
+        return state_tensor
 
     def state_from_angles(self, checkpoints):
         """
