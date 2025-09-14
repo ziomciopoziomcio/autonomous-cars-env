@@ -318,6 +318,7 @@ class GameEngine:
         self.textures_load()
         self.track_load()
         self.cars_load()
+        self.cars_number = len(self.cars)
         self.track_mask = generate_track_mask(self.data, cg.WIDTH, cg.HEIGHT)
 
     def pygame_load(self):
@@ -420,7 +421,7 @@ class GameEngine:
                 pygame.display.flip()
                 self.clock.tick(60)
 
-            if winners == 4:
+            if winners == self.cars_number:
                 running = False
 
         pygame.quit()
