@@ -382,7 +382,7 @@ class GameEngine:
             car.fix_angle(self.data["finish_line"]["point"])
 
     def main_loop(self):
-
+        winners = 0
         running = True
         while running:
             self.screen.blit(cg.BACKGROUND_IMAGE, (0, 0))
@@ -407,6 +407,10 @@ class GameEngine:
                                       cg.WIDTH, cg.HEIGHT)
                 if not car.check_if_on_track(self.track_mask, self.inner, self.outer):
                     car.speed = 0
+                if car.win_state():
+                    winners += 1
+                    self.cars.remove(car)
+                    continue
                 car.draw(self.screen)
                 # Calculate rays and draw them
                 rays, _ = car.get_rays_and_distances(self.track_mask, self.inner, self.cars)
@@ -416,7 +420,11 @@ class GameEngine:
                 pygame.display.flip()
                 self.clock.tick(60)
 
+            if winners == 4:
+                running = False
+
         pygame.quit()
+        return winners
 
 
 def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40,
