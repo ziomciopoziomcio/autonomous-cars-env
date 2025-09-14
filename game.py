@@ -311,7 +311,8 @@ class PlayerCar4(Car):
 
 
 class GameEngine:
-    def __init__(self):
+    def __init__(self, visualize=True):
+        self.visualize = visualize
         self.cars = []
         self.pygame_load()
         self.textures_load()
