@@ -633,3 +633,26 @@ class Car:
 
     def win_state(self):
         return self.win
+
+    def calculate_reward(self, state, new_state, checkpoints, finish_line, outer, inner, cars):
+        """
+        Calculate reward based on state transition.
+        :param state: Previous state.
+        :param new_state: Current state.
+        :param checkpoints: List of checkpoints.
+        :param finish_line: Finish line data.
+        :return: Reward value (float).
+
+        Reward structure:
+        -1 for collision
+        1 for winning
+        values beetween 0 and 1 is progress to finish line (percentage of track completed)
+        values beetween -1 and 0 is negative progress (going backwards)
+        0 for no progress
+        """
+
+        if self.win_state():
+            return 1.0
+        if self.check_collision(outer, inner, cars):
+            return -1.0
+# TODO
