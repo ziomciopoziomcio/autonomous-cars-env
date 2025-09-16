@@ -121,3 +121,5 @@ def generate_empty_file():
     else:
         empty_counter()
 
+if __name__ == "__main__":
+    generate_empty_file()
