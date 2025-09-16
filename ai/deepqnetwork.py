@@ -90,3 +90,34 @@ class DeepQNetwork:
         else:
             self.counter = 0
 
+def generate_empty_file():
+    def empty_network():
+        qnetwork = keras.Sequential()
+        qnetwork.add(keras.layers.Dense(24, input_shape=(17,), activation='relu'))
+        qnetwork.add(keras.layers.Dense(24, activation='relu'))
+        qnetwork.add(keras.layers.Dense(4, activation='linear'))
+        qnetwork.compile(optimizer='adam', loss='mse')
+        qnetwork.save(model_path)
+
+    def empty_counter():
+        with open(counter_path, 'w') as f:
+            json.dump({'counter': 0}, f)
+
+
+    model_path = os.path.join(os.path.dirname(__file__), "model_deep_q_network.keras")
+    counter_path = os.path.join(os.path.dirname(__file__), "counter_deep_q_network.json")
+
+    if os.path.exists(model_path):
+        decision = input("Model file already exists. Overwrite? (y/n): ")
+        if decision.lower() != 'y':
+            empty_network()
+    else:
+        empty_network()
+
+    if os.path.exists(counter_path):
+        decision = input("Counter file already exists. Overwrite? (y/n): ")
+        if decision.lower() != 'y':
+            empty_counter()
+    else:
+        empty_counter()
+
