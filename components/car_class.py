@@ -454,8 +454,9 @@ class Car:
         progress_info = self.progress_info(checkpoints)
         state.append(progress_info)
 
-        # Temporary None for future use
-        state.append(None)
+        # Angles states
+        angles_info = self.state_from_angles(checkpoints)
+        state.append(angles_info)
 
         # Screenshot of the screen
         screenshot = self.state_screenshot(cars, screen, screenshots, debug=debug)
