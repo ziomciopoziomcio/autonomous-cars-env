@@ -74,3 +74,11 @@ class Learning_agent:
 
 
 
+    def save(self):
+        file_path = os.path.join(os.path.dirname(__file__), "model_deep_q_network.keras")
+        self.qnetwork.save(file_path)
+
+        file_path = os.path.join(os.path.dirname(__file__), "counter_deep_q_network.json")
+        with open(file_path, 'w') as f:
+            json.dump({'counter': self.counter}, f)
+
