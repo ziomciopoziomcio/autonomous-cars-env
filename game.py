@@ -421,7 +421,12 @@ class GameEngine:
             for car in self.cars:  # Iterate over all cars
                 state = car.states_generation(self.screen, self.data["checkpoints"], self.cars,
                                               screenshots=False, debug=False)
-                car.choose_action(self.cars, state)
+                action = car.choose_action(self.cars, state, qnetwork)
+                new_state = car.states_generation(self.screen, self.data["checkpoints"], self.cars,
+                                                  screenshots=False, debug=False)
+                reward = car.calculate_reward(state, new_state, self.data["checkpoints"],
+                                              self.data["finish_line"], self.outer, self.inner, self.cars)
+                qnetwork.update(state, action, new_state, reward)
                 car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
                 car.check_finish_line(self.data["checkpoints"], self.data["finish_line"], self.data,
