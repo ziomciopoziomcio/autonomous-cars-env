@@ -2,8 +2,6 @@ import pygame
 import os
 import math
 import json
-import numpy as np
-import tensorflow as tf
 
 import components.globals as cg
 from components.functions_helper import point_in_polygon, scale_points, get_scaling_params, \
