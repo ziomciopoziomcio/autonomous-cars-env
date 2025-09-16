@@ -37,3 +37,26 @@ class Learning_agent:
                 self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter, agent="on")
             self.save()
 
+    def saves_parameters(self):
+        while True:
+            try:
+                saves_value = int(input("Enter after how many saves you want to save the model (minimum 1): "))
+                if saves_value < 1:
+                    print("Value must be at least 1.")
+                else:
+                    self.saves_value = saves_value
+                    break
+            except ValueError:
+                print("Invalid input. Please enter an integer.")
+        while True:
+            try:
+                beetween_saves = int(input("Enter how many games you want to play between saves (minimum 1): "))
+                if beetween_saves < 1:
+                    print("Value must be at least 1.")
+                else:
+                    self.beetween_saves = beetween_saves
+                    break
+            except ValueError:
+                print("Invalid input. Please enter an integer.")
+
+
