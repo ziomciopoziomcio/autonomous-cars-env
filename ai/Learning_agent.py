@@ -8,3 +8,32 @@ import numpy as np
 
 from game import GameEngine
 import time
+
+class Learning_agent:
+    def __init__(self):
+        self.counter = None
+        self.qnetwork = None
+        self.endless_mode = None
+        self.endless_mode_query()
+        if not self.endless_mode:
+            self.beetween_saves = 0
+            self.saves_value = 0
+            self.saves_parameters()
+        self.load()
+        if self.endless_mode:
+            self.endless_mode_func()
+        else:
+            self.regular_mode_func()
+
+    def endless_mode_func(self):
+        while True:
+            for _ in range(200):
+                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter, agent="on")
+            self.save()
+
+    def regular_mode_func(self):
+        for _ in range(self.saves_value):
+            for __ in range(self.beetween_saves):
+                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter, agent="on")
+            self.save()
+
