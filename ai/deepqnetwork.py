@@ -4,6 +4,7 @@ import os
 import keras
 import tensorflow as tf
 
+
 def state_correction(state):
     distances_to_walls = state[0]
     distances_to_cars = state[1]
@@ -16,15 +17,16 @@ def state_correction(state):
 
     state_tensor = tf.convert_to_tensor(state_np, dtype=tf.float32)
     return state_tensor
-    
+
 
 class DeepQNetwork:
-    def __init__(self, qnetwork=None, counter=0, agent="off", exploration_rate=1.0, discount=0.9, learning_rate=0.1):
+    def __init__(self, qnetwork=None, counter=0, agent="off", exploration_rate=1.0, discount=0.9,
+                 learning_rate=0.1):
         if agent == "off":
             self.counter = counter
             self.load()
             self.qnetwork = keras.Sequential()
-            self.qnetwork.add(keras.layers.Dense(24, input_shape(17,), activation='relu'))
+            self.qnetwork.add(keras.layers.Dense(24, input_shape(17, ), activation='relu'))
             self.qnetwork.add(keras.layers.Dense(24, activation='relu'))
             self.qnetwork.add(keras.layers.Dense(4, activation='linear'))
             self.qnetwork.compile(optimizer='adam', loss='mse')
@@ -90,6 +92,7 @@ class DeepQNetwork:
         else:
             self.counter = 0
 
+
 def generate_empty_file():
     def empty_network():
         qnetwork = keras.Sequential()
@@ -102,7 +105,6 @@ def generate_empty_file():
     def empty_counter():
         with open(counter_path, 'w') as f:
             json.dump({'counter': 0}, f)
-
 
     model_path = os.path.join(os.path.dirname(__file__), "model_deep_q_network.keras")
     counter_path = os.path.join(os.path.dirname(__file__), "counter_deep_q_network.json")
@@ -120,6 +122,7 @@ def generate_empty_file():
             empty_counter()
     else:
         empty_counter()
+
 
 if __name__ == "__main__":
     generate_empty_file()
