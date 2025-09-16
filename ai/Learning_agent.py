@@ -60,3 +60,17 @@ class Learning_agent:
                 print("Invalid input. Please enter an integer.")
 
 
+    def endless_mode_query(self):
+        endless_mode = None
+        while endless_mode is None:
+            question = input("Do you want to run in endless mode? (y/n): ").strip().lower()
+            if question == 'y':
+                endless_mode = True
+            elif question == 'n':
+                endless_mode = False
+            else:
+                print("Invalid input.")
+        self.endless_mode = endless_mode
+
+
+
