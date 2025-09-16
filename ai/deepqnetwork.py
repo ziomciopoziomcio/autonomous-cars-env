@@ -38,3 +38,13 @@ class DeepQNetwork:
         )
         self.qnetwork.fit(state, target, epochs=1, verbose=0)
 
+    def get_action(self, state):
+        state = state_correction(state)
+        p = random.random()
+        if p < self.exploration_rate:
+            return random.randint(0, 3)
+        else:
+            result = self.qnetwork(state)
+            index = tf.argmax(result[0])
+            return int(index)
+
