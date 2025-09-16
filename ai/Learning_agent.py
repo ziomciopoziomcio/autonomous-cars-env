@@ -9,6 +9,7 @@ import numpy as np
 from game import GameEngine
 import time
 
+
 class Learning_agent:
     def __init__(self):
         self.counter = None
@@ -28,19 +29,22 @@ class Learning_agent:
     def endless_mode_func(self):
         while True:
             for _ in range(200):
-                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter, agent="on")
+                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter,
+                                                                  agent="on")
             self.save()
 
     def regular_mode_func(self):
         for _ in range(self.saves_value):
             for __ in range(self.beetween_saves):
-                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter, agent="on")
+                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter,
+                                                                  agent="on")
             self.save()
 
     def saves_parameters(self):
         while True:
             try:
-                saves_value = int(input("Enter after how many saves you want to save the model (minimum 1): "))
+                saves_value = int(
+                    input("Enter after how many saves you want to save the model (minimum 1): "))
                 if saves_value < 1:
                     print("Value must be at least 1.")
                 else:
@@ -50,7 +54,8 @@ class Learning_agent:
                 print("Invalid input. Please enter an integer.")
         while True:
             try:
-                beetween_saves = int(input("Enter how many games you want to play between saves (minimum 1): "))
+                beetween_saves = int(
+                    input("Enter how many games you want to play between saves (minimum 1): "))
                 if beetween_saves < 1:
                     print("Value must be at least 1.")
                 else:
@@ -58,7 +63,6 @@ class Learning_agent:
                     break
             except ValueError:
                 print("Invalid input. Please enter an integer.")
-
 
     def endless_mode_query(self):
         endless_mode = None
@@ -71,8 +75,6 @@ class Learning_agent:
             else:
                 print("Invalid input.")
         self.endless_mode = endless_mode
-
-
 
     def save(self):
         file_path = os.path.join(os.path.dirname(__file__), "model_deep_q_network.keras")
@@ -101,6 +103,3 @@ class Learning_agent:
                 self.counter = data.get('counter', 0)
         else:
             self.counter = 0
-
-
-

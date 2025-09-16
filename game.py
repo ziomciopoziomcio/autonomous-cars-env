@@ -220,7 +220,6 @@ class PlayerCar1(Car):
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
 
-
         keys = pygame.key.get_pressed()
         action = None
         if keys[pygame.K_UP]:
@@ -239,7 +238,6 @@ class PlayerCar1(Car):
         return action
 
 
-
 class PlayerCar2(Car):
     def __init__(self, x, y, track_width, inner_line, outer_line, method=1):
         super().__init__(x, y, track_width, inner_line, outer_line)
@@ -249,7 +247,6 @@ class PlayerCar2(Car):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
-
 
         keys = pygame.key.get_pressed()
         action = None
@@ -279,7 +276,6 @@ class PlayerCar3(Car):
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
 
-
         keys = pygame.key.get_pressed()
         action = None
         if keys[pygame.K_UP]:
@@ -307,8 +303,6 @@ class PlayerCar4(Car):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
-
-
 
         keys = pygame.key.get_pressed()
         action = None
@@ -425,7 +419,8 @@ class GameEngine:
                 new_state = car.states_generation(self.screen, self.data["checkpoints"], self.cars,
                                                   screenshots=False, debug=False)
                 reward = car.calculate_reward(state, new_state, self.data["checkpoints"],
-                                              self.data["finish_line"], self.outer, self.inner, self.cars)
+                                              self.data["finish_line"], self.outer, self.inner,
+                                              self.cars)
                 qnetwork.update(state, action, new_state, reward)
                 car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
