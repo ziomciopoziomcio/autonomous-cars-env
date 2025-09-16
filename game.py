@@ -215,10 +215,11 @@ class PlayerCar1(Car):
         super().__init__(x, y, track_width, inner_line, outer_line)
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
 
-    def choose_action(self, cars, state):
+    def choose_action(self, cars, state, qnetwork):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
+
 
         keys = pygame.key.get_pressed()
         action = None
@@ -232,7 +233,11 @@ class PlayerCar1(Car):
             action = 3
         if action is None:
             action = 10
+        action = qnetwork.get_action(state)
         self.update(action, cars)
+
+        return action
+
 
 
 class PlayerCar2(Car):
@@ -240,10 +245,11 @@ class PlayerCar2(Car):
         super().__init__(x, y, track_width, inner_line, outer_line)
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
 
-    def choose_action(self, cars, state):
+    def choose_action(self, cars, state, qnetwork):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
+
 
         keys = pygame.key.get_pressed()
         action = None
@@ -257,7 +263,10 @@ class PlayerCar2(Car):
             action = 3
         if action is None:
             action = 10
+        action = qnetwork.get_action(state)
         self.update(action, cars)
+
+        return action
 
 
 class PlayerCar3(Car):
@@ -265,10 +274,11 @@ class PlayerCar3(Car):
         super().__init__(x, y, track_width, inner_line, outer_line)
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
 
-    def choose_action(self, cars, state):
+    def choose_action(self, cars, state, qnetwork):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
+
 
         keys = pygame.key.get_pressed()
         action = None
@@ -282,7 +292,10 @@ class PlayerCar3(Car):
             action = 3
         if action is None:
             action = 10
+        action = qnetwork.get_action(state)
         self.update(action, cars)
+
+        return action
 
 
 class PlayerCar4(Car):
@@ -290,10 +303,12 @@ class PlayerCar4(Car):
         super().__init__(x, y, track_width, inner_line, outer_line)
         self.method = method  # 1 - arrows, 2 - WASD (not implemented yet)
 
-    def choose_action(self, cars, state):
+    def choose_action(self, cars, state, qnetwork):
         # IMPORTANT
         # To turn on screenshots, set screenshots=True in car.states_generation(..., screenshots=True)!
         # You could also save screenshots to file! Just add debug=True to car.states_generation
+
+
 
         keys = pygame.key.get_pressed()
         action = None
@@ -307,7 +322,11 @@ class PlayerCar4(Car):
             action = 3
         if action is None:
             action = 10
+
+        action = qnetwork.get_action(state)
         self.update(action, cars)
+
+        return action
 
 
 class GameEngine:
