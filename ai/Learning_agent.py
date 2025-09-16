@@ -82,3 +82,25 @@ class Learning_agent:
         with open(file_path, 'w') as f:
             json.dump({'counter': self.counter}, f)
 
+    def load(self):
+        model_path = os.path.join(os.path.dirname(__file__), "model_deep_q_network.keras")
+        counter_path = os.path.join(os.path.dirname(__file__), "counter_deep_q_network.json")
+
+        if os.path.exists(model_path):
+            self.qnetwork = keras.models.load_model(model_path)
+        else:
+            self.qnetwork = keras.Sequential()
+            self.qnetwork.add(keras.layers.Dense(24, input_shape=(17,), activation='relu'))
+            self.qnetwork.add(keras.layers.Dense(24, activation='relu'))
+            self.qnetwork.add(keras.layers.Dense(4, activation='linear'))
+            self.qnetwork.compile(optimizer='adam', loss='mse')
+
+        if os.path.exists(counter_path):
+            with open(counter_path, 'r') as f:
+                data = json.load(f)
+                self.counter = data.get('counter', 0)
+        else:
+            self.counter = 0
+
+
+
