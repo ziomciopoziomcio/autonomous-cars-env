@@ -383,6 +383,8 @@ class GameEngine:
             car.fix_angle(self.data["finish_line"]["point"])
 
     def main_loop(self, qnetwork=None, counter=None):
+        if counter is not None:
+            counter += 1
         winners = 0
         running = True
         while running:
