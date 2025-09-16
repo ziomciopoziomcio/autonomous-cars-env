@@ -22,3 +22,19 @@ class DeepQNetwork:
         self.exploration_rate = exploration_rate
         self.discount = discount
         self.learning_rate = learning_rate
+
+    def update(self, state, action, next_state, reward):
+        state = state_correction(state)
+        next_state = state_correction(next_state)
+        result = self.qnetwork(state)
+        next_result = self.qnetwork(next_state)
+        target = tf.identity(result)
+        max_next_q = tf.reduce_max(next_result[0])
+        updated_value = reward + self.discount * max_next_q
+        target = tf.tensor_scatter_nd_update(
+            target,
+            indices=[[0, action]],
+            updates=[target[0, action] + self.learning_rate * (updated_value - target[0, action])]
+        )
+        self.qnetwork.fit(state, target, epochs=1, verbose=0)
+
