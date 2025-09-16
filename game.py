@@ -382,7 +382,7 @@ class GameEngine:
             car.angle = angle
             car.fix_angle(self.data["finish_line"]["point"])
 
-    def main_loop(self):
+    def main_loop(self, qnetwork=None, counter=None):
         winners = 0
         running = True
         while running:
@@ -425,7 +425,7 @@ class GameEngine:
                 running = False
 
         pygame.quit()
-        return winners
+        return qnetwork, counter
 
 
 def draw_track_direction_arrows(screen, inner, outer, arrow_color=(255, 0, 255), arrow_length=40,
