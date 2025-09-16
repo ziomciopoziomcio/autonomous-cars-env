@@ -4,6 +4,20 @@ import os
 import keras
 import tensorflow as tf
 
+def state_correction(state):
+    distances_to_walls = state[0]
+    distances_to_cars = state[1]
+    compass = state[3][0]
+    state_np = np.concatenate([
+        np.array(distances_to_walls, dtype=np.float32).flatten(),
+        np.array(distances_to_cars, dtype=np.float32).flatten(),
+        np.array(compass, dtype=np.float32)
+    ])
+
+    state_tensor = tf.convert_to_tensor(state_np, dtype=tf.float32)
+    return state_tensor
+    
+
 class DeepQNetwork:
     def __init__(self, qnetwork=None, counter=0, agent="off", exploration_rate=1.0, discount=0.9, learning_rate=0.1):
         if agent == "off":
