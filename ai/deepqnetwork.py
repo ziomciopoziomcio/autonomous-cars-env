@@ -10,10 +10,10 @@ class DeepQNetwork:
             self.counter = counter
             self.load()
             self.qnetwork = keras.Sequential()
-            self.qnetwork.add(keras.layers.Dense(24, input_shape=(5,), activation="relu"))
-            self.qnetwork.add(keras.layers.Dense(24, activation="relu"))
-            self.qnetwork.add(keras.layers.Dense(4, activation="linear"))
-            self.qnetwork.compile(optimiser='adam', loss='mse')
+            self.qnetwork.add(keras.layers.Dense(24, input_shape(17,), activation='relu'))
+            self.qnetwork.add(keras.layers.Dense(24, activation='relu'))
+            self.qnetwork.add(keras.layers.Dense(4, activation='linear'))
+            self.qnetwork.compile(optimizer='adam', loss='mse')
         elif agent == "on":
             self.qnetwork = qnetwork
             self.counter = counter
