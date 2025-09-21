@@ -48,6 +48,9 @@ class Car:
 
         self._state_screenshot_map_data = None  # Cache for map data used in state_screenshot
 
+        self.prev_state = None
+        self.state = None
+
     def fix_angle(self, finish_point):
         """
         Adjust the car's angle so it looks directly along the finish line segment
@@ -464,6 +467,9 @@ class Car:
         screenshot = self.state_screenshot(cars, screen, screenshots, debug=debug)
         state.append(screenshot)
 
+        self.prev_state = self.state
+        self.state = state
+
         return state
 
     def state_from_angles(self, checkpoints):
@@ -636,7 +642,7 @@ class Car:
     def win_state(self):
         return self.win
 
-    def calculate_reward(self, state, new_state, checkpoints, finish_line, outer, inner, cars):
+    def calculate_reward(self, checkpoints, finish_line, outer, inner, cars):
         """
         Calculate reward based on state transition.
         :param state: Previous state.
