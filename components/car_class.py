@@ -29,6 +29,8 @@ class Car:
 
         self.set_image(track_width=track_width)
 
+        self.wrong_position = False
+
         # checkpoints, finish line
         self.checkpoints = []
         self.win = False
@@ -94,9 +96,11 @@ class Car:
             self.speed = min(self.speed + self.turn_slowdown, 0)
 
     def _handle_collision(self, old_x, old_y, cars):
+        self.wrong_position = False
         if self.check_collision(self.outer_polygon, self.inner_polygon, cars):
             self.x, self.y = old_x, old_y
             self.speed = 0
+            self.wrong_position = True
 
     def update(self, action, cars):
         if self.win is True:
