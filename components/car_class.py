@@ -43,8 +43,8 @@ class Car:
         self.rays = []
         self.distances = []
 
-        self.white_car = pygame.image.load(os.path.join("imgs", "white-car.png")).convert_alpha()
-        self.purple_car = pygame.image.load(os.path.join("imgs", "purple-car.png")).convert_alpha()
+        self.white_car = pygame.image.load(os.path.join(os.path.dirname(__file__), "..", "imgs", "white-car.png")).convert_alpha()
+        self.purple_car = pygame.image.load(os.path.join(os.path.dirname(__file__), "..", "imgs", "purple-car.png")).convert_alpha()
 
         self._state_screenshot_map_data = None  # Cache for map data used in state_screenshot
 
