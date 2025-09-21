@@ -3,18 +3,20 @@ import json
 import os
 import keras
 import tensorflow as tf
+import numpy as np
 
 
 def state_correction(state):
     distances_to_walls = state[0]
     distances_to_cars = state[1]
-    compass = state[3][0]
+    compass = [state[3][0]]  # Use only compass (car's current angle) as a 1D array
     state_np = np.concatenate([
         np.array(distances_to_walls, dtype=np.float32).flatten(),
         np.array(distances_to_cars, dtype=np.float32).flatten(),
         np.array(compass, dtype=np.float32)
     ])
-
+    # Add batch dimension for Keras model
+    state_np = np.expand_dims(state_np, axis=0)
     state_tensor = tf.convert_to_tensor(state_np, dtype=tf.float32)
     return state_tensor
 
