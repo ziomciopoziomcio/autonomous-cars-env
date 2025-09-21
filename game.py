@@ -7,7 +7,13 @@ import components.globals as cg
 from components.functions_helper import get_scaling_params, scale_points, lines_params_prep
 from components.car_class import Car
 
-cg.MAP_FILE = os.path.join("map_generators", "map_data.json")
+from ai import deepqnetwork as dqn
+
+# Correct sys path
+
+
+
+cg.MAP_FILE = os.path.join(os.path.dirname(__file__), "map_generators", "map_data.json")
 
 # Constants
 
@@ -343,11 +349,11 @@ class GameEngine:
         self.data = load_map(cg.MAP_FILE)
 
     def textures_load(self):
-        cg.FINISH_TEXTURE = pygame.image.load(os.path.join("imgs", "finish.png")).convert_alpha()
-        cg.TRACK_IMAGE = pygame.image.load(os.path.join("imgs", "road.jpg")).convert()
+        cg.FINISH_TEXTURE = pygame.image.load(os.path.join(os.path.dirname(__file__), "imgs", "finish.png")).convert_alpha()
+        cg.TRACK_IMAGE = pygame.image.load(os.path.join(os.path.dirname(__file__), "imgs", "road.jpg")).convert()
         cg.TRACK_IMAGE = pygame.transform.scale(cg.TRACK_IMAGE, (cg.WIDTH, cg.HEIGHT))
         # Load and scale the background image to fill the entire screen
-        cg.BACKGROUND_IMAGE = pygame.image.load(os.path.join("imgs", "grass.jpg")).convert()
+        cg.BACKGROUND_IMAGE = pygame.image.load(os.path.join(os.path.dirname(__file__), "imgs", "grass.jpg")).convert()
         cg.BACKGROUND_IMAGE = pygame.transform.scale(cg.BACKGROUND_IMAGE, (cg.WIDTH, cg.HEIGHT))
 
     def track_load(self):

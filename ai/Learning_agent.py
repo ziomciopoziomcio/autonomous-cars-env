@@ -9,6 +9,7 @@ import numpy as np
 from game import GameEngine
 import time
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class Learning_agent:
     def __init__(self):

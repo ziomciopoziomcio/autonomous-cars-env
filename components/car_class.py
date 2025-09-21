@@ -291,7 +291,9 @@ class Car:
             raise ValueError("Too many cars created, not enough colors available.")
 
         # Load the image
-        self.img = pygame.image.load(os.path.join("imgs", cg.COLORS[cg.USED_CARS])).convert_alpha()
+        self.img = pygame.image.load(
+            os.path.join(os.path.dirname(__file__), "..", "imgs", cg.COLORS[cg.USED_CARS])
+        ).convert_alpha()
 
         # Increment cg.USED_CARS only after the check passes
         cg.USED_CARS += 1
