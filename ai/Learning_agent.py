@@ -32,7 +32,7 @@ class Learning_agent:
         while True:
             for _ in range(200):
                 self.qnetwork, self.counter = self.game.main_loop(self.qnetwork, self.counter)
-            self.save()
+                self.save()
 
     def regular_mode_func(self):
         for _ in range(self.saves_value):
