@@ -103,3 +103,6 @@ class Learning_agent:
                 self.counter = data.get('counter', 0)
         else:
             self.counter = 0
+
+if __name__ == '__main__':
+    Learning_agent()
