@@ -392,12 +392,12 @@ class GameEngine:
         #              starting_positions]
         self.cars.append(PlayerCar1(starting_positions[0][0], starting_positions[0][1],
                                     self.track_width, self.inner, self.outer, method=1))
-        self.cars.append(PlayerCar2(starting_positions[1][0], starting_positions[1][1],
-                                    self.track_width, self.inner, self.outer, method=1))
-        self.cars.append(PlayerCar3(starting_positions[2][0], starting_positions[2][1],
-                                    self.track_width, self.inner, self.outer, method=1))
-        self.cars.append(PlayerCar4(starting_positions[3][0], starting_positions[3][1],
-                                    self.track_width, self.inner, self.outer, method=1))
+        # self.cars.append(PlayerCar2(starting_positions[1][0], starting_positions[1][1],
+        #                             self.track_width, self.inner, self.outer, method=1))
+        # self.cars.append(PlayerCar3(starting_positions[2][0], starting_positions[2][1],
+        #                             self.track_width, self.inner, self.outer, method=1))
+        # self.cars.append(PlayerCar4(starting_positions[3][0], starting_positions[3][1],
+        #                             self.track_width, self.inner, self.outer, method=1))
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
             car.fix_angle(self.data["finish_line"]["point"])
