@@ -430,6 +430,8 @@ class GameEngine:
                                                   screenshots=False, debug=False)
                 reward = car.calculate_reward(self.data["checkpoints"],
                                               self.data["finish_line"], self.outer, self.inner, self.cars, self.track_mask)
+                if car == self.cars[0]:
+                    print(f"Action: {action}, Reward: {reward}")
                 self.qnetwork.update(state, action, new_state, reward)
                 car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
