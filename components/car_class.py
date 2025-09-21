@@ -645,8 +645,7 @@ class Car:
     def calculate_reward(self, checkpoints, finish_line, outer, inner, cars):
         """
         Calculate reward based on state transition.
-        :param state: Previous state.
-        :param new_state: Current state.
+        prev_state and state from class attributes
         :param checkpoints: List of checkpoints.
         :param finish_line: Finish line data.
         :return: Reward value (float).
