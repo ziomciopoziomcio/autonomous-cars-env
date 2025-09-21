@@ -429,9 +429,7 @@ class GameEngine:
                 new_state = car.states_generation(self.screen, self.data["checkpoints"], self.cars,
                                                   screenshots=False, debug=False)
                 reward = car.calculate_reward(self.data["checkpoints"],
-                                              self.data["finish_line"], self.outer, self.inner,
-                                              self.cars)
-                                              self.cars, self.track_mask)
+                                              self.data["finish_line"], self.outer, self.inner, self.cars, self.track_mask)
                 self.qnetwork.update(state, action, new_state, reward)
                 car.check_checkpoints(self.data["checkpoints"], self.data, self.outer, self.inner,
                                       cg.WIDTH, cg.HEIGHT)
