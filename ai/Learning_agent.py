@@ -22,6 +22,7 @@ class Learning_agent:
             self.saves_value = 0
             self.saves_parameters()
         self.load()
+        self.game = GameEngine()
         if self.endless_mode:
             self.endless_mode_func()
         else:
@@ -30,15 +31,13 @@ class Learning_agent:
     def endless_mode_func(self):
         while True:
             for _ in range(200):
-                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter,
-                                                                  agent="on")
+                self.qnetwork, self.counter = self.game.main_loop(self.qnetwork, self.counter)
             self.save()
 
     def regular_mode_func(self):
         for _ in range(self.saves_value):
             for __ in range(self.beetween_saves):
-                self.qnetwork, self.counter = GameEngine.run_game(self.qnetwork, self.counter,
-                                                                  agent="on")
+                self.qnetwork, self.counter = self.game.main_loop(self.qnetwork, self.counter)
             self.save()
 
     def saves_parameters(self):
