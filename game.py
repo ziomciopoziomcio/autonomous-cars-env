@@ -401,6 +401,7 @@ class GameEngine:
         for car, (_, _, angle) in zip(self.cars, starting_positions):
             car.angle = angle
             car.fix_angle(self.data["finish_line"]["point"])
+            car.get_rays_and_distances(self.track_mask, self.inner, self.cars)
 
     def main_loop(self, qnetwork=None, counter=None):
         if counter is not None:
