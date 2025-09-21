@@ -646,7 +646,7 @@ class Car:
     def win_state(self):
         return self.win
 
-    def calculate_reward(self, checkpoints, finish_line, outer, inner, cars):
+    def calculate_reward(self, checkpoints, finish_line, outer, inner, cars, track_mask):
         """
         Calculate reward based on state transition.
         prev_state and state from class attributes
@@ -657,17 +657,14 @@ class Car:
         Reward structure:
         -1 for collision
         1 for winning
-        values beetween 0 and 1 is progress to finish line (percentage of track completed)
-        values beetween -1 and 0 is negative progress (going backwards)
+        values between 0 and 1 is progress to finish line (percentage of track completed)
+        values between -1 and 0 is negative progress (going backwards)
         0 for no progress
         """
-
         if self.win_state():
             return 1.0
-        if self.check_collision(outer, inner, cars):
+        if self.wrong_position:
             return -1.0
-
-        # If no previous state or current state, cannot compute progress
         if self.prev_state is None or self.state is None:
             return 0.0
 
@@ -682,36 +679,39 @@ class Car:
         if num_checkpoints == 0:
             return 0.0
 
-        # Normalize progress: 0 = start, 1 = finish line
-        # Each checkpoint is 1/num_checkpoints of the way
-        prev_total = prev_cp_idx + (1 - min(prev_dist / 1.0, 1.0))  # fallback if dist=0
-        curr_total = curr_cp_idx + (1 - min(curr_dist / 1.0, 1.0))
-        # But we want to use the actual distance to next checkpoint, normalized by the max possible distance
-        # We'll use the sum of distances between checkpoints as the track length
-        # Compute track length if possible
-        track_length = 0.0
+        # Calculate total track length (sum of all checkpoint segments)
+        total_track_length = 0.0
         for i in range(num_checkpoints):
             a = checkpoints[i]
             b = checkpoints[(i + 1) % num_checkpoints]
-            track_length += math.dist(a, b)
-        # Compute previous and current progress along the track
+            total_track_length += math.dist(a, b)
+
+        # Calculate progress along the track for prev and curr state
         def progress_along_track(cp_idx, dist):
-            # Sum distances up to cp_idx
             d = 0.0
             for i in range(cp_idx):
                 a = checkpoints[i]
                 b = checkpoints[(i + 1) % num_checkpoints]
                 d += math.dist(a, b)
-            # Subtract distance to next checkpoint
-            d += max(0, math.dist(checkpoints[cp_idx], (self.x, self.y)))
+            d += max(0, dist)
             return d
+
         prev_track_progress = progress_along_track(prev_cp_idx, prev_dist)
         curr_track_progress = progress_along_track(curr_cp_idx, curr_dist)
-        # Normalize to [0, 1]
-        prev_norm = prev_track_progress / track_length if track_length > 0 else 0.0
-        curr_norm = curr_track_progress / track_length if track_length > 0 else 0.0
-        # Reward is the difference in normalized progress
+
+        # Normalize progress to [0, 1]
+        prev_norm = prev_track_progress / total_track_length if total_track_length > 0 else 0.0
+        curr_norm = curr_track_progress / total_track_length if total_track_length > 0 else 0.0
+
+        # Reward is the change in normalized progress
         reward = curr_norm - prev_norm
-        # Clamp reward to [-1, 1]
-        reward = max(-1.0, min(1.0, reward))
+
+        # Clamp reward to (-1, 1), but never return exactly -1 or 1 except for reserved cases
+        if reward > 0.99:
+            reward = 0.99
+        elif reward < -0.99:
+            reward = -0.99
+        # If no progress, return 0
+        if abs(reward) < 1e-6:
+            return 0.0
         return reward
