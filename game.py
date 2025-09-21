@@ -336,9 +336,10 @@ class GameEngine:
         self.pygame_load()
         self.textures_load()
         self.track_load()
+        self.track_mask = generate_track_mask(self.data, cg.WIDTH, cg.HEIGHT)
         self.cars_load()
         self.cars_number = len(self.cars)
-        self.track_mask = generate_track_mask(self.data, cg.WIDTH, cg.HEIGHT)
+
 
     def pygame_load(self):
         pygame.init()
